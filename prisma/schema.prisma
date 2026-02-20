@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Design Pattern Note: Relational Database Modeling
+// 
+// Why do we track `cognitoId` separately instead of just using it as the primary key?
+// It is a best practice to decouple your internal application identity (the `id` field)
+// from your external identity provider's identity (`cognitoId`). If we ever switch away
+// from AWS Cognito to Auth0 or Firebase, we only need to update the `cognitoId` field,
+// and all the relations (like `User` to `PantryItem`) remain perfectly intact.
+// ---------------------------------------------------------------------------
+model User {
+  id        String       @id @default(uuid())
+  cognitoId String       @unique
+  email     String       @unique
+  items     PantryItem[]
+  
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model PantryItem {
+  id          String    @id @default(uuid())
+  name        String
+  quantity    Int       @default(1)
+  unit        String?   // e.g., 'pcs', 'kg', 'liters'
+  category    Category  @default(OTHER)
+  expiryDate  DateTime?
+  imageUrl    String?
+
+  // Association / Foreign Key
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Category {
+  PRODUCE
+  DAIRY
+  MEAT
+  PANTRY
+  FROZEN
+  BEVERAGE
+  OTHER
+}
