@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { Category } from '@prisma/client';
 
 // ---------------------------------------------------------------------------
 // Educational Note: Resolvers in GraphQL
@@ -21,7 +22,7 @@ export const resolvers = {
     },
   },
   Mutation: {
-    addPantryItem: async (_: any, args: any) => {
+    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string }) => {
       // ---------------------------------------------------------------------------
       // Educational Note: GraphQL Args vs Body Parser
       // 
@@ -55,7 +56,7 @@ export const resolvers = {
       });
     },
     
-    deletePantryItem: async (_: any, { id }: { id: string }) => {
+    deletePantryItem: async (_: unknown, { id }: { id: string }) => {
       await prisma.pantryItem.delete({
         where: { id }
       });

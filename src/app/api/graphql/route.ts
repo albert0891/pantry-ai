@@ -3,6 +3,21 @@ import { ApolloServer } from '@apollo/server';
 import { typeDefs } from '@/graphql/schema';
 import { resolvers } from '@/graphql/resolvers';
 import { NextRequest } from 'next/server';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+
+// ---------------------------------------------------------------------------
+// Design Pattern Note: Middleware / Interceptor (Backend)
+//
+// To secure the API, we need to verify the token sent by the client.
+// We use the `aws-jwt-verify` library to securely unpack and cryptographically 
+// verify the Cognito JWT token without making a round-trip to the AWS servers.
+// ---------------------------------------------------------------------------
+
+const verifier = CognitoJwtVerifier.create({
+  userPoolId: process.env.NEXT_PUBLIC_AWS_USER_POOL_ID!,
+  tokenUse: "id", // We expect the ID token from Amplify
+  clientId: process.env.NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID!,
+});
 
 // ---------------------------------------------------------------------------
 // Design Pattern Note: Adapter Pattern
@@ -22,13 +37,26 @@ const server = new ApolloServer({
 const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   context: async (req) => {
     // ---------------------------------------------------------------------------
-    // Design Pattern Note: Middleware / Interceptor Pattern
+    // Design Pattern Note: Context Injection
     //
-    // Similar to an HttpInterceptor in Angular, we can intercept every request
-    // here to decode the incoming AWS Cognito JWT and attach the User to the GraphQL 
-    // Context. Every resolver will then have access to the authenticated user.
+    // We intercept every request here. We look for the 'Authorization: Bearer <token>' 
+    // header sent by our frontend ApolloProvider. If the token is valid, we extract 
+    // the user's `sub` (Subject ID) from Cognito and pass it to every resolver.
     // ---------------------------------------------------------------------------
-    return { req }; // Placeholder until Phase 4 Auth
+    const authHeader = req.headers.get('authorization');
+    let userId: string | null = null;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const payload = await verifier.verify(token);
+        userId = payload.sub; // The unique Cognito user ID
+      } catch (err) {
+        console.warn("Invalid or expired token provided to GraphQL API", err);
+      }
+    }
+
+    return { req, userId };
   },
 });
 
