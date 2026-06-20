@@ -60,5 +60,11 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   },
 });
 
-// Export the handler for both GET and POST requests (required by App Router)
-export { handler as GET, handler as POST };
+// Wrap the handler to satisfy Next.js 15 App Router types
+export async function GET(request: NextRequest, context: any) {
+  return handler(request, context);
+}
+
+export async function POST(request: NextRequest, context: any) {
+  return handler(request, context);
+}

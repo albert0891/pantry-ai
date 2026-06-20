@@ -21,6 +21,12 @@ export const typeDefs = gql`
     OTHER
   }
 
+  enum BoardState {
+    TO_BUY
+    IN_PANTRY
+    CONSUMED
+  }
+
   type User {
     id: ID!
     email: String!
@@ -35,6 +41,7 @@ export const typeDefs = gql`
     category: Category!
     expiryDate: String
     imageUrl: String
+    boardState: BoardState!
   }
 
   # The root Query type defines all GET operations (Read)
@@ -54,5 +61,7 @@ export const typeDefs = gql`
     ): PantryItem!
     
     deletePantryItem(id: ID!): Boolean!
+    
+    updateItemState(id: ID!, newState: BoardState!): PantryItem!
   }
 `;

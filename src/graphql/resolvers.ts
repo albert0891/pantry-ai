@@ -61,6 +61,13 @@ export const resolvers = {
         where: { id }
       });
       return true;
+    },
+
+    updateItemState: async (_: unknown, args: { id: string, newState: 'TO_BUY' | 'IN_PANTRY' | 'CONSUMED' }) => {
+      return await prisma.pantryItem.update({
+        where: { id: args.id },
+        data: { boardState: args.newState }
+      });
     }
   }
 };
