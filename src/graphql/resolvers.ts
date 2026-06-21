@@ -111,40 +111,59 @@ export const resolvers = {
       const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
       if (!item || item.userId !== user.id) throw new Error("Forbidden");
 
-      if (args.amount >= item.quantity) {
-        // Move entire item to targetState
-        return await prisma.pantryItem.update({
-          where: { id: args.id },
-          data: { boardState: args.targetState }
-        });
+      const moveAmount = Math.min(args.amount, item.quantity);
+
+      // Look for an existing identical item in the target state
+      // We match by name, unit, and expiryDate to ensure we only merge truly identical items.
+      const existingTargetItem = await prisma.pantryItem.findFirst({
+        where: {
+          userId: user.id,
+          boardState: args.targetState,
+          name: item.name,
+          unit: item.unit,
+          expiryDate: item.expiryDate 
+        }
+      });
+
+      if (moveAmount >= item.quantity) {
+        // Moving the ENTIRE item
+        if (existingTargetItem && existingTargetItem.id !== item.id) {
+          // Merge into the existing target item
+          const mergedItem = await prisma.pantryItem.update({
+            where: { id: existingTargetItem.id },
+            data: { quantity: existingTargetItem.quantity + moveAmount }
+          });
+          // Delete the original item since it was completely moved and merged
+          await prisma.pantryItem.delete({ where: { id: item.id } });
+          return mergedItem;
+        } else {
+          // No identical item exists in the target state, so just move the card
+          return await prisma.pantryItem.update({
+            where: { id: item.id },
+            data: { boardState: args.targetState }
+          });
+        }
       } else {
-        // Split logic
-        const updatedItem = await prisma.pantryItem.update({
-          where: { id: args.id },
-          data: { quantity: item.quantity - args.amount }
+        // Splitting the item (moving a PARTIAL amount)
+        // 1. Reduce the original item's quantity
+        const updatedSourceItem = await prisma.pantryItem.update({
+          where: { id: item.id },
+          data: { quantity: item.quantity - moveAmount }
         });
 
-        // Auto-merge with existing identical item in targetState
-        const existingTargetItem = await prisma.pantryItem.findFirst({
-          where: {
-            userId: user.id,
-            boardState: args.targetState,
-            name: item.name,
-            unit: item.unit,
-            expiryDate: item.expiryDate 
-          }
-        });
-
+        // 2. Add to target
         if (existingTargetItem) {
+          // Merge into existing identical item
           await prisma.pantryItem.update({
             where: { id: existingTargetItem.id },
-            data: { quantity: existingTargetItem.quantity + args.amount }
+            data: { quantity: existingTargetItem.quantity + moveAmount }
           });
         } else {
+          // Create a new card in the target state
           await prisma.pantryItem.create({
             data: {
               name: item.name,
-              quantity: args.amount,
+              quantity: moveAmount,
               unit: item.unit,
               category: item.category,
               expiryDate: item.expiryDate,
@@ -154,7 +173,7 @@ export const resolvers = {
             }
           });
         }
-        return updatedItem;
+        return updatedSourceItem;
       }
     },
 

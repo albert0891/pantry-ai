@@ -12,7 +12,7 @@
 - Extracted Gemini AI logic and prompts from `resolvers.ts` into a dedicated `src/lib/ai/recipeGenerator.ts` service for better separation of concerns.
 - Finalized premium Glassmorphism aesthetic with color-tinted ambient background blobs and strict `border-2` layouts to prevent mobile layout shifts.
 - Upgraded components (`Navbar`, `ItemFormDialog`, `PantryItemCard`) with strong physical hover interactions (`scale-110`, solid color feedback) and deep `backdrop-blur-3xl` glass panels for maximum contrast and readability.
-
+- Fixed critical data duplication bug in `moveItem` GraphQL resolver by enforcing strict item merging (matching by name, unit, and expiryDate) when moving items between columns, resolving frontend Apollo cache errors.
 ### Next Steps:
 - Implement Voice Input (Web Speech API) for friction-less pantry logging.
 - Implement Mock Receipt Scanner using Gemini Multimodal.
