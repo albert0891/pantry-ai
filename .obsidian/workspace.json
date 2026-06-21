@@ -185,6 +185,7 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "docs/react-architecture-notes.md",
     "test-models.js",
     "docs/aws-cognito-notes.md",
     "docs/commands-cheatsheet.md",
@@ -204,7 +205,6 @@
     "node_modules/protobufjs/node_modules/long/umd/package.json",
     "node_modules/protobufjs/node_modules/long/umd/types.d.ts",
     "node_modules/protobufjs/node_modules/long/umd/index.js",
-    "node_modules/protobufjs/node_modules/long/umd/index.d.ts",
     "node_modules/protobufjs/node_modules/long/README.md",
     "node_modules/protobufjs/ext/debug/README.md",
     "node_modules/protobufjs/ext/descriptor/README.md",
