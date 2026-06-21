@@ -44,10 +44,25 @@ export const typeDefs = gql`
     boardState: BoardState!
   }
 
+  type Recipe {
+    id: ID!
+    title: String!
+    ingredients: [String!]!
+    instructions: [String!]!
+    createdAt: String!
+  }
+
+  type GeneratedRecipe {
+    title: String!
+    ingredients: [String!]!
+    instructions: [String!]!
+  }
+
   # The root Query type defines all GET operations (Read)
   type Query {
     hello: String
     myPantryItems: [PantryItem!]!
+    myRecipes: [Recipe!]!
   }
 
   # The root Mutation type defines all POST/PUT/DELETE operations (Write)
@@ -60,8 +75,27 @@ export const typeDefs = gql`
       expiryDate: String
     ): PantryItem!
     
+    editPantryItem(
+      id: ID!
+      name: String!
+      quantity: Int!
+      unit: String
+      category: Category!
+      expiryDate: String
+    ): PantryItem!
+
     deletePantryItem(id: ID!): Boolean!
     
     updateItemState(id: ID!, newState: BoardState!): PantryItem!
+    
+    moveItem(id: ID!, amount: Int!, targetState: BoardState!): PantryItem!
+    
+    generateRecipe(mustUseItemIds: [String!]!): GeneratedRecipe!
+    
+    saveRecipe(
+      title: String!
+      ingredients: [String!]!
+      instructions: [String!]!
+    ): Recipe!
   }
 `;

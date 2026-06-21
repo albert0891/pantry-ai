@@ -1,18 +1,18 @@
-# 領域字典 (Domain Context & Ubiquitous Language)
+# Domain Context (Glossary)
 
-這份文件定義了 `pantry-ai` 專案中使用的核心名詞與業務邏輯。開發過程中的所有溝通與程式碼命名，都必須嚴格遵守此處的定義。
+這份文件定義了 Pantry AI 專案的核心領域術語 (Domain Language)，以確保所有開發者與 AI 助手在溝通時使用精確且一致的詞彙。
 
-## 核心名詞 (Core Terminology)
+## 核心實體 (Core Entities)
 
-*   **PantryItem (食材項目)**：使用者儲藏室內的一項具體實體紀錄。
-    *   一個 `PantryItem` 必須包含 `name` (名稱)、`quantity` (數量)、`category` (分類)。
-    *   **Expiration (過期日)**：可選填 (`expiryDate`)。如果未填寫，則不具備追蹤功能。
-    *   **Status (過期狀態)**：不會存進資料庫。由前端在渲染時動態計算：
-        *   系統會根據該物品的 `Category` (分類) 給予固定的提醒天數（例如：生鮮 2 天前提醒，乾貨 14 天前提醒）。
-        *   當時間進入提醒區間，狀態變更為 `Expiring Soon`；超過 `expiryDate` 則為 `Expired`。
-    *   **BoardState (看板狀態)**：這是一項新增的欄位，代表物品在生命週期中的位置：
-        *   `TO_BUY`：在購物清單中。
-        *   `IN_PANTRY`：在儲藏室/冰箱中。
-        *   `CONSUMED`：已消耗完畢或丟棄。
+*   **PantryItem (庫存物品)**: 系統中追蹤的單一食物或食材。擁有狀態 (`boardState`)、分類 (`category`) 與過期日。
+*   **BoardState (看板狀態)**:
+    *   `TO_BUY`: 待購清單。
+    *   `IN_PANTRY`: 已在儲藏室中的現有庫存。
+    *   `CONSUMED`: 已消耗或吃完的物品紀錄。
 
-*   **Category (分類)**：用來將 `PantryItem` 進行歸類的 Enum 標籤（如 PRODUCE 生鮮、DAIRY 乳品）。目前做為 UI 上的視覺標籤與篩選條件，但不強制將畫面切分成過大的獨立區塊。
+## AI 食譜系統 (AI Recipe System)
+
+*   **AI Chef (AI 主廚)**: 系統的核心智能功能，負責根據使用者的庫存生成食譜。
+*   **Must-Use Ingredient (必用食材)**: 使用者透過在介面上「勾選」所指定的食材。AI 生成食譜時**絕對必須**包含這些食材作為主軸。
+*   **Supporting Ingredient (輔助食材)**: 在 `IN_PANTRY` 中未被勾選的其他現有食材。AI 可以「視情況自由搭配」這些食材來完善食譜。
+*   **Recipe (食譜)**: AI Chef 根據必用食材與輔助食材所生成的一道料理建議，包含菜名、所需食材列表與簡要烹飪步驟。

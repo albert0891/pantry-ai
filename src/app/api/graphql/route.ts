@@ -46,6 +46,12 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
     const authHeader = req.headers.get('authorization');
     let userId: string | null = null;
 
+    // 開發者模式：如果啟用 MOCK_AUTH，直接放行並給予假的 userId
+    if (process.env.MOCK_AUTH === 'true') {
+      userId = 'mock-user-id';
+      return { req, userId };
+    }
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       try {

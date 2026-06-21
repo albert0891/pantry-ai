@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, AuthUser } from 'aws-amplify/auth';
 import { configureAmplify } from '@/lib/amplify-config';
+import { useRouter, usePathname } from 'next/navigation';
 
 // ---------------------------------------------------------------------------
 // Design Pattern Note: The Provider / Context Pattern
@@ -37,23 +38,51 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const checkUser = async () => {
     try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
+        const isMockLoggedIn = localStorage.getItem('mock_logged_in');
+        if (isMockLoggedIn) {
+          setUser({ username: 'mock-user-id', userId: 'mock-user-id' } as any);
+        } else {
+          setUser(null);
+        }
+      } else {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      }
     } catch (_error) {
-      // getCurrentUser throws an error if no user is logged in. This is expected.
       setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // useEffect runs once when the app loads (because of the empty [] array)
   useEffect(() => {
     checkUser();
   }, []);
+
+  // 路由保護 (Route Guard)
+  useEffect(() => {
+    if (!isLoading) {
+      // 如果未登入且不在登入頁，強制跳轉到登入頁
+      if (!user && pathname !== '/login') {
+        router.push('/login');
+      } 
+      // 如果已登入但在登入頁，強制跳轉到首頁
+      else if (user && pathname === '/login') {
+        router.push('/');
+      }
+    }
+  }, [user, isLoading, pathname, router]);
+
+  // 如果還在確認身份，先不渲染畫面以防止畫面閃爍
+  if (isLoading) {
+    return <div className="min-h-screen bg-amber-50/50 flex items-center justify-center font-bold text-sky-600">Verifying Identity...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ user, isLoading, refreshAuth: checkUser }}>

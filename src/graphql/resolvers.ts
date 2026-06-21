@@ -1,5 +1,9 @@
 import { prisma } from '../lib/prisma';
 import { Category } from '@prisma/client';
+import { GoogleGenAI } from '@google/genai';
+
+// 初始化 Gemini SDK (如果環境變數沒有，可以先預設 dummy)
+const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
 // ---------------------------------------------------------------------------
 // Educational Note: Resolvers in GraphQL
@@ -14,34 +18,34 @@ export const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL in Next.js!',
     
-    // We will secure this with Context later, for now we return all items
-    myPantryItems: async () => {
+    myPantryItems: async (_: unknown, args: any, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized: Please log in");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) return []; 
       return await prisma.pantryItem.findMany({
+        where: { userId: user.id },
         orderBy: { expiryDate: 'asc' },
       });
     },
+
+    myRecipes: async (_: unknown, args: any, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) return [];
+      return await prisma.recipe.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
   },
+  
   Mutation: {
-    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string }) => {
-      // ---------------------------------------------------------------------------
-      // Educational Note: GraphQL Args vs Body Parser
-      // 
-      // In Angular/.NET you would parse req.body or use a DTO.
-      // In GraphQL, mutations strongly type the incoming arguments and pass them 
-      // directly as the second parameter (`args`).
-      // ---------------------------------------------------------------------------
-      
-      // Temporary stub for userId until AWS Cognito Auth Context is wired in Phase 4
-      const stubUserId = "SYSTEM"; 
-      
-      // Upsert a test user if it doesn't exist so foreign keys don't fail
+    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
       const user = await prisma.user.upsert({
-        where: { cognitoId: stubUserId },
+        where: { cognitoId: context.userId },
         update: {},
-        create: {
-          cognitoId: stubUserId,
-          email: "test@pantry.local"
-        }
+        create: { cognitoId: context.userId, email: `${context.userId}@cognito.local` }
       });
 
       return await prisma.pantryItem.create({
@@ -55,18 +59,175 @@ export const resolvers = {
         }
       });
     },
-    
-    deletePantryItem: async (_: unknown, { id }: { id: string }) => {
-      await prisma.pantryItem.delete({
-        where: { id }
+
+    editPantryItem: async (_: unknown, args: { id: string, name: string, quantity: number, unit?: string, category: Category, expiryDate?: string }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
+      if (!item || item.userId !== user.id) throw new Error("Forbidden");
+
+      return await prisma.pantryItem.update({
+        where: { id: args.id },
+        data: {
+          name: args.name,
+          quantity: args.quantity,
+          unit: args.unit,
+          category: args.category,
+          expiryDate: args.expiryDate ? new Date(args.expiryDate) : null
+        }
       });
+    },
+    
+    deletePantryItem: async (_: unknown, { id }: { id: string }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      const item = await prisma.pantryItem.findUnique({ where: { id } });
+      if (item?.userId !== user.id) throw new Error("Forbidden");
+
+      await prisma.pantryItem.delete({ where: { id } });
       return true;
     },
 
-    updateItemState: async (_: unknown, args: { id: string, newState: 'TO_BUY' | 'IN_PANTRY' | 'CONSUMED' }) => {
+    updateItemState: async (_: unknown, args: { id: string, newState: 'TO_BUY' | 'IN_PANTRY' | 'CONSUMED' }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
+      if (item?.userId !== user.id) throw new Error("Forbidden");
+
       return await prisma.pantryItem.update({
         where: { id: args.id },
         data: { boardState: args.newState }
+      });
+    },
+
+    moveItem: async (_: unknown, args: { id: string, amount: number, targetState: 'TO_BUY' | 'IN_PANTRY' | 'CONSUMED' }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
+      if (!item || item.userId !== user.id) throw new Error("Forbidden");
+
+      if (args.amount >= item.quantity) {
+        // Move entire item to targetState
+        return await prisma.pantryItem.update({
+          where: { id: args.id },
+          data: { boardState: args.targetState }
+        });
+      } else {
+        // Split logic
+        const updatedItem = await prisma.pantryItem.update({
+          where: { id: args.id },
+          data: { quantity: item.quantity - args.amount }
+        });
+
+        // Auto-merge with existing identical item in targetState
+        const existingTargetItem = await prisma.pantryItem.findFirst({
+          where: {
+            userId: user.id,
+            boardState: args.targetState,
+            name: item.name,
+            unit: item.unit,
+            expiryDate: item.expiryDate 
+          }
+        });
+
+        if (existingTargetItem) {
+          await prisma.pantryItem.update({
+            where: { id: existingTargetItem.id },
+            data: { quantity: existingTargetItem.quantity + args.amount }
+          });
+        } else {
+          await prisma.pantryItem.create({
+            data: {
+              name: item.name,
+              quantity: args.amount,
+              unit: item.unit,
+              category: item.category,
+              expiryDate: item.expiryDate,
+              imageUrl: item.imageUrl,
+              boardState: args.targetState,
+              userId: user.id
+            }
+          });
+        }
+        return updatedItem;
+      }
+    },
+
+    generateRecipe: async (_: unknown, args: { mustUseItemIds: string[] }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      // 移除原有的 mock early return，統一交由 catch 處理
+
+      const allPantryItems = await prisma.pantryItem.findMany({
+        where: { userId: user.id, boardState: 'IN_PANTRY' }
+      });
+
+      const mustUseItems = allPantryItems.filter(item => args.mustUseItemIds.includes(item.id));
+      const supportingItems = allPantryItems.filter(item => !args.mustUseItemIds.includes(item.id));
+
+      const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name).join(', ');
+      
+      const prompt = `You are an expert chef. I have these ingredients: ${ingredientsList}.
+        Please generate a delicious recipe using these items. You may include other common pantry staples (like salt, oil, water, etc.) if needed.
+        
+        CRITICAL LANGUAGE RULE: 
+        If any of the provided ingredients contain Chinese characters, you MUST output the entire recipe (title, ingredients, instructions) in Traditional Chinese (繁體中文). 
+        Otherwise, if all ingredients are in English, output the recipe in English.
+
+        Return the recipe strictly in JSON format matching this schema:
+        {
+          "title": "Recipe Title",
+          "ingredients": ["1 cup ingredient", "2 tbsp oil"],
+          "instructions": ["Step 1", "Step 2"]
+        }`;
+
+      try {
+        if (!ai) {
+           throw new Error("GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable and ensure you restarted the Next.js server.");
+        }
+        const response = await ai.models.generateContent({
+          model: 'gemini-3.5-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          }
+        });
+        
+        const jsonText = response.text || "{}";
+        const result = JSON.parse(jsonText);
+        return {
+          title: result.title || "Untitled Recipe",
+          ingredients: result.ingredients || [],
+          instructions: result.instructions || []
+        };
+      } catch (err: any) {
+         console.error("Gemini API Error:", err);
+         throw new Error(`[Gemini API Error] ${err.message || err.toString()}`);
+      }
+    },
+
+    saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {
+      if (!context.userId) throw new Error("Unauthorized");
+      const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
+      if (!user) throw new Error("Unauthorized");
+
+      return await prisma.recipe.create({
+        data: {
+          title: args.title,
+          ingredients: args.ingredients,
+          instructions: args.instructions,
+          userId: user.id
+        }
       });
     }
   }

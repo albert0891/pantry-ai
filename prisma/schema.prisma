@@ -20,13 +20,14 @@ datasource db {
 // and all the relations (like `User` to `PantryItem`) remain perfectly intact.
 // ---------------------------------------------------------------------------
 model User {
-  id        String       @id @default(uuid())
-  cognitoId String       @unique
-  email     String       @unique
-  items     PantryItem[]
+  id          String       @id @default(uuid())
+  cognitoId   String       @unique
+  email       String       @unique
+  items       PantryItem[]
+  recipes     Recipe[]
   
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model PantryItem {
@@ -63,4 +64,16 @@ enum Category {
   FROZEN
   BEVERAGE
   OTHER
+}
+
+model Recipe {
+  id           String   @id @default(cuid())
+  title        String
+  ingredients  String[]
+  instructions String[]
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
 }
