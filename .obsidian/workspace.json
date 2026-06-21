@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/agent-skills-guide.md",
+                "file": "docs/tailwind-shadcn-notes.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "agent-skills-guide"
+              "title": "tailwind-shadcn-notes"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/agent-skills-guide.md",
+                "file": "docs/tailwind-shadcn-notes.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for agent-skills-guide"
+              "title": "Backlinks for tailwind-shadcn-notes"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/agent-skills-guide.md",
+                "file": "docs/tailwind-shadcn-notes.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from agent-skills-guide"
+              "title": "Outgoing links from tailwind-shadcn-notes"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/agent-skills-guide.md",
+                "file": "docs/tailwind-shadcn-notes.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of agent-skills-guide"
+              "title": "Outline of tailwind-shadcn-notes"
             }
           }
         ]
@@ -185,10 +185,41 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
-    "docs/commands-cheatsheet.md",
-    "docs/react-graphql-flow.md",
-    "docs/dev-log.md",
-    "CONTEXT.md",
-    "tsconfig.tsbuildinfo"
+    "src/components/ui/dialog.tsx",
+    "src/components/ui/select.tsx",
+    "src/components/ui/label.tsx",
+    "docs/agent-skills-guide.md",
+    "docs/tailwind-shadcn-notes.md",
+    "src/lib/utils.ts",
+    "src/components/ui/input.tsx",
+    "src/components/ui/card.tsx",
+    "src/components/ui/button.tsx",
+    "src/components/ui/badge.tsx",
+    "src/components/ui",
+    "node_modules/@babel/runtime/package.json",
+    "node_modules/@babel/runtime/regenerator/index.js",
+    "node_modules/tailwind-merge/README.md",
+    "node_modules/tailwind-merge/LICENSE.md",
+    "node_modules/clsx/readme.md",
+    "node_modules/@babel/runtime/README.md",
+    "node_modules/fsevents/README.md",
+    "node_modules/stringify-object/node_modules/is-obj/readme.md",
+    "node_modules/stringify-object/readme.md",
+    "node_modules/restore-cursor/node_modules/onetime/readme.md",
+    "node_modules/restore-cursor/readme.md",
+    "node_modules/npm-run-path/node_modules/path-key/readme.md",
+    "node_modules/npm-run-path/readme.md",
+    "node_modules/prompts/node_modules/kleur/readme.md",
+    "node_modules/prompts/readme.md",
+    "node_modules/onetime/node_modules/mimic-fn/readme.md",
+    "node_modules/onetime/readme.md",
+    "node_modules/@modelcontextprotocol/sdk/node_modules/json-schema-traverse/README.md",
+    "node_modules/@modelcontextprotocol/sdk/node_modules/ajv/README.md",
+    "node_modules/@modelcontextprotocol/sdk/README.md",
+    "node_modules/@ts-morph/common/node_modules/minimatch/README.md",
+    "node_modules/@ts-morph/common/node_modules/minimatch/LICENSE.md",
+    "node_modules/@ts-morph/common/node_modules/fast-glob/README.md",
+    "node_modules/@ts-morph/common/node_modules/balanced-match/README.md",
+    "node_modules/@ts-morph/common/node_modules/balanced-match/LICENSE.md"
   ]
 }

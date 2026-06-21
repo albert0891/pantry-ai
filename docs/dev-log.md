@@ -29,6 +29,13 @@
 *   實作 Client Fetch (Apollo) 與 Optimistic UI 體驗
 *   完成響應式設計 (RWD)：實作手機版 Tab 導航切換功能
 
+### Phase 3.5: UI 樣式重構與 UX 升級 (已完成)
+*   引入 shadcn/ui 元件庫
+*   重構 page.tsx，清除所有寫死的 Tailwind CSS 類別
+*   將 Button, Card, Input, Badge 封裝為高級 React 元件
+*   實作 Client-Side 搜尋過濾功能
+*   實作 Dialog 彈出式表單，支援輸入名稱、數量、分類與過期日
+
 ### Phase 4: 身份驗證整合 (待辦)
 *   將 AWS Cognito 整合進前端與 GraphQL Context
 *   替換掉目前 Resolvers 中的 `"SYSTEM"` 測試帳號
