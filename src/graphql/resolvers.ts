@@ -1,9 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { Category } from '@prisma/client';
-import { GoogleGenAI } from '@google/genai';
-
-// 初始化 Gemini SDK (如果環境變數沒有，可以先預設 dummy)
-const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+import { generateRecipeWithAI } from '../lib/ai/recipeGenerator';
 
 // ---------------------------------------------------------------------------
 // Educational Note: Resolvers in GraphQL
@@ -166,8 +163,6 @@ export const resolvers = {
       const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
       if (!user) throw new Error("Unauthorized");
 
-      // 移除原有的 mock early return，統一交由 catch 處理
-
       const allPantryItems = await prisma.pantryItem.findMany({
         where: { userId: user.id, boardState: 'IN_PANTRY' }
       });
@@ -175,66 +170,9 @@ export const resolvers = {
       const mustUseItems = allPantryItems.filter(item => args.mustUseItemIds.includes(item.id));
       const supportingItems = allPantryItems.filter(item => !args.mustUseItemIds.includes(item.id));
 
-      const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name).join(', ');
+      const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name);
       
-      const prompt = `You are an expert chef. I have these ingredients: ${ingredientsList}.
-        Please generate a delicious recipe using these items. You may include other common pantry staples (like salt, oil, water, etc.) if needed.
-        
-        CRITICAL LANGUAGE RULE: 
-        If any of the provided ingredients contain Chinese characters, you MUST output the entire recipe (title, ingredients, instructions) in Traditional Chinese (繁體中文). 
-        Otherwise, if all ingredients are in English, output the recipe in English.
-
-        Return the recipe strictly in JSON format matching this schema:
-        {
-          "title": "Recipe Title",
-          "ingredients": ["1 cup ingredient", "2 tbsp oil"],
-          "instructions": ["Step 1", "Step 2"]
-        }`;
-
-      if (!ai) {
-         throw new Error("GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable and ensure you restarted the Next.js server.");
-      }
-
-      const MAX_RETRIES = 3;
-      let lastError: Error | null = null;
-
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.5-flash',
-            contents: prompt,
-            config: {
-              responseMimeType: "application/json",
-            }
-          });
-          
-          const jsonText = response.text || "{}";
-          const result = JSON.parse(jsonText);
-          
-          if (!result.title || typeof result.title !== 'string') {
-             throw new Error("Missing or invalid 'title' in JSON response");
-          }
-          if (!Array.isArray(result.ingredients) || result.ingredients.length === 0) {
-             throw new Error("Missing or invalid 'ingredients' array in JSON response");
-          }
-          if (!Array.isArray(result.instructions) || result.instructions.length === 0) {
-             throw new Error("Missing or invalid 'instructions' array in JSON response");
-          }
-
-          return {
-            title: result.title,
-            ingredients: result.ingredients,
-            instructions: result.instructions
-          };
-        } catch (err: any) {
-           console.warn(`[Gemini API] Attempt ${attempt} failed:`, err.message);
-           lastError = err;
-           // 繼續迴圈重試
-        }
-      }
-
-      console.error("Gemini API Error (All retries exhausted):", lastError);
-      throw new Error("AI is currently feeling uninspired or busy. Please try again.");
+      return await generateRecipeWithAI(ingredientsList);
     },
 
     saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {
