@@ -191,29 +191,50 @@ export const resolvers = {
           "instructions": ["Step 1", "Step 2"]
         }`;
 
-      try {
-        if (!ai) {
-           throw new Error("GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable and ensure you restarted the Next.js server.");
-        }
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          }
-        });
-        
-        const jsonText = response.text || "{}";
-        const result = JSON.parse(jsonText);
-        return {
-          title: result.title || "Untitled Recipe",
-          ingredients: result.ingredients || [],
-          instructions: result.instructions || []
-        };
-      } catch (err: any) {
-         console.error("Gemini API Error:", err);
-         throw new Error(`[Gemini API Error] ${err.message || err.toString()}`);
+      if (!ai) {
+         throw new Error("GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable and ensure you restarted the Next.js server.");
       }
+
+      const MAX_RETRIES = 3;
+      let lastError: Error | null = null;
+
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.5-flash',
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+            }
+          });
+          
+          const jsonText = response.text || "{}";
+          const result = JSON.parse(jsonText);
+          
+          if (!result.title || typeof result.title !== 'string') {
+             throw new Error("Missing or invalid 'title' in JSON response");
+          }
+          if (!Array.isArray(result.ingredients) || result.ingredients.length === 0) {
+             throw new Error("Missing or invalid 'ingredients' array in JSON response");
+          }
+          if (!Array.isArray(result.instructions) || result.instructions.length === 0) {
+             throw new Error("Missing or invalid 'instructions' array in JSON response");
+          }
+
+          return {
+            title: result.title,
+            ingredients: result.ingredients,
+            instructions: result.instructions
+          };
+        } catch (err: any) {
+           console.warn(`[Gemini API] Attempt ${attempt} failed:`, err.message);
+           lastError = err;
+           // 繼續迴圈重試
+        }
+      }
+
+      console.error("Gemini API Error (All retries exhausted):", lastError);
+      throw new Error("AI is currently feeling uninspired or busy. Please try again.");
     },
 
     saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {

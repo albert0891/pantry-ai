@@ -7,6 +7,8 @@
 - Corrected Z-index stacking contexts ensuring the "Inspire Me" Floating Action Bar (`z-50`) is never blocked by selected cards (`z-10`).
 - Implemented `Mandatory Pre-flight Check` rule in local `.agents/AGENTS.md` to guarantee documentation updates on every code change.
 - Re-architected mobile Navbar into a clean two-row layout, fixing redundant logout buttons and alignment issues.
+- Added a robust Auto-Retry loop (max 3 attempts) with structural JSON validation to the AI recipe generation feature (`generateRecipe` mutation) to improve stability against AI hallucinations and API transient errors.
 
 ### Next Steps:
-- Monitor user feedback on the new KanBan operations and AI recipe generation stability.
+- Explore adding user preference toggles (e.g., dietary restrictions, cooking styles) to the AI recipe generation prompt.
+- Monitor user feedback on the KanBan operations.
