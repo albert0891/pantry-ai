@@ -46,7 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
         const isMockLoggedIn = localStorage.getItem('mock_logged_in');
         if (isMockLoggedIn) {
-          setUser({ username: 'mock-user-id', userId: 'mock-user-id' } as any);
+          const token = localStorage.getItem('auth_token');
+          const displayId = token === 'demo_token' ? 'Demo User' : 'Admin User';
+          setUser({ username: displayId, userId: displayId } as any);
         } else {
           setUser(null);
         }

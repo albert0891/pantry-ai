@@ -17,3 +17,13 @@
 - Implement Voice Input (Web Speech API) for friction-less pantry logging.
 - Implement Mock Receipt Scanner using Gemini Multimodal.
 - Add premium empty states illustrations for onboarding.
+
+## 2026-06-29
+### Completed:
+- Successfully deployed Pantry-AI to production using Vercel (Frontend & Next.js API Routes).
+- Provisioned and linked Neon Serverless PostgreSQL for the production database.
+- Configured Vercel environment variables, including AWS Cognito fallbacks and Mock Auth configuration.
+- Modified `package.json` to inject `prisma generate` step natively into Vercel's build command (`next build`), ensuring successful serverless schema compilation.
+- Wiped and re-initialized the production Neon Database using Prisma `migrate reset --force` and `db push`.
+- Implemented Multi-Tenant Mock Auth system: Added a "Try Demo" button for public access (`public-demo-user`) and a secret backdoor login for personal use (`albert-admin-id`) to isolate recruiter traffic from private data.
+- Configured a Vercel Cron Job (`/api/cron/reset-demo`) to automatically reset the public demo pantry to default ingredients every midnight.

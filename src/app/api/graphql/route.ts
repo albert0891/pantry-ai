@@ -46,9 +46,20 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
     const authHeader = req.headers.get('authorization');
     let userId: string | null = null;
 
-    // 開發者模式：如果啟用 MOCK_AUTH，直接放行並給予假的 userId
     if (process.env.MOCK_AUTH === 'true') {
-      userId = 'mock-user-id';
+      const mockToken = authHeader?.replace('Bearer ', '');
+      if (mockToken === 'demo_token') {
+        userId = 'public-demo-user';
+      } else if (mockToken?.startsWith('admin_attempt_')) {
+        const attemptedPassword = mockToken.replace('admin_attempt_', '');
+        if (attemptedPassword === (process.env.ADMIN_PASSWORD || 'let_me_in_123')) {
+          userId = 'albert-admin-id';
+        } else {
+          throw new Error('Unauthorized');
+        }
+      } else {
+        throw new Error('Missing or invalid mock token');
+      }
       return { req, userId };
     }
 

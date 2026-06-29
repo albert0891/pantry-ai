@@ -31,6 +31,19 @@ const httpLink = new HttpLink({
 // Note: SetContextLink takes (prevContext, operation) as opposed to the deprecated setContext function
 const authLink = new SetContextLink(async (prevContext, _operation) => {
   try {
+    if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
+      const isMockLoggedIn = localStorage.getItem('mock_logged_in');
+      if (isMockLoggedIn) {
+        const mockToken = localStorage.getItem('auth_token');
+        return {
+          headers: {
+            ...prevContext.headers,
+            authorization: mockToken ? `Bearer ${mockToken}` : '',
+          }
+        };
+      }
+    }
+
     // Attempt to grab AWS Cognito session token
     const session = await fetchAuthSession();
     const token = session.tokens?.idToken?.toString();

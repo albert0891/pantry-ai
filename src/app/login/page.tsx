@@ -23,14 +23,34 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      localStorage.setItem('mock_logged_in', 'true');
+      localStorage.setItem('auth_token', 'demo_token');
+      await refreshAuth();
+    } catch (err: any) {
+      setError('無法啟動訪客模式');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
       if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
-        // 模擬登入成功
-        localStorage.setItem('mock_logged_in', 'true');
+        if (email === 'admin@pantry.ai') {
+          localStorage.setItem('mock_logged_in', 'true');
+          localStorage.setItem('auth_token', `admin_attempt_${password}`);
+        } else {
+          setError('Email 未註冊或測試模式只允許 Demo / Admin 登入');
+          setLoading(false);
+          return;
+        }
       } else {
         await signIn({ username: email, password });
       }
@@ -125,6 +145,14 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full h-11 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg shadow-md" disabled={loading}>
                   {loading ? 'Signing In...' : 'Sign In'}
                 </Button>
+                {process.env.NEXT_PUBLIC_MOCK_AUTH === 'true' && (
+                  <div className="pt-2 border-t border-slate-100 mt-4 text-center">
+                    <p className="text-sm text-slate-500 mb-3">Or just looking around?</p>
+                    <Button type="button" onClick={handleDemoLogin} className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-md" disabled={loading}>
+                      Try Demo
+                    </Button>
+                  </div>
+                )}
               </form>
             )}
 
