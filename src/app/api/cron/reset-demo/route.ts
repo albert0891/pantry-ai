@@ -16,13 +16,24 @@ export async function GET(request: Request) {
   try {
     const demoUserId = 'public-demo-user';
 
-    // 1. Delete existing data for the demo user
+    // 1. Ensure the demo user exists
+    await prisma.user.upsert({
+      where: { id: demoUserId },
+      update: {},
+      create: {
+        id: demoUserId,
+        cognitoId: demoUserId,
+        email: 'demo@pantry.ai',
+      },
+    });
+
+    // 2. Delete existing data for the demo user
     await prisma.$transaction([
       prisma.recipe.deleteMany({ where: { userId: demoUserId } }),
       prisma.pantryItem.deleteMany({ where: { userId: demoUserId } }),
     ]);
 
-    // 2. Insert default ingredients
+    // 3. Insert default ingredients
     await prisma.pantryItem.createMany({
       data: [
         {

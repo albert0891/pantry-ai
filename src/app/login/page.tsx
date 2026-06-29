@@ -47,7 +47,7 @@ export default function LoginPage() {
           localStorage.setItem('mock_logged_in', 'true');
           localStorage.setItem('auth_token', `admin_attempt_${password}`);
         } else {
-          setError('Email 未註冊或測試模式只允許 Demo / Admin 登入');
+          setError('Invalid email or password.');
           setLoading(false);
           return;
         }
