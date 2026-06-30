@@ -27,3 +27,10 @@
 - Wiped and re-initialized the production Neon Database using Prisma `migrate reset --force` and `db push`.
 - Implemented Multi-Tenant Mock Auth system: Added a "Try Demo" button for public access (`public-demo-user`) and a secret backdoor login for personal use (`albert-admin-id`) to isolate recruiter traffic from private data.
 - Configured a Vercel Cron Job (`/api/cron/reset-demo`) to automatically reset the public demo pantry to default ingredients every midnight.
+
+### Completed (Codebase Audit & Refactor):
+- Refactored `src/graphql/resolvers.ts` to adhere to enterprise clean code standards.
+- Extracted repetitive authentication logic into a reusable `ensureAuthenticatedUser` helper function.
+- Deconstructed the complex, monolithic `moveItem` resolver into separate, readable logical branches (`handleFullMove` and `handlePartialMove`).
+- Generated comprehensive `walkthrough.md` interview study guide detailing project architecture, GraphQL data flows, Next.js App Router patterns, and UI design systems.
+- Re-wrote open-source `README.md` to properly document tech stack and local setup instructions.
