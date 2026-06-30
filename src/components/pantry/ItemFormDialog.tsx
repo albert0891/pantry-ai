@@ -70,17 +70,17 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
           <div className="grid gap-5 py-6">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right text-slate-700 font-semibold">Name</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
+              <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right text-slate-700 font-semibold">Quantity</Label>
-              <Input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(parseInt(e.target.value) || 1)} className="col-span-3 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" />
+              <Input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(parseInt(e.target.value) || 1)} className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right text-slate-700 font-semibold">Category</Label>
               <div className="col-span-3">
                 <Select value={category} onValueChange={(val) => setCategory(val || "OTHER")}>
-                  <SelectTrigger className="bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                  <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
@@ -97,7 +97,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="expiry" className="text-right text-slate-700 font-semibold">Expiry Date</Label>
-              <Input id="expiry" type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="col-span-3 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl text-slate-700" />
+              <Input id="expiry" type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="col-span-3 h-10 block w-full bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl text-slate-700 appearance-none" />
             </div>
           </div>
           <DialogFooter>

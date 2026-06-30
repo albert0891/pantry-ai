@@ -34,3 +34,8 @@
 - Deconstructed the complex, monolithic `moveItem` resolver into separate, readable logical branches (`handleFullMove` and `handlePartialMove`).
 - Generated comprehensive `walkthrough.md` interview study guide detailing project architecture, GraphQL data flows, Next.js App Router patterns, and UI design systems.
 - Re-wrote open-source `README.md` to properly document tech stack and local setup instructions.
+
+## 2026-06-30
+### Completed (UI & Bug Fixes):
+- Fixed iOS Safari specific UI glitch in the "Add Item" dialog (`ItemFormDialog.tsx`) where the native date picker (`type="date"`) would overflow its container due to insufficient fixed height (`h-8`). 
+- Increased default height for Dialog inputs to `h-10` (40px) to meet Apple mobile touch target guidelines and enforced `block w-full appearance-none` on the date input for consistent cross-browser mobile layout.
