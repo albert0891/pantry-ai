@@ -105,7 +105,18 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
           <div className="grid gap-5 py-6">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right text-slate-700 font-semibold">Name</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
+              <div className="col-span-3 flex items-center gap-2">
+                <Input id="name" value={name} onChange={e => setName(e.target.value)} className="flex-1 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
+                <button 
+                  type="button" 
+                  onClick={handleAutoCategorize} 
+                  disabled={isAutoCategorizing || !name.trim()}
+                  className="shrink-0 text-xs flex items-center justify-center gap-1.5 bg-sky-100 hover:bg-sky-200 text-sky-700 h-10 px-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-sky-200 shadow-sm"
+                >
+                  {isAutoCategorizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isAutoCategorizing ? "Wait" : "Auto"}
+                </button>
+              </div>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
@@ -132,18 +143,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <div className="text-right flex flex-col items-end gap-1.5">
-                <Label htmlFor="category" className="text-slate-700 font-semibold">Category</Label>
-                <button 
-                  type="button" 
-                  onClick={handleAutoCategorize} 
-                  disabled={isAutoCategorizing || !name.trim()}
-                  className="text-[10px] flex items-center justify-center w-fit gap-1 bg-sky-100 hover:bg-sky-200 text-sky-700 py-0.5 px-2 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-sky-200"
-                >
-                  {isAutoCategorizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  {isAutoCategorizing ? "Wait" : "Auto"}
-                </button>
-              </div>
+              <Label htmlFor="category" className="text-right text-slate-700 font-semibold">Category</Label>
               <div className="col-span-3">
                 <Select value={category} onValueChange={(val) => setCategory(val || "OTHER")}>
                   <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">

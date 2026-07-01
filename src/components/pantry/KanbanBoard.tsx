@@ -44,7 +44,7 @@ export function KanbanBoard({
   return (
     <div className="w-full h-full flex flex-col pb-20 md:pb-0 overflow-hidden md:overflow-visible">
       {/* Filters Row */}
-      <div className="flex-none overflow-x-auto custom-scrollbar mb-4 pb-2 snap-x px-4 -mx-4 md:px-0 md:mx-0 mask-image-fade-edges">
+      <div className="flex-none overflow-x-auto custom-scrollbar mb-2 py-2 snap-x px-4 -mx-4 md:px-0 md:mx-0">
         <div className="flex gap-2 w-max">
           {CATEGORY_FILTERS.map(filter => (
             <button
