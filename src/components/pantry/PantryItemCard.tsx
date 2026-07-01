@@ -48,13 +48,11 @@ export function PantryItemCard({
     >
       <div className="flex justify-between items-start gap-2">
         <div className="flex items-start gap-3">
-          {colId === 'IN_PANTRY' && (
-            <Checkbox 
-              checked={isSelected}
-              onCheckedChange={() => onToggleSelection(item.id)}
-              className="mt-1 w-6 h-6 border-2 border-sky-400/70 data-[state=checked]:bg-sky-500 rounded-md transition-all cursor-pointer shadow-sm bg-white/50 backdrop-blur-md"
-            />
-          )}
+          <Checkbox 
+            checked={isSelected}
+            onCheckedChange={() => onToggleSelection(item.id)}
+            className="mt-1 w-6 h-6 border-2 border-sky-400/70 data-[state=checked]:bg-sky-500 rounded-md transition-all cursor-pointer shadow-sm bg-white/50 backdrop-blur-md"
+          />
           <div>
             <h3 className="font-bold leading-tight text-slate-800 text-lg drop-shadow-sm">{item.name}</h3>
             <p className="text-sm font-semibold text-slate-600 mt-1.5">Qty: {item.quantity}</p>
