@@ -56,6 +56,7 @@ export const typeDefs = gql`
     title: String!
     ingredients: [String!]!
     instructions: [String!]!
+    unused_ingredients: [String!]
   }
 
   # The root Query type defines all GET operations (Read)
@@ -73,6 +74,7 @@ export const typeDefs = gql`
       unit: String
       category: Category
       expiryDate: String
+      boardState: BoardState
     ): PantryItem!
     
     editPantryItem(

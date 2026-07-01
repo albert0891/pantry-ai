@@ -55,7 +55,7 @@ export const resolvers = {
   },
   
   Mutation: {
-    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string }, context: { userId?: string }) => {
+    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string, boardState?: BoardState }, context: { userId?: string }) => {
       if (!context.userId) throw new Error("Unauthorized");
       // Enterprise Pattern: Upsert guarantees the user exists before associating data to them.
       const user = await prisma.user.upsert({
@@ -70,6 +70,7 @@ export const resolvers = {
           quantity: args.quantity,
           unit: args.unit,
           category: args.category || 'OTHER',
+          boardState: args.boardState || 'TO_BUY',
           ...(args.expiryDate && { expiryDate: new Date(args.expiryDate) }),
           userId: user.id
         }

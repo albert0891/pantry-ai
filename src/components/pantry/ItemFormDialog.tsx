@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { X } from 'lucide-react';
 
 interface ItemFormDialogProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
   const [name, setName] = useState(initialData?.name || "");
   const [quantity, setQuantity] = useState(initialData?.quantity || 1);
   const [category, setCategory] = useState(initialData?.category || "OTHER");
+  const [boardState, setBoardState] = useState(initialData?.boardState || "TO_BUY");
   
   // Format expiry date correctly for input type="date"
   let initialExpiry = "";
@@ -35,6 +37,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
       setName(initialData?.name || "");
       setQuantity(initialData?.quantity || 1);
       setCategory(initialData?.category || "OTHER");
+      setBoardState(initialData?.boardState || "TO_BUY");
       
       let exp = "";
       if (initialData?.expiryDate) {
@@ -55,6 +58,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
       name, 
       quantity, 
       category, 
+      boardState,
       expiryDate 
     });
     onOpenChange(false);
@@ -72,10 +76,28 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               <Label htmlFor="name" className="text-right text-slate-700 font-semibold">Name</Label>
               <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right text-slate-700 font-semibold">Quantity</Label>
               <Input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(parseInt(e.target.value) || 1)} className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="boardState" className="text-right text-slate-700 font-semibold">Target</Label>
+              <div className="col-span-3">
+                <Select value={boardState} onValueChange={(val) => setBoardState(val || "TO_BUY")}>
+                  <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                    <SelectValue placeholder="Select target board" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
+                    <SelectItem value="TO_BUY">🛒 To Buy</SelectItem>
+                    <SelectItem value="IN_PANTRY">🧊 In Pantry</SelectItem>
+                    <SelectItem value="CONSUMED">🗑️ Consumed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right text-slate-700 font-semibold">Category</Label>
               <div className="col-span-3">
@@ -95,14 +117,22 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
                 </Select>
               </div>
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="expiry" className="text-right text-slate-700 font-semibold">Expiry Date</Label>
-              <Input id="expiry" type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="col-span-3 h-10 block w-full bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl text-slate-700 appearance-none" />
+              <div className="col-span-3 relative">
+                <Input id="expiry" type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="h-10 block w-full bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl text-slate-700 appearance-none pr-10" />
+                {expiryDate && (
+                  <button type="button" onClick={() => setExpiryDate("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button type="submit" className="w-full sm:w-auto bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-full shadow-md shadow-sky-200 px-8 transition-transform hover:scale-105">
-              {initialData ? "Save Changes" : "Save to Pantry"}
+              {initialData ? "Save Changes" : "Save Item"}
             </Button>
           </DialogFooter>
         </form>

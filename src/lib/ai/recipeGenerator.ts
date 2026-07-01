@@ -8,11 +8,13 @@ export const buildRecipePrompt = (mustUseIngredients: string[], supportingIngred
   
   let prompt = `You are a Michelin-star chef creating a highly rated recipe.
 
-CORE REQUIREMENT: You MUST feature these primary ingredients prominently: [${mustUseList}].`;
+CORE REQUIREMENT: You MUST feature these primary ingredients prominently: [${mustUseList}].
+You MUST generate an AUTHENTIC, globally recognized dish. Do not invent weird or non-existent dishes.`;
   
   if (supportingIngredients.length > 0) {
     prompt += `\n\nPANTRY INVENTORY: The user also has these ingredients in their kitchen: [${supportingList}].
 YOUR TASK: Select ONLY the ingredients from the PANTRY INVENTORY that naturally and classically pair with the primary ingredients.
+HARD LIMIT: You may select a MAXIMUM of 3 supporting ingredients. Less is more.
 CRITICAL FLAVOR RULE: You MUST IGNORE ingredients that clash in flavor. For example, NEVER mix sweet baking ingredients (like cocoa powder, sugar, vanilla) with savory meats unless you are making a culturally established dish (like Mexican Mole or Chili con Carne). 
 It is MUCH BETTER to use fewer ingredients and create a delicious, normal dish than to create a weird, unappetizing combination just to use up pantry items. Do not force items together!`;
   }
@@ -30,11 +32,12 @@ It is MUCH BETTER to use fewer ingredients and create a delicious, normal dish t
     If any of the provided ingredients contain Chinese characters, you MUST output the entire recipe (title, ingredients, instructions) in Traditional Chinese (繁體中文). 
     Otherwise, if all ingredients are in English, output the recipe in English.
 
-    Return the recipe strictly in JSON format matching this schema:
+    Return the recipe strictly in JSON format matching this schema. Note the 'unused_ingredients' field: use it to list any PANTRY INVENTORY items you chose NOT to include, so you can discard them safely:
     {
       "title": "Recipe Title",
       "ingredients": ["1 cup ingredient", "2 tbsp oil"],
-      "instructions": ["Step 1", "Step 2"]
+      "instructions": ["Step 1", "Step 2"],
+      "unused_ingredients": ["item 1", "item 2"]
     }`;
   
   return prompt;
@@ -75,7 +78,8 @@ export async function generateRecipeWithAI(mustUseIngredients: string[], support
       return {
         title: result.title,
         ingredients: result.ingredients,
-        instructions: result.instructions
+        instructions: result.instructions,
+        unused_ingredients: result.unused_ingredients || []
       };
     } catch (err: any) {
         console.warn(`[Gemini API] Attempt ${attempt} failed:`, err.message);

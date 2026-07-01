@@ -33,8 +33,8 @@ export const UPDATE_ITEM_STATE = gql`
 `;
 
 export const ADD_ITEM = gql`
-  mutation AddPantryItem($name: String!, $quantity: Int!, $category: Category, $expiryDate: String) {
-    addPantryItem(name: $name, quantity: $quantity, category: $category, expiryDate: $expiryDate) {
+  mutation AddPantryItem($name: String!, $quantity: Int!, $category: Category, $expiryDate: String, $boardState: BoardState) {
+    addPantryItem(name: $name, quantity: $quantity, category: $category, expiryDate: $expiryDate, boardState: $boardState) {
       id
       name
       quantity
@@ -79,6 +79,7 @@ export const GENERATE_RECIPE = gql`
       title
       ingredients
       instructions
+      unused_ingredients
     }
   }
 `;
