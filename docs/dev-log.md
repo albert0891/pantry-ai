@@ -41,3 +41,4 @@
 - Increased default height for Dialog inputs to `h-10` (40px) to meet Apple mobile touch target guidelines and enforced `block w-full appearance-none` on the date input for consistent cross-browser mobile layout.
 - Updated Next.js global metadata in `src/app/layout.tsx` to properly display the app title "Pantry AI" and description.
 - Restored the original `logo.svg` (carrot logo) as the official Next.js favicon (`src/app/icon.svg`).
+- Changed the main title of the login page from "Welcome Back" to "Pantry AI" to reinforce project branding.

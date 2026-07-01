@@ -118,7 +118,7 @@ export default function LoginPage() {
               <Image src="/logo.svg" width={56} height={56} alt="Pantry AI Logo" className="drop-shadow-md" />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight text-sky-600">
-              {mode === 'SIGN_IN' ? 'Welcome Back' : mode === 'SIGN_UP' ? 'Create Account' : 'Verify Email'}
+              {mode === 'SIGN_IN' ? 'Pantry AI' : mode === 'SIGN_UP' ? 'Create Account' : 'Verify Email'}
             </CardTitle>
             <CardDescription className="text-slate-500 font-medium">
               {mode === 'SIGN_IN' ? 'Sign in to access your smart pantry' : mode === 'SIGN_UP' ? 'Join us and start tracking your food' : 'Enter the code sent to your email'}
