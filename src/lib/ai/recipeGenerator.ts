@@ -24,7 +24,7 @@ It is MUCH BETTER to use fewer ingredients and create a delicious, normal dish t
   if (previouslyUsedIngredients && previouslyUsedIngredients.length > 0) {
     prompt += `\n\nIMPORTANT: The user wants a DIFFERENT recipe. The previous recipe used these ingredients: [${previouslyUsedIngredients.join(', ')}]. 
     Please invent a completely new dish (e.g., different cuisine style, different cooking method, or different flavor profile) that STILL features the REQUIRED primary ingredients.
-    You may still use the same pantry items if needed, but the dish must feel distinct. 
+    PRO TIP: To make the dish distinct, STRONGLY CONSIDER incorporating DIFFERENT ingredients from the PANTRY INVENTORY that you didn't use last time! (For example, if you ignored some meats or veggies last time, try to build a dish around them now, as long as flavors don't clash).
     DO NOT violate the CRITICAL FLAVOR RULE just to make it different! NEVER force incompatible ingredients together.`;
   }
     
