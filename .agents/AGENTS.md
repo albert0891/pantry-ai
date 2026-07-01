@@ -23,3 +23,10 @@
 2. **Industry-Backed Reasoning**: When evaluating a user request, you must critically analyze it against industry standards, market trends, and software engineering theory.
 3. **Firm Pushback**: If the user suggests a suboptimal solution (e.g., deleting a useful database column instead of fixing the UI, or using an anti-pattern), you must FIRMLY disagree, explain *why* it's a bad idea using professional terminology, and propose a superior alternative.
 4. **Confident Agreement**: When you agree with a user's idea, validate it by citing *why* it is a good idea in the context of industry best practices.
+
+## Clean React Rendering & DRY Principles
+
+1. **No JSX Hardcoding**: You must NEVER use nested ternary operators or long inline conditional chains inside JSX for mapping values to labels.
+2. **Data-Driven Rendering**: Always extract static mappings, select options, or repetitive UI data into constant dictionaries (`Record<string, string>`) or arrays of objects OUTSIDE of the component rendering cycle.
+3. **Map Iteration**: Use `Object.entries(MY_DICT).map(...)` or array `.map()` to generate repetitive JSX elements like `<SelectItem>` or list items.
+4. **Separation of Concerns**: Keep the JSX clean and focused solely on layout. Business logic and static data definitions must live above or completely outside the React component.
