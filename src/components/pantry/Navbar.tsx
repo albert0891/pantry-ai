@@ -109,19 +109,26 @@ export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAdd
           <div className="space-y-4 py-4 text-sm text-slate-700">
             <div className="flex gap-3 items-start">
               <div className="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">1</div>
-              <p>Check the boxes on items in your Pantry.</p>
+              <p>Type a name and hit <strong className="text-sky-600">✨ Auto</strong> to let AI auto-categorize it.</p>
             </div>
             <div className="flex gap-3 items-start">
-              <div className="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">2</div>
-              <p>Click <strong className="text-sky-600">Inspire Me</strong> to let AI craft a recipe using them.</p>
+              <div className="bg-amber-100 text-amber-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">2</div>
+              <p>Check the boxes on multiple items and click <strong className="text-amber-600">Inspire Me</strong> to let AI craft a recipe.</p>
             </div>
             <div className="flex gap-3 items-start">
-              <div className="bg-amber-100 text-amber-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">3</div>
-              <p>Don't like the recipe? Click the <strong className="text-amber-600">Refresh</strong> icon in the dialog to generate a new one prioritizing different ingredients!</p>
+              <div className="bg-emerald-100 text-emerald-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">3</div>
+              <p>Filter your board instantly using the <strong className="text-emerald-600">Category Pills</strong> at the top.</p>
             </div>
             <div className="flex gap-3 items-start">
               <div className="bg-rose-100 text-rose-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">4</div>
-              <p>Move consumed items back to the <strong className="text-rose-600">To Buy</strong> list with one click.</p>
+              <div className="flex-1">
+                <p className="mb-1"><strong className="text-rose-600">Quick Movement Arrows:</strong></p>
+                <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-600">
+                  <li><strong>Single Arrow ( {'>'} or {'<'} )</strong>: Move 1 unit.</li>
+                  <li><strong>Double Arrow ( {'>>'} or {'<<'} )</strong>: Move ALL units.</li>
+                  <li><strong>Shopping Cart ( 🛒 )</strong>: Send all units to the To Buy list.</li>
+                </ul>
+              </div>
             </div>
           </div>
           <DialogFooter>
