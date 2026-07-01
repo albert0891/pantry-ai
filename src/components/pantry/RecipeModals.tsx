@@ -22,11 +22,14 @@ interface RecipeModalsProps {
   onDeleteRecipe?: (id: string) => void;
 }
 
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
 export function RecipeModals({
   isRecipeModalOpen, setIsRecipeModalOpen,
   isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate, savedRecipeId,
   isMyRecipesOpen, setIsMyRecipesOpen, myRecipes, onDeleteRecipe
 }: RecipeModalsProps) {
+  const [recipeToDelete, setRecipeToDelete] = React.useState<any | null>(null);
 
   return (
     <>
@@ -147,7 +150,7 @@ export function RecipeModals({
                       variant="ghost" 
                       size="icon" 
                       className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      onClick={() => onDeleteRecipe(recipe.id)}
+                      onClick={() => setRecipeToDelete(recipe)}
                       title="Delete recipe"
                     >
                       <Trash2 size={16} />
@@ -176,6 +179,22 @@ export function RecipeModals({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        isOpen={!!recipeToDelete}
+        onOpenChange={(open) => !open && setRecipeToDelete(null)}
+        title="Delete Recipe?"
+        description={
+          <span>
+            Are you sure you want to delete <strong>{recipeToDelete?.title}</strong>? This action cannot be undone.
+          </span>
+        }
+        onConfirm={() => {
+          if (recipeToDelete && onDeleteRecipe) {
+            onDeleteRecipe(recipeToDelete.id);
+          }
+        }}
+      />
     </>
   );
 }

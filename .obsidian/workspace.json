@@ -185,6 +185,7 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "src/components/ui/confirm-dialog.tsx",
     "src/app/actions/ai.ts",
     "src/app/actions",
     "docs/css-best-practices.md",
@@ -208,7 +209,6 @@
     "src/lib/ai",
     "src/components/pantry/KanbanBoard.tsx",
     "src/components/pantry/RecipeModals.tsx",
-    "src/components/pantry/PantryItemCard.tsx",
     "public/logo.svg",
     "node_modules/@protobufjs/fetch/CHANGELOG.md",
     "node_modules/@protobufjs/eventemitter/CHANGELOG.md",

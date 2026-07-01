@@ -34,9 +34,12 @@ interface PantryItemCardProps {
   onDelete: (id: string) => void;
 }
 
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
 export function PantryItemCard({ 
   item, colId, isSelected, onToggleSelection, onMove, onUpdateState, onEdit, onDelete 
 }: PantryItemCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
   return (
     <div 
@@ -115,11 +118,19 @@ export function PantryItemCard({
           <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-800 hover:bg-slate-200 hover:scale-110 rounded-full transition-all" onClick={() => onEdit(item)}>
             <Edit size={16} />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-700 hover:bg-rose-100 hover:scale-110 rounded-full transition-all" onClick={() => onDelete(item.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-700 hover:bg-rose-100 hover:scale-110 rounded-full transition-all" onClick={() => setIsDeleteDialogOpen(true)}>
             <Trash2 size={16} />
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title={`Delete ${item.name}?`}
+        description="Are you sure you want to delete this item? This action cannot be undone."
+        onConfirm={() => onDelete(item.id)}
+      />
     </div>
   );
 }
