@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Wand2, BookOpen, Loader2, RefreshCw } from 'lucide-react';
+import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,14 +38,14 @@ export function RecipeModals({
             </DialogTitle>
           </DialogHeader>
           
-          <div className="py-2 flex-1 overflow-y-auto pr-4 -mr-4 custom-scrollbar">
+          <div className="py-2 flex-1 overflow-y-auto pr-4 -mr-4 custom-scrollbar pb-24 relative">
             {isGeneratingRecipe ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4 text-slate-500">
                 <Loader2 className="w-10 h-10 animate-spin text-sky-500" />
                 <p className="font-medium animate-pulse">Crafting the perfect recipe...</p>
               </div>
             ) : recipeResult ? (
-              <div className="space-y-6 pb-4">
+              <div className="space-y-6">
                 <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
                   <h3 className="text-lg font-bold text-slate-800 mb-2 border-b border-amber-200 pb-2">🛒 Ingredients</h3>
                   <ul className="list-disc pl-5 space-y-1 text-slate-700 font-medium">
@@ -70,25 +70,29 @@ export function RecipeModals({
               </div>
             )}
           </div>
-          <DialogFooter className="flex-col sm:flex-row sm:justify-between items-center gap-3 w-full pt-4 mt-2 border-t border-slate-100 shrink-0">
-            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="h-auto py-3 px-6 text-slate-500 w-full sm:w-auto order-3 sm:order-1 hover:bg-slate-100 rounded-full font-medium">
-              Cancel
+
+          {/* Responsive Floating Pill Action Bar */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 bg-slate-900/80 backdrop-blur-xl border border-white/20 shadow-2xl shadow-sky-900/20 rounded-full p-2 z-50 transition-all">
+            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="h-12 w-12 rounded-full text-slate-300 hover:bg-white/20 hover:text-white p-0 shrink-0 transition-colors" title="Close">
+              <X size={24} />
             </Button>
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
-              {!isGeneratingRecipe && recipeResult && (
-                <Button onClick={onRegenerate} className="h-auto py-3 px-6 flex-1 sm:flex-none bg-sky-100 hover:bg-sky-200 text-sky-700 border-0 shadow-sm rounded-full font-bold transition-colors">
-                  <RefreshCw className="mr-2" size={20} />
-                  Regenerate
-                </Button>
-              )}
-              {!isGeneratingRecipe && recipeResult && (
-                <Button onClick={onSaveRecipe} className="h-auto py-3 px-8 flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 rounded-full text-base">
-                  💾 Save Recipe
-                </Button>
-              )}
-            </div>
-          </DialogFooter>
+            <div className="w-px h-8 bg-white/20 mx-1"></div>
+            
+            {!isGeneratingRecipe && recipeResult && (
+              <Button onClick={onRegenerate} className="h-12 bg-sky-500/20 hover:bg-sky-500/40 text-sky-100 border border-sky-400/30 rounded-full font-bold px-4 sm:px-6 transition-all group shrink-0 sm:shrink">
+                <RefreshCw size={20} className="sm:mr-2 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
+                <span className="hidden sm:inline">Regenerate</span>
+              </Button>
+            )}
+            
+            {!isGeneratingRecipe && recipeResult && (
+              <Button onClick={onSaveRecipe} className="h-12 bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-400/50 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink">
+                <Heart size={20} className="sm:mr-2 group-hover:scale-110 transition-transform duration-300 shrink-0 drop-shadow-md" />
+                <span className="hidden sm:inline text-base drop-shadow-sm">Save Recipe</span>
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
