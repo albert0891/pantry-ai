@@ -185,6 +185,8 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "src/app/actions/ai.ts",
+    "src/app/actions",
     "docs/css-best-practices.md",
     "src/app/icon.svg",
     "src/app/icon.jpg",
@@ -207,7 +209,6 @@
     "src/components/pantry/KanbanBoard.tsx",
     "src/components/pantry/RecipeModals.tsx",
     "src/components/pantry/PantryItemCard.tsx",
-    "src/components/pantry/ItemFormDialog.tsx",
     "public/logo.svg",
     "node_modules/@protobufjs/fetch/CHANGELOG.md",
     "node_modules/@protobufjs/eventemitter/CHANGELOG.md",
@@ -223,7 +224,6 @@
     "node_modules/jwa/README.md",
     "node_modules/bignumber.js/README.md",
     "node_modules/bignumber.js/LICENCE.md",
-    "node_modules/bignumber.js/CHANGELOG.md",
     "public/pantry-icon.png",
     "public/logo.png"
   ]
