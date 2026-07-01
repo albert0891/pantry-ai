@@ -71,19 +71,19 @@ export function RecipeModals({
             )}
           </div>
           <DialogFooter className="flex-col sm:flex-row sm:justify-between items-center gap-3 w-full pt-4 mt-2 border-t border-slate-100 shrink-0">
-            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="h-11 text-slate-500 w-full sm:w-auto order-3 sm:order-1 hover:bg-slate-100 px-6 rounded-full">
+            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="h-auto py-3 px-6 text-slate-500 w-full sm:w-auto order-3 sm:order-1 hover:bg-slate-100 rounded-full font-medium">
               Cancel
             </Button>
             
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
               {!isGeneratingRecipe && recipeResult && (
-                <Button onClick={onRegenerate} className="h-11 flex-1 sm:flex-none bg-sky-100 hover:bg-sky-200 text-sky-700 border-0 shadow-sm rounded-full font-bold px-6 transition-colors">
-                  <RefreshCw className="mr-2" size={18} />
+                <Button onClick={onRegenerate} className="h-auto py-3 px-6 flex-1 sm:flex-none bg-sky-100 hover:bg-sky-200 text-sky-700 border-0 shadow-sm rounded-full font-bold transition-colors">
+                  <RefreshCw className="mr-2" size={20} />
                   Regenerate
                 </Button>
               )}
               {!isGeneratingRecipe && recipeResult && (
-                <Button onClick={onSaveRecipe} className="h-11 flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 rounded-full px-8 text-base">
+                <Button onClick={onSaveRecipe} className="h-auto py-3 px-8 flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 rounded-full text-base">
                   💾 Save Recipe
                 </Button>
               )}

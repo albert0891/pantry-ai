@@ -32,8 +32,8 @@ export function KanbanBoard({
   return (
     <div className="w-full h-full pb-20 overflow-hidden md:overflow-visible">
       <div 
-        className="flex flex-row h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:gap-6 md:translate-x-0"
-        style={{ transform: `translateX(calc(-100% * ${activeIndex}))` }}
+        className="flex flex-row h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] translate-x-[var(--mobile-translate)] md:translate-x-0 md:gap-6"
+        style={{ '--mobile-translate': `calc(-100% * ${activeIndex})` } as React.CSSProperties}
       >
         {COLUMNS.map(col => {
           const colItems = items.filter(item => item.boardState === col.id);
