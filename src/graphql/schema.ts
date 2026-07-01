@@ -97,5 +97,7 @@ export const typeDefs = gql`
       ingredients: [String!]!
       instructions: [String!]!
     ): Recipe!
+    
+    deleteRecipe(id: ID!): Boolean!
   }
 `;

@@ -173,6 +173,16 @@ export const resolvers = {
           userId: user.id
         }
       });
+    },
+
+    deleteRecipe: async (_: unknown, { id }: { id: string }, context: { userId?: string }) => {
+      const user = await ensureAuthenticatedUser(context);
+
+      const recipe = await prisma.recipe.findUnique({ where: { id } });
+      if (recipe?.userId !== user.id) throw new Error("Forbidden");
+
+      await prisma.recipe.delete({ where: { id } });
+      return true;
     }
   }
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart } from 'lucide-react';
+import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,12 +18,13 @@ interface RecipeModalsProps {
   isMyRecipesOpen: boolean;
   setIsMyRecipesOpen: (val: boolean) => void;
   myRecipes: any[];
+  onDeleteRecipe?: (id: string) => void;
 }
 
 export function RecipeModals({
   isRecipeModalOpen, setIsRecipeModalOpen,
   isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate,
-  isMyRecipesOpen, setIsMyRecipesOpen, myRecipes
+  isMyRecipesOpen, setIsMyRecipesOpen, myRecipes, onDeleteRecipe
 }: RecipeModalsProps) {
 
   return (
@@ -77,21 +78,27 @@ export function RecipeModals({
               <X size={24} />
             </Button>
             
-            <div className="w-px h-8 bg-white/20 mx-1"></div>
-            
-            {!isGeneratingRecipe && recipeResult && (
-              <Button onClick={onRegenerate} className="h-12 bg-sky-500/20 hover:bg-sky-500/40 text-sky-100 border border-sky-400/30 rounded-full font-bold px-4 sm:px-6 transition-all group shrink-0 sm:shrink">
-                <RefreshCw size={20} className="sm:mr-2 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
-                <span className="hidden sm:inline">Regenerate</span>
-              </Button>
-            )}
-            
-            {!isGeneratingRecipe && recipeResult && (
-              <Button onClick={onSaveRecipe} className="h-12 bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-400/50 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink">
-                <Heart size={20} className="sm:mr-2 group-hover:scale-110 transition-transform duration-300 shrink-0 drop-shadow-md" />
-                <span className="hidden sm:inline text-base drop-shadow-sm">Save Recipe</span>
-              </Button>
-            )}
+            {isGeneratingRecipe ? (
+              <>
+                <div className="w-px h-8 bg-white/20 mx-1"></div>
+                <Button disabled className="h-12 bg-sky-500/10 text-sky-200/50 border border-sky-400/10 rounded-full font-bold px-4 sm:px-6 transition-all shrink-0 sm:shrink">
+                  <Loader2 size={20} className="sm:mr-2 animate-spin shrink-0" />
+                  <span className="hidden sm:inline">Generating...</span>
+                </Button>
+              </>
+            ) : recipeResult ? (
+              <>
+                <div className="w-px h-8 bg-white/20 mx-1"></div>
+                <Button onClick={onRegenerate} className="h-12 bg-sky-500/20 hover:bg-sky-500/40 text-sky-100 border border-sky-400/30 rounded-full font-bold px-4 sm:px-6 transition-all group shrink-0 sm:shrink">
+                  <RefreshCw size={20} className="sm:mr-2 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
+                  <span className="hidden sm:inline">Regenerate</span>
+                </Button>
+                <Button onClick={onSaveRecipe} className="h-12 bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-400/50 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink">
+                  <Heart size={20} className="sm:mr-2 group-hover:scale-110 transition-transform duration-300 shrink-0 drop-shadow-md" />
+                  <span className="hidden sm:inline text-base drop-shadow-sm">Save Recipe</span>
+                </Button>
+              </>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>
@@ -117,9 +124,20 @@ export function RecipeModals({
               </div>
             ) : (
               myRecipes.map((recipe: any) => (
-                <Card key={recipe.id} className="border-sky-100 shadow-md hover:shadow-lg transition-shadow bg-white/80 backdrop-blur-md rounded-xl overflow-hidden">
-                  <CardContent className="p-5">
-                    <h3 className="text-xl font-bold text-slate-800 mb-4 text-sky-900">{recipe.title}</h3>
+                <Card key={recipe.id} className="border-sky-100 shadow-md hover:shadow-lg transition-shadow bg-white/80 backdrop-blur-md rounded-xl overflow-hidden relative group">
+                  {onDeleteRecipe && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      onClick={() => onDeleteRecipe(recipe.id)}
+                      title="Delete recipe"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  )}
+                  <CardContent className="p-5 pt-6">
+                    <h3 className="text-xl font-bold text-slate-800 mb-4 text-sky-900 pr-8">{recipe.title}</h3>
                     <div className="grid sm:grid-cols-3 gap-5">
                       <div className="sm:col-span-1 bg-amber-50/50 p-3 rounded-xl border border-amber-100">
                         <h4 className="font-bold text-sm text-amber-800 mb-2">Ingredients</h4>

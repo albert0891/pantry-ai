@@ -91,6 +91,12 @@ export const SAVE_RECIPE = gql`
   }
 `;
 
+export const DELETE_RECIPE = gql`
+  mutation DeleteRecipe($id: ID!) {
+    deleteRecipe(id: $id)
+  }
+`;
+
 export function usePantry() {
   const { data, loading, error } = useQuery<any>(GET_PANTRY_ITEMS);
   const [updateItemState] = useMutation(UPDATE_ITEM_STATE);
@@ -100,6 +106,7 @@ export function usePantry() {
   const [deleteItem] = useMutation(DELETE_ITEM, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
   const [generateRecipe] = useMutation(GENERATE_RECIPE);
   const [saveRecipe] = useMutation(SAVE_RECIPE, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
+  const [deleteRecipe] = useMutation(DELETE_RECIPE, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
 
   return {
     items: data?.myPantryItems || [],
@@ -112,6 +119,7 @@ export function usePantry() {
     moveItem,
     deleteItem,
     generateRecipe,
-    saveRecipe
+    saveRecipe,
+    deleteRecipe
   };
 }

@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const { 
     items: rawItems, myRecipes, loading, error, 
     addItem, editItem, moveItem, deleteItem, updateItemState, 
-    generateRecipe, saveRecipe 
+    generateRecipe, saveRecipe, deleteRecipe
   } = usePantry();
 
   // UI States
@@ -153,6 +153,12 @@ export default function DashboardPage() {
     } catch (err) { console.error("Failed to save recipe", err); }
   };
 
+  const handleDeleteRecipe = async (id: string) => {
+    try {
+      await deleteRecipe({ variables: { id } });
+    } catch (err) { console.error("Failed to delete recipe", err); }
+  };
+
   const columns = [
     { id: 'TO_BUY', title: '🛒 To Buy' },
     { id: 'IN_PANTRY', title: '🧊 In Pantry' },
@@ -274,6 +280,7 @@ export default function DashboardPage() {
         isMyRecipesOpen={isMyRecipesOpen}
         setIsMyRecipesOpen={setIsMyRecipesOpen}
         myRecipes={myRecipes}
+        onDeleteRecipe={handleDeleteRecipe}
       />
     </div>
   );
