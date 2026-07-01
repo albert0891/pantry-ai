@@ -156,14 +156,12 @@ export const resolvers = {
       });
 
       // 1. Must-use items: Anything the user explicitly checked (can be TO_BUY, IN_PANTRY, or CONSUMED)
-      const mustUseItems = allItems.filter(item => args.mustUseItemIds.includes(item.id));
+      const mustUseItems = allItems.filter(item => args.mustUseItemIds.includes(item.id)).map(i => i.name);
       
       // 2. Supporting items: Only items currently IN_PANTRY that weren't explicitly checked
-      const supportingItems = allItems.filter(item => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id));
+      const supportingItems = allItems.filter(item => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id)).map(i => i.name);
 
-      const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name);
-      
-      return await generateRecipeWithAI(ingredientsList, args.previouslyUsedIngredients);
+      return await generateRecipeWithAI(mustUseItems, supportingItems, args.previouslyUsedIngredients);
     },
 
     saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {
