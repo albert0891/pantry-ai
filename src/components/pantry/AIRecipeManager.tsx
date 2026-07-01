@@ -1,38 +1,121 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart, Trash2, Check } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { usePantry } from '@/hooks/usePantry';
 
-interface RecipeModalsProps {
-  isRecipeModalOpen: boolean;
-  setIsRecipeModalOpen: (val: boolean) => void;
-  isGeneratingRecipe: boolean;
-  recipeResult: any;
-  recipeError: string;
-  onSaveRecipe: () => void;
-  onRegenerate: () => void;
-  savedRecipeId: string | null;
-  
+interface AIRecipeManagerProps {
+  selectedItemIds: Set<string>;
   isMyRecipesOpen: boolean;
   setIsMyRecipesOpen: (val: boolean) => void;
-  myRecipes: any[];
-  onDeleteRecipe?: (id: string) => void;
 }
 
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+export function AIRecipeManager({
+  selectedItemIds,
+  isMyRecipesOpen,
+  setIsMyRecipesOpen,
+}: AIRecipeManagerProps) {
+  const { myRecipes, generateRecipe, saveRecipe, deleteRecipe } = usePantry();
 
-export function RecipeModals({
-  isRecipeModalOpen, setIsRecipeModalOpen,
-  isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate, savedRecipeId,
-  isMyRecipesOpen, setIsMyRecipesOpen, myRecipes, onDeleteRecipe
-}: RecipeModalsProps) {
-  const [recipeToDelete, setRecipeToDelete] = React.useState<any | null>(null);
+  // Internal AI Generation States
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
+  const [recipeResult, setRecipeResult] = useState<any>(null);
+  const [recipeError, setRecipeError] = useState("");
+  const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
+  const [recipeToDelete, setRecipeToDelete] = useState<any | null>(null);
+
+  const handleGenerateRecipe = async () => {
+    setIsGeneratingRecipe(true);
+    setIsRecipeModalOpen(true);
+    setRecipeResult(null);
+    setRecipeError("");
+    setSavedRecipeId(null);
+    try {
+      const res = await generateRecipe({
+        variables: { mustUseItemIds: Array.from(selectedItemIds) }
+      });
+      setRecipeResult((res.data as any).generateRecipe);
+    } catch (err: any) {
+      setRecipeError(err.message || "Unknown error occurred.");
+    } finally {
+      setIsGeneratingRecipe(false);
+    }
+  };
+
+  const handleRegenerateRecipe = async () => {
+    if (!recipeResult) return;
+    setIsGeneratingRecipe(true);
+    const previousIngredients = recipeResult.ingredients;
+    setRecipeResult(null);
+    setRecipeError("");
+    setSavedRecipeId(null);
+    try {
+      const res = await generateRecipe({
+        variables: { 
+          mustUseItemIds: Array.from(selectedItemIds),
+          previouslyUsedIngredients: previousIngredients
+        }
+      });
+      setRecipeResult((res.data as any).generateRecipe);
+    } catch (err: any) {
+      setRecipeError(err.message || "Unknown error occurred.");
+    } finally {
+      setIsGeneratingRecipe(false);
+    }
+  };
+
+  const handleSaveRecipe = async () => {
+    if (!recipeResult) return;
+    
+    if (savedRecipeId) {
+      // Toggle off (delete)
+      try {
+        await deleteRecipe({ variables: { id: savedRecipeId } });
+        setSavedRecipeId(null);
+      } catch (err) { console.error("Failed to remove saved recipe", err); }
+      return;
+    }
+
+    // Toggle on (save)
+    try {
+      const res = await saveRecipe({
+        variables: {
+          title: recipeResult.title,
+          ingredients: recipeResult.ingredients,
+          instructions: recipeResult.instructions
+        }
+      });
+      setSavedRecipeId((res.data as any).saveRecipe.id);
+    } catch (err) { console.error("Failed to save recipe", err); }
+  };
+
+  const handleDeleteRecipe = async (id: string) => {
+    try {
+      await deleteRecipe({ variables: { id } });
+    } catch (err) { console.error("Failed to delete recipe", err); }
+  };
 
   return (
     <>
+      {/* Floating Action Bar for AI Recipe Generation */}
+      {selectedItemIds.size > 0 && (
+        <div className="fixed bottom-24 md:bottom-10 left-0 right-0 flex justify-center animate-in slide-in-from-bottom-10 fade-in duration-300 px-4 z-40">
+          <Button 
+            onClick={handleGenerateRecipe}
+            size="lg"
+            className="bg-sky-500 hover:bg-sky-400 text-white font-bold shadow-[0_10px_40px_rgba(14,165,233,0.5)] rounded-full px-8 py-7 border-2 border-white/50 group backdrop-blur-md transition-all hover:scale-105"
+          >
+            <Wand2 className="mr-2 h-6 w-6 text-amber-300 group-hover:rotate-12 transition-transform" />
+            <span className="text-lg">Inspire Me ({selectedItemIds.size})</span>
+          </Button>
+        </div>
+      )}
+
       {/* Generated Recipe Modal */}
       <Dialog open={isRecipeModalOpen} onOpenChange={setIsRecipeModalOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col overflow-hidden bg-white/95 backdrop-blur-xl border-white shadow-2xl rounded-2xl">
@@ -93,12 +176,12 @@ export function RecipeModals({
             ) : recipeResult ? (
               <>
                 <div className="w-px h-8 bg-white/20 mx-1"></div>
-                <Button onClick={onRegenerate} className="h-12 bg-sky-500/20 hover:bg-sky-500/40 text-sky-100 border border-sky-400/30 rounded-full font-bold px-4 sm:px-6 transition-all group shrink-0 sm:shrink">
+                <Button onClick={handleRegenerateRecipe} className="h-12 bg-sky-500/20 hover:bg-sky-500/40 text-sky-100 border border-sky-400/30 rounded-full font-bold px-4 sm:px-6 transition-all group shrink-0 sm:shrink">
                   <RefreshCw size={20} className="sm:mr-2 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
                   <span className="hidden sm:inline">Regenerate</span>
                 </Button>
                 <Button 
-                  onClick={onSaveRecipe} 
+                  onClick={handleSaveRecipe} 
                   className={`h-12 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink ${
                     savedRecipeId 
                       ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] border border-emerald-400/50' 
@@ -145,17 +228,15 @@ export function RecipeModals({
             ) : (
               myRecipes.map((recipe: any) => (
                 <Card key={recipe.id} className="border-sky-100 shadow-md hover:shadow-lg transition-shadow bg-white/80 backdrop-blur-md rounded-xl overflow-hidden relative group">
-                  {onDeleteRecipe && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      onClick={() => setRecipeToDelete(recipe)}
-                      title="Delete recipe"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-3 right-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 h-8 w-8 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    onClick={() => setRecipeToDelete(recipe)}
+                    title="Delete recipe"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                   <CardContent className="p-5 pt-6">
                     <h3 className="text-xl font-bold text-slate-800 mb-4 text-sky-900 pr-8">{recipe.title}</h3>
                     <div className="grid sm:grid-cols-3 gap-5">
@@ -190,8 +271,8 @@ export function RecipeModals({
           </span>
         }
         onConfirm={() => {
-          if (recipeToDelete && onDeleteRecipe) {
-            onDeleteRecipe(recipeToDelete.id);
+          if (recipeToDelete) {
+            handleDeleteRecipe(recipeToDelete.id);
           }
         }}
       />

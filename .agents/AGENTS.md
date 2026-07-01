@@ -30,3 +30,9 @@
 2. **Data-Driven Rendering**: Always extract static mappings, select options, or repetitive UI data into constant dictionaries (`Record<string, string>`) or arrays of objects OUTSIDE of the component rendering cycle.
 3. **Map Iteration**: Use `Object.entries(MY_DICT).map(...)` or array `.map()` to generate repetitive JSX elements like `<SelectItem>` or list items.
 4. **Separation of Concerns**: Keep the JSX clean and focused solely on layout. Business logic and static data definitions must live above or completely outside the React component.
+
+## Architectural Guidelines (Deep Modules vs. God Components)
+
+1. **Prioritize Deep Modules**: When creating features (especially modals, workflows, or distinct business logic like AI generation), encapsulate the state, GraphQL mutations, and UI components into a single "Deep Module" (e.g., `<AIRecipeManager>`).
+2. **Prevent God Components**: Do NOT dump all `useState` hooks, `handleX` functions, and mutation states into top-level Route Pages (like `page.tsx`). Root pages should strictly handle layout, route-level params, and high-level structural composition.
+3. **High Locality**: If a component acts solely as a "pass-through" for 5+ props just to render a modal or state managed 3 levels up, it is a "Shallow Module." Push the state down into the component so it manages itself.

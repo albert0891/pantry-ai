@@ -10,13 +10,12 @@ import { Navbar } from '@/components/pantry/Navbar';
 import { MobileBottomNav } from '@/components/pantry/MobileBottomNav';
 import { KanbanBoard } from '@/components/pantry/KanbanBoard';
 import { ItemFormDialog } from '@/components/pantry/ItemFormDialog';
-import { RecipeModals } from '@/components/pantry/RecipeModals';
+import { AIRecipeManager } from '@/components/pantry/AIRecipeManager';
 
 export default function DashboardPage() {
   const { 
-    items: rawItems, myRecipes, loading, error, 
-    addItem, editItem, moveItem, deleteItem, updateItemState, 
-    generateRecipe, saveRecipe, deleteRecipe
+    items: rawItems, loading, error, 
+    addItem, editItem, moveItem, deleteItem, updateItemState
   } = usePantry();
 
   // UI States
@@ -35,12 +34,7 @@ export default function DashboardPage() {
 
   // AI Recipe States
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
-  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
-  const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
-  const [recipeResult, setRecipeResult] = useState<any>(null);
-  const [recipeError, setRecipeError] = useState("");
   const [isMyRecipesOpen, setIsMyRecipesOpen] = useState(false);
-  const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
 
   if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading your premium pantry...</div>;
   if (error) return <div className="p-8 text-center text-rose-500 font-medium">Error loading data: {error.message}</div>;
@@ -100,76 +94,6 @@ export default function DashboardPage() {
     setSelectedItemIds(newSet);
   };
 
-  const handleGenerateRecipe = async () => {
-    setIsGeneratingRecipe(true);
-    setIsRecipeModalOpen(true);
-    setRecipeResult(null);
-    setRecipeError("");
-    setSavedRecipeId(null);
-    try {
-      const res = await generateRecipe({
-        variables: { mustUseItemIds: Array.from(selectedItemIds) }
-      });
-      setRecipeResult((res.data as any).generateRecipe);
-    } catch (err: any) {
-      setRecipeError(err.message || "Unknown error occurred.");
-    } finally {
-      setIsGeneratingRecipe(false);
-    }
-  };
-
-  const handleRegenerateRecipe = async () => {
-    if (!recipeResult) return;
-    setIsGeneratingRecipe(true);
-    const previousIngredients = recipeResult.ingredients;
-    setRecipeResult(null);
-    setRecipeError("");
-    setSavedRecipeId(null);
-    try {
-      const res = await generateRecipe({
-        variables: { 
-          mustUseItemIds: Array.from(selectedItemIds),
-          previouslyUsedIngredients: previousIngredients
-        }
-      });
-      setRecipeResult((res.data as any).generateRecipe);
-    } catch (err: any) {
-      setRecipeError(err.message || "Unknown error occurred.");
-    } finally {
-      setIsGeneratingRecipe(false);
-    }
-  };
-
-  const handleSaveRecipe = async () => {
-    if (!recipeResult) return;
-    
-    if (savedRecipeId) {
-      // Toggle off (delete)
-      try {
-        await deleteRecipe({ variables: { id: savedRecipeId } });
-        setSavedRecipeId(null);
-      } catch (err) { console.error("Failed to remove saved recipe", err); }
-      return;
-    }
-
-    // Toggle on (save)
-    try {
-      const res = await saveRecipe({
-        variables: {
-          title: recipeResult.title,
-          ingredients: recipeResult.ingredients,
-          instructions: recipeResult.instructions
-        }
-      });
-      setSavedRecipeId((res.data as any).saveRecipe.id);
-    } catch (err) { console.error("Failed to save recipe", err); }
-  };
-
-  const handleDeleteRecipe = async (id: string) => {
-    try {
-      await deleteRecipe({ variables: { id } });
-    } catch (err) { console.error("Failed to delete recipe", err); }
-  };
 
   const columns = [
     { id: 'TO_BUY', title: '🛒 To Buy' },
@@ -256,19 +180,7 @@ export default function DashboardPage() {
         />
       </main>
 
-      {/* Floating Action Bar for AI Recipe Generation */}
-      {selectedItemIds.size > 0 && (
-        <div className="fixed bottom-24 md:bottom-10 left-0 right-0 flex justify-center animate-in slide-in-from-bottom-10 fade-in duration-300 px-4 z-40">
-          <Button 
-            onClick={handleGenerateRecipe}
-            size="lg"
-            className="bg-sky-500 hover:bg-sky-400 text-white font-bold shadow-[0_10px_40px_rgba(14,165,233,0.5)] rounded-full px-8 py-7 border-2 border-white/50 group backdrop-blur-md transition-all hover:scale-105"
-          >
-            <Wand2 className="mr-2 h-6 w-6 text-amber-300 group-hover:rotate-12 transition-transform" />
-            <span className="text-lg">Inspire Me ({selectedItemIds.size})</span>
-          </Button>
-        </div>
-      )}
+
 
       <MobileBottomNav 
         activeTab={mobileNavTab}
@@ -284,19 +196,10 @@ export default function DashboardPage() {
         initialData={editingItem}
       />
 
-      <RecipeModals 
-        isRecipeModalOpen={isRecipeModalOpen}
-        setIsRecipeModalOpen={setIsRecipeModalOpen}
-        isGeneratingRecipe={isGeneratingRecipe}
-        recipeResult={recipeResult}
-        recipeError={recipeError}
-        onSaveRecipe={handleSaveRecipe}
-        onRegenerate={handleRegenerateRecipe}
-        savedRecipeId={savedRecipeId}
+      <AIRecipeManager 
+        selectedItemIds={selectedItemIds}
         isMyRecipesOpen={isMyRecipesOpen}
         setIsMyRecipesOpen={setIsMyRecipesOpen}
-        myRecipes={myRecipes}
-        onDeleteRecipe={handleDeleteRecipe}
       />
     </div>
   );
