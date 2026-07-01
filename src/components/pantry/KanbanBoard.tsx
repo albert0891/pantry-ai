@@ -24,26 +24,26 @@ interface KanbanBoardProps {
 export function KanbanBoard({
   items, activeTab, selectedItemIds, onToggleSelection, onMove, onUpdateState, onEdit, onDelete
 }: KanbanBoardProps) {
+  
+  // Resolve the active column index for the mobile sliding animation
+  let activeIndex = COLUMNS.findIndex(c => c.id === activeTab);
+  if (activeIndex === -1) activeIndex = 1; // Default to IN_PANTRY if "home" or unknown
+
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-full min-w-full md:min-w-max pb-20">
-      {COLUMNS.map(col => {
-        const colItems = items.filter(item => item.boardState === col.id);
-        const isVisibleOnMobile = activeTab === col.id || activeTab === 'home'; // Handle Mobile Nav 'home' state
+    <div className="w-full h-full pb-20 overflow-hidden md:overflow-visible">
+      <div 
+        className="flex flex-row h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] md:gap-6 md:translate-x-0"
+        style={{ transform: `translateX(calc(-100% * ${activeIndex}))` }}
+      >
+        {COLUMNS.map(col => {
+          const colItems = items.filter(item => item.boardState === col.id);
 
-        // On mobile, if activeTab is 'home', we might show TO_BUY by default, 
-        // or we need a sub-tab. For simplicity, if we rely on a sub-tab for mobile Kanban:
-        // Actually, let's just make 'home' show IN_PANTRY by default if we haven't implemented sub-tabs,
-        // or we can just render the existing mobile tab logic.
-        // Let's assume the parent passes the EXACT active column ID if it's mobile.
-        const shouldShow = isVisibleOnMobile || (activeTab === 'home' && col.id === 'IN_PANTRY');
-
-        return (
-          <div 
-            key={col.id} 
-            className={`w-full md:w-80 bg-white/40 backdrop-blur-2xl rounded-3xl p-4 flex-col gap-3 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ${
-              shouldShow ? 'flex' : 'hidden md:flex'
-            }`}
-          >
+          return (
+            <div 
+              key={col.id} 
+              className="w-full shrink-0 md:min-w-[320px] md:w-80 flex flex-col h-full"
+            >
+              <div className="flex-1 bg-white/40 backdrop-blur-2xl rounded-3xl p-4 flex flex-col gap-3 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mx-1 md:mx-0 h-full">
             <div className="flex justify-between items-center mb-3 px-2">
               <h2 className="font-bold text-slate-700 text-lg hidden md:block">{col.title}</h2>
               <Badge variant="secondary" className="ml-auto md:ml-0 bg-white/90 shadow-sm text-slate-600 font-bold border-white">
@@ -73,8 +73,10 @@ export function KanbanBoard({
               )}
             </div>
           </div>
+        </div>
         );
       })}
     </div>
+  </div>
   );
 }
