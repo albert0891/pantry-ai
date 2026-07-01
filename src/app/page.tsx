@@ -220,19 +220,22 @@ export default function DashboardPage() {
 
       {/* Mobile Tab Navigation for Kanban Columns */}
       <div className="flex md:hidden bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-        {columns.map(col => (
-          <button
-            key={`tab-${col.id}`}
-            onClick={() => setActiveTab(col.id)}
-            className={`flex-1 py-3 text-sm font-bold text-center border-b-2 transition-colors ${
-              activeTab === col.id 
-                ? 'border-sky-500 text-sky-600' 
-                : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            {col.title}
-          </button>
-        ))}
+        {columns.map(col => {
+          const colItemsCount = items.filter((item: any) => item.boardState === col.id).length;
+          return (
+            <button
+              key={`tab-${col.id}`}
+              onClick={() => setActiveTab(col.id)}
+              className={`flex-1 py-3 text-sm font-bold text-center border-b-2 transition-colors flex items-center justify-center gap-1 ${
+                activeTab === col.id 
+                  ? 'border-sky-500 text-sky-600' 
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {col.title} <span className="text-xs opacity-70">({colItemsCount})</span>
+            </button>
+          );
+        })}
       </div>
 
       <main 

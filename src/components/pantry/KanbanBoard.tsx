@@ -44,9 +44,9 @@ export function KanbanBoard({
               className="w-full shrink-0 md:min-w-[320px] md:w-80 flex flex-col h-full"
             >
               <div className="flex-1 bg-white/40 backdrop-blur-2xl rounded-3xl p-4 flex flex-col gap-3 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mx-1 md:mx-0 h-full">
-            <div className="flex justify-between items-center mb-3 px-2">
-              <h2 className="font-bold text-slate-700 text-lg hidden md:block">{col.title}</h2>
-              <Badge variant="secondary" className="ml-auto md:ml-0 bg-white/90 shadow-sm text-slate-600 font-bold border-white">
+            <div className="hidden md:flex justify-between items-center mb-3 px-2">
+              <h2 className="font-bold text-slate-700 text-lg">{col.title}</h2>
+              <Badge variant="secondary" className="bg-white/90 shadow-sm text-slate-600 font-bold border-white">
                 {colItems.length} items
               </Badge>
             </div>
