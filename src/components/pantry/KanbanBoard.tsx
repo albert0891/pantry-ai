@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PantryItemCard } from './PantryItemCard';
 
 const COLUMNS = [
@@ -43,9 +44,25 @@ export function KanbanBoard({
 
   return (
     <div className="w-full h-full flex flex-col pb-20 md:pb-0 overflow-hidden md:overflow-visible">
-      {/* Filters Row */}
-      <div className="flex-none overflow-x-auto custom-scrollbar mb-2 py-2 snap-x px-4 -mx-4 md:px-0 md:mx-0">
-        <div className="flex gap-2 w-max">
+      {/* Mobile Filter (Select) */}
+      <div className="md:hidden px-4 mb-4">
+        <Select value={activeFilter} onValueChange={(val) => setActiveFilter(val || 'ALL')}>
+          <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-sm focus-visible:ring-sky-400 rounded-xl font-bold text-slate-700">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-white/95 backdrop-blur-xl border-white/80 rounded-xl shadow-xl">
+            {CATEGORY_FILTERS.map(filter => (
+              <SelectItem key={filter.id} value={filter.id} className="font-medium">
+                {filter.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Desktop Filters (Pills) */}
+      <div className="hidden md:block flex-none overflow-x-auto custom-scrollbar mb-4 py-2 px-1">
+        <div className="flex gap-2 w-max px-1">
           {CATEGORY_FILTERS.map(filter => (
             <button
               key={filter.id}
