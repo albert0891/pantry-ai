@@ -8,6 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
 
+const BOARD_STATE_LABELS: Record<string, string> = {
+  TO_BUY: "🛒 To Buy",
+  IN_PANTRY: "🧊 In Pantry",
+  CONSUMED: "🗑️ Consumed"
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  PRODUCE: "Produce",
+  DAIRY: "Dairy",
+  MEAT: "Meat",
+  PANTRY: "Pantry",
+  FROZEN: "Frozen",
+  BEVERAGE: "Beverage",
+  OTHER: "Other"
+};
+
 interface ItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,12 +103,14 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               <div className="col-span-3">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || "TO_BUY")}>
                   <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
-                    <SelectValue placeholder="Select target board" />
+                    <SelectValue placeholder="Select target board">
+                      {BOARD_STATE_LABELS[boardState as keyof typeof BOARD_STATE_LABELS]}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
-                    <SelectItem value="TO_BUY">🛒 To Buy</SelectItem>
-                    <SelectItem value="IN_PANTRY">🧊 In Pantry</SelectItem>
-                    <SelectItem value="CONSUMED">🗑️ Consumed</SelectItem>
+                    {Object.entries(BOARD_STATE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -103,16 +121,14 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               <div className="col-span-3">
                 <Select value={category} onValueChange={(val) => setCategory(val || "OTHER")}>
                   <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select category">
+                      {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
-                    <SelectItem value="PRODUCE">Produce</SelectItem>
-                    <SelectItem value="DAIRY">Dairy</SelectItem>
-                    <SelectItem value="MEAT">Meat</SelectItem>
-                    <SelectItem value="PANTRY">Pantry</SelectItem>
-                    <SelectItem value="FROZEN">Frozen</SelectItem>
-                    <SelectItem value="BEVERAGE">Beverage</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
+                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
