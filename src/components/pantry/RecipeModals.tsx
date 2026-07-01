@@ -30,27 +30,22 @@ export function RecipeModals({
     <>
       {/* Generated Recipe Modal */}
       <Dialog open={isRecipeModalOpen} onOpenChange={setIsRecipeModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-white shadow-2xl rounded-2xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col overflow-hidden bg-white/95 backdrop-blur-xl border-white shadow-2xl rounded-2xl">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="text-2xl flex items-start gap-2 text-sky-700 font-bold pr-14">
               <Wand2 className="text-amber-500 shrink-0 mt-1" />
               <span className="flex-1 min-w-0 break-words leading-tight">{isGeneratingRecipe ? "Generating..." : recipeResult?.title}</span>
-              {!isGeneratingRecipe && recipeResult && (
-                <Button variant="ghost" size="icon" onClick={onRegenerate} title="Regenerate with different ingredients" className="h-8 w-8 text-sky-500 hover:text-sky-600 hover:bg-sky-50 rounded-full shrink-0 -mt-0.5">
-                  <RefreshCw size={18} />
-                </Button>
-              )}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="py-4">
+          <div className="py-2 flex-1 overflow-y-auto pr-4 -mr-4 custom-scrollbar">
             {isGeneratingRecipe ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4 text-slate-500">
                 <Loader2 className="w-10 h-10 animate-spin text-sky-500" />
                 <p className="font-medium animate-pulse">Crafting the perfect recipe...</p>
               </div>
             ) : recipeResult ? (
-              <div className="space-y-6">
+              <div className="space-y-6 pb-4">
                 <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
                   <h3 className="text-lg font-bold text-slate-800 mb-2 border-b border-amber-200 pb-2">🛒 Ingredients</h3>
                   <ul className="list-disc pl-5 space-y-1 text-slate-700 font-medium">
@@ -75,13 +70,24 @@ export function RecipeModals({
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="text-slate-500">Close</Button>
-            {!isGeneratingRecipe && recipeResult && (
-              <Button onClick={onSaveRecipe} className="bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 rounded-full px-6">
-                💾 Save Recipe
-              </Button>
-            )}
+          <DialogFooter className="flex-col sm:flex-row sm:justify-between items-center gap-3 w-full pt-4 mt-2 border-t border-slate-100 shrink-0">
+            <Button variant="ghost" onClick={() => setIsRecipeModalOpen(false)} className="text-slate-500 w-full sm:w-auto order-3 sm:order-1 hover:bg-slate-100">
+              Cancel
+            </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
+              {!isGeneratingRecipe && recipeResult && (
+                <Button variant="outline" onClick={onRegenerate} className="flex-1 sm:flex-none border-sky-200 text-sky-700 hover:bg-sky-50 rounded-full font-medium">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Regenerate
+                </Button>
+              )}
+              {!isGeneratingRecipe && recipeResult && (
+                <Button onClick={onSaveRecipe} className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 rounded-full px-6">
+                  💾 Save Recipe
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
