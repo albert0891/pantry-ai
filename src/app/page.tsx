@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [recipeResult, setRecipeResult] = useState<any>(null);
   const [recipeError, setRecipeError] = useState("");
   const [isMyRecipesOpen, setIsMyRecipesOpen] = useState(false);
+  const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
 
   if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading your premium pantry...</div>;
   if (error) return <div className="p-8 text-center text-rose-500 font-medium">Error loading data: {error.message}</div>;
@@ -104,6 +105,7 @@ export default function DashboardPage() {
     setIsRecipeModalOpen(true);
     setRecipeResult(null);
     setRecipeError("");
+    setSavedRecipeId(null);
     try {
       const res = await generateRecipe({
         variables: { mustUseItemIds: Array.from(selectedItemIds) }
@@ -122,6 +124,7 @@ export default function DashboardPage() {
     const previousIngredients = recipeResult.ingredients;
     setRecipeResult(null);
     setRecipeError("");
+    setSavedRecipeId(null);
     try {
       const res = await generateRecipe({
         variables: { 
@@ -139,17 +142,26 @@ export default function DashboardPage() {
 
   const handleSaveRecipe = async () => {
     if (!recipeResult) return;
+    
+    if (savedRecipeId) {
+      // Toggle off (delete)
+      try {
+        await deleteRecipe({ variables: { id: savedRecipeId } });
+        setSavedRecipeId(null);
+      } catch (err) { console.error("Failed to remove saved recipe", err); }
+      return;
+    }
+
+    // Toggle on (save)
     try {
-      await saveRecipe({
+      const res = await saveRecipe({
         variables: {
           title: recipeResult.title,
           ingredients: recipeResult.ingredients,
           instructions: recipeResult.instructions
         }
       });
-      setIsRecipeModalOpen(false);
-      setSelectedItemIds(new Set()); // clear selection
-      setIsMyRecipesOpen(true); // Open my recipes to show the saved one
+      setSavedRecipeId((res.data as any).saveRecipe.id);
     } catch (err) { console.error("Failed to save recipe", err); }
   };
 
@@ -277,6 +289,7 @@ export default function DashboardPage() {
         recipeError={recipeError}
         onSaveRecipe={handleSaveRecipe}
         onRegenerate={handleRegenerateRecipe}
+        savedRecipeId={savedRecipeId}
         isMyRecipesOpen={isMyRecipesOpen}
         setIsMyRecipesOpen={setIsMyRecipesOpen}
         myRecipes={myRecipes}

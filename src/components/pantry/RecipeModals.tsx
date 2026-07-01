@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart, Trash2 } from 'lucide-react';
+import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart, Trash2, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ interface RecipeModalsProps {
   recipeError: string;
   onSaveRecipe: () => void;
   onRegenerate: () => void;
+  savedRecipeId: string | null;
   
   isMyRecipesOpen: boolean;
   setIsMyRecipesOpen: (val: boolean) => void;
@@ -23,7 +24,7 @@ interface RecipeModalsProps {
 
 export function RecipeModals({
   isRecipeModalOpen, setIsRecipeModalOpen,
-  isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate,
+  isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate, savedRecipeId,
   isMyRecipesOpen, setIsMyRecipesOpen, myRecipes, onDeleteRecipe
 }: RecipeModalsProps) {
 
@@ -93,9 +94,25 @@ export function RecipeModals({
                   <RefreshCw size={20} className="sm:mr-2 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
                   <span className="hidden sm:inline">Regenerate</span>
                 </Button>
-                <Button onClick={onSaveRecipe} className="h-12 bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-400/50 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink">
-                  <Heart size={20} className="sm:mr-2 group-hover:scale-110 transition-transform duration-300 shrink-0 drop-shadow-md" />
-                  <span className="hidden sm:inline text-base drop-shadow-sm">Save Recipe</span>
+                <Button 
+                  onClick={onSaveRecipe} 
+                  className={`h-12 rounded-full font-bold px-4 sm:px-8 transition-all group shrink-0 sm:shrink ${
+                    savedRecipeId 
+                      ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] border border-emerald-400/50' 
+                      : 'bg-amber-500 hover:bg-amber-600 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-400/50'
+                  }`}
+                >
+                  {savedRecipeId ? (
+                    <>
+                      <Check size={20} className="sm:mr-2 shrink-0 drop-shadow-md" />
+                      <span className="hidden sm:inline text-base drop-shadow-sm">Saved!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Heart size={20} className="sm:mr-2 group-hover:scale-110 transition-transform duration-300 shrink-0 drop-shadow-md" />
+                      <span className="hidden sm:inline text-base drop-shadow-sm">Save Recipe</span>
+                    </>
+                  )}
                 </Button>
               </>
             ) : null}
