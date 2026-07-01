@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Wand2, BookOpen, Loader2 } from 'lucide-react';
+import { Wand2, BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ interface RecipeModalsProps {
   recipeResult: any;
   recipeError: string;
   onSaveRecipe: () => void;
+  onRegenerate: () => void;
   
   isMyRecipesOpen: boolean;
   setIsMyRecipesOpen: (val: boolean) => void;
@@ -21,7 +22,7 @@ interface RecipeModalsProps {
 
 export function RecipeModals({
   isRecipeModalOpen, setIsRecipeModalOpen,
-  isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe,
+  isGeneratingRecipe, recipeResult, recipeError, onSaveRecipe, onRegenerate,
   isMyRecipesOpen, setIsMyRecipesOpen, myRecipes
 }: RecipeModalsProps) {
 
@@ -33,7 +34,12 @@ export function RecipeModals({
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2 text-sky-700 font-bold">
               <Wand2 className="text-amber-500" />
-              {isGeneratingRecipe ? "Generating..." : recipeResult?.title}
+              <span className="flex-1">{isGeneratingRecipe ? "Generating..." : recipeResult?.title}</span>
+              {!isGeneratingRecipe && recipeResult && (
+                <Button variant="ghost" size="icon" onClick={onRegenerate} title="Regenerate with different ingredients" className="h-8 w-8 text-sky-500 hover:text-sky-600 hover:bg-sky-50 rounded-full">
+                  <RefreshCw size={18} />
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           

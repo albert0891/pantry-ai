@@ -111,6 +111,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handleRegenerateRecipe = async () => {
+    if (!recipeResult) return;
+    setIsGeneratingRecipe(true);
+    const previousIngredients = recipeResult.ingredients;
+    setRecipeResult(null);
+    setRecipeError("");
+    try {
+      const res = await generateRecipe({
+        variables: { 
+          mustUseItemIds: Array.from(selectedItemIds),
+          previouslyUsedIngredients: previousIngredients
+        }
+      });
+      setRecipeResult((res.data as any).generateRecipe);
+    } catch (err: any) {
+      setRecipeError(err.message || "Unknown error occurred.");
+    } finally {
+      setIsGeneratingRecipe(false);
+    }
+  };
+
   const handleSaveRecipe = async () => {
     if (!recipeResult) return;
     try {
@@ -213,6 +234,7 @@ export default function DashboardPage() {
         recipeResult={recipeResult}
         recipeError={recipeError}
         onSaveRecipe={handleSaveRecipe}
+        onRegenerate={handleRegenerateRecipe}
         isMyRecipesOpen={isMyRecipesOpen}
         setIsMyRecipesOpen={setIsMyRecipesOpen}
         myRecipes={myRecipes}

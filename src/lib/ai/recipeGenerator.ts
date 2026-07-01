@@ -2,12 +2,17 @@ import { GoogleGenAI } from '@google/genai';
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
-export const buildRecipePrompt = (ingredients: string[]) => {
+export const buildRecipePrompt = (ingredients: string[], previouslyUsedIngredients?: string[]) => {
   const ingredientsList = ingredients.join(', ');
-  return `You are an expert chef. I have these ingredients: ${ingredientsList}.
-    Please generate a delicious recipe using these items. You may include other common pantry staples (like salt, oil, water, etc.) if needed.
+  let prompt = `You are an expert chef. I have these ingredients: ${ingredientsList}.
+    Please generate a delicious recipe using these items. You may include other common pantry staples (like salt, oil, water, etc.) if needed.`;
+
+  if (previouslyUsedIngredients && previouslyUsedIngredients.length > 0) {
+    prompt += `\n\nIMPORTANT: The user wants a DIFFERENT recipe. Try to DE-PRIORITIZE these specific supporting ingredients: ${previouslyUsedIngredients.join(', ')}. 
+    Focus on finding a DIFFERENT recipe utilizing OTHER available ingredients from my list, while STILL using the REQUIRED ingredients.`;
+  }
     
-    CRITICAL LANGUAGE RULE: 
+  prompt += `\n\nCRITICAL LANGUAGE RULE: 
     If any of the provided ingredients contain Chinese characters, you MUST output the entire recipe (title, ingredients, instructions) in Traditional Chinese (繁體中文). 
     Otherwise, if all ingredients are in English, output the recipe in English.
 
@@ -17,14 +22,16 @@ export const buildRecipePrompt = (ingredients: string[]) => {
       "ingredients": ["1 cup ingredient", "2 tbsp oil"],
       "instructions": ["Step 1", "Step 2"]
     }`;
+  
+  return prompt;
 };
 
-export async function generateRecipeWithAI(ingredients: string[]) {
+export async function generateRecipeWithAI(ingredients: string[], previouslyUsedIngredients?: string[]) {
   if (!ai) {
     throw new Error("GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable.");
   }
 
-  const prompt = buildRecipePrompt(ingredients);
+  const prompt = buildRecipePrompt(ingredients, previouslyUsedIngredients);
   const MAX_RETRIES = 3;
   let lastError: Error | null = null;
 

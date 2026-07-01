@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Search, Plus, BookOpen, LogOut } from 'lucide-react';
+import { Search, Plus, BookOpen, LogOut, HelpCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { signOut } from 'aws-amplify/auth';
 
 interface NavbarProps {
@@ -15,6 +16,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAddDialog }: NavbarProps) {
+  const [isGuideOpen, setIsGuideOpen] = React.useState(false);
   const handleLogout = async () => {
     if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
       localStorage.removeItem('mock_logged_in');
@@ -46,6 +48,10 @@ export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAdd
             />
           </div>
           
+          <Button variant="ghost" onClick={() => setIsGuideOpen(true)} className="flex items-center gap-1.5 font-bold text-white hover:bg-white/20 rounded-full px-4 transition-colors">
+            <HelpCircle size={18} /> <span className="hidden lg:inline">Guide</span>
+          </Button>
+
           <Button variant="ghost" onClick={onOpenMyRecipes} className="flex items-center gap-1.5 font-bold text-white hover:bg-white/20 rounded-full px-4 transition-colors">
             <BookOpen size={18} /> <span>My Recipes</span>
           </Button>
@@ -67,6 +73,9 @@ export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAdd
           <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-sm">Pantry AI</h1>
         </div>
         <div className="flex items-center gap-1">
+          <Button variant="ghost" onClick={() => setIsGuideOpen(true)} className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0" title="Guide">
+            <HelpCircle size={18} />
+          </Button>
           <Button variant="ghost" onClick={handleLogout} className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0" title="Logout">
             <LogOut size={18} />
           </Button>
@@ -85,6 +94,41 @@ export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAdd
           />
         </div>
       </div>
+
+      <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white/90 backdrop-blur-xl border-white rounded-2xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2 text-sky-600 font-bold">
+              <HelpCircle className="text-amber-500" />
+              Welcome to Pantry AI!
+            </DialogTitle>
+            <DialogDescription className="text-slate-600 font-medium pt-2">
+              Your smart, AI-powered kitchen assistant.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4 text-sm text-slate-700">
+            <div className="flex gap-3 items-start">
+              <div className="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">1</div>
+              <p>Check the boxes on items in your Pantry.</p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">2</div>
+              <p>Click <strong className="text-sky-600">Inspire Me</strong> to let AI craft a recipe using them.</p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="bg-amber-100 text-amber-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">3</div>
+              <p>Don't like the recipe? Click the <strong className="text-amber-600">Refresh</strong> icon in the dialog to generate a new one prioritizing different ingredients!</p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <div className="bg-rose-100 text-rose-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">4</div>
+              <p>Move consumed items back to the <strong className="text-rose-600">To Buy</strong> list with one click.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsGuideOpen(false)} className="bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-full w-full">Got it!</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Edit, Trash2 } from 'lucide-react';
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Edit, Trash2, ShoppingCart } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -94,6 +94,9 @@ export function PantryItemCard({
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, 1, 'IN_PANTRY')} title="Move 1 back to Pantry">
                 <ChevronLeft size={16} />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'TO_BUY')} title="Return to To Buy list">
+                <ShoppingCart size={16} />
               </Button>
             </>
           )}

@@ -147,7 +147,7 @@ export const resolvers = {
       }
     },
 
-    generateRecipe: async (_: unknown, args: { mustUseItemIds: string[] }, context: { userId?: string }) => {
+    generateRecipe: async (_: unknown, args: { mustUseItemIds: string[], previouslyUsedIngredients?: string[] }, context: { userId?: string }) => {
       const user = await ensureAuthenticatedUser(context);
 
       const allPantryItems = await prisma.pantryItem.findMany({
@@ -159,7 +159,7 @@ export const resolvers = {
 
       const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name);
       
-      return await generateRecipeWithAI(ingredientsList);
+      return await generateRecipeWithAI(ingredientsList, args.previouslyUsedIngredients);
     },
 
     saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {

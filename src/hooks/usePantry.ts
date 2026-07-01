@@ -74,8 +74,8 @@ export const DELETE_ITEM = gql`
 `;
 
 export const GENERATE_RECIPE = gql`
-  mutation GenerateRecipe($mustUseItemIds: [String!]!) {
-    generateRecipe(mustUseItemIds: $mustUseItemIds) {
+  mutation GenerateRecipe($mustUseItemIds: [String!]!, $previouslyUsedIngredients: [String!]) {
+    generateRecipe(mustUseItemIds: $mustUseItemIds, previouslyUsedIngredients: $previouslyUsedIngredients) {
       title
       ingredients
       instructions

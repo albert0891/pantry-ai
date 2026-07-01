@@ -90,7 +90,7 @@ export const typeDefs = gql`
     
     moveItem(id: ID!, amount: Int!, targetState: BoardState!): PantryItem!
     
-    generateRecipe(mustUseItemIds: [String!]!): GeneratedRecipe!
+    generateRecipe(mustUseItemIds: [String!]!, previouslyUsedIngredients: [String!]): GeneratedRecipe!
     
     saveRecipe(
       title: String!
