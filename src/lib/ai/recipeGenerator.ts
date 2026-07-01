@@ -6,13 +6,18 @@ export const buildRecipePrompt = (mustUseIngredients: string[], supportingIngred
   const mustUseList = mustUseIngredients.join(', ');
   const supportingList = supportingIngredients.join(', ');
   
-  let prompt = `You are an expert chef. I want to cook a delicious dish that MUST feature these primary ingredients: ${mustUseList}.`;
+  let prompt = `You are a Michelin-star chef creating a highly rated recipe.
+
+CORE REQUIREMENT: You MUST feature these primary ingredients prominently: [${mustUseList}].`;
   
   if (supportingIngredients.length > 0) {
-    prompt += `\nI also have these other ingredients available in my kitchen that you CAN optionally use if they fit the flavor profile: ${supportingList}. Do NOT force all of them into the recipe, only select the ones that perfectly complement the primary ingredients.`;
+    prompt += `\n\nPANTRY INVENTORY: The user also has these ingredients in their kitchen: [${supportingList}].
+YOUR TASK: Select ONLY the ingredients from the PANTRY INVENTORY that naturally and classically pair with the primary ingredients.
+CRITICAL FLAVOR RULE: You MUST IGNORE ingredients that clash in flavor. For example, NEVER mix sweet baking ingredients (like cocoa powder, sugar, vanilla) with savory meats unless you are making a culturally established dish (like Mexican Mole or Chili con Carne). 
+It is MUCH BETTER to use fewer ingredients and create a delicious, normal dish than to create a weird, unappetizing combination just to use up pantry items. Do not force items together!`;
   }
 
-  prompt += `\nYou may also include basic common kitchen staples (like salt, oil, water, pepper, etc.) if needed.`;
+  prompt += `\n\nYou may also assume the user has basic kitchen staples (salt, pepper, cooking oil, water, garlic, etc.).`;
 
   if (previouslyUsedIngredients && previouslyUsedIngredients.length > 0) {
     prompt += `\n\nIMPORTANT: The user wants a DIFFERENT recipe. Try to DE-PRIORITIZE these specific ingredients: ${previouslyUsedIngredients.join(', ')}. 
