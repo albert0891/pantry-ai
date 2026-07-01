@@ -150,12 +150,16 @@ export const resolvers = {
     generateRecipe: async (_: unknown, args: { mustUseItemIds: string[], previouslyUsedIngredients?: string[] }, context: { userId?: string }) => {
       const user = await ensureAuthenticatedUser(context);
 
-      const allPantryItems = await prisma.pantryItem.findMany({
-        where: { userId: user.id, boardState: 'IN_PANTRY' }
+      // Fetch ALL items to allow cross-board recipe planning
+      const allItems = await prisma.pantryItem.findMany({
+        where: { userId: user.id }
       });
 
-      const mustUseItems = allPantryItems.filter(item => args.mustUseItemIds.includes(item.id));
-      const supportingItems = allPantryItems.filter(item => !args.mustUseItemIds.includes(item.id));
+      // 1. Must-use items: Anything the user explicitly checked (can be TO_BUY, IN_PANTRY, or CONSUMED)
+      const mustUseItems = allItems.filter(item => args.mustUseItemIds.includes(item.id));
+      
+      // 2. Supporting items: Only items currently IN_PANTRY that weren't explicitly checked
+      const supportingItems = allItems.filter(item => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id));
 
       const ingredientsList = [...mustUseItems, ...supportingItems].map(i => i.name);
       
