@@ -48,7 +48,9 @@ export function KanbanBoard({
       <div className="md:hidden px-4 mb-4">
         <Select value={activeFilter} onValueChange={(val) => setActiveFilter(val || 'ALL')}>
           <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-sm focus-visible:ring-sky-400 rounded-xl font-bold text-slate-700">
-            <SelectValue />
+            <SelectValue>
+              {CATEGORY_FILTERS.find(f => f.id === activeFilter)?.label}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white/95 backdrop-blur-xl border-white/80 rounded-xl shadow-xl">
             {CATEGORY_FILTERS.map(filter => (
