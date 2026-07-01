@@ -1,5 +1,5 @@
 {
-  "crons": [
+  "disabled_crons": [
     {
       "path": "/api/cron/reset-demo",
       "schedule": "0 0 * * *"
