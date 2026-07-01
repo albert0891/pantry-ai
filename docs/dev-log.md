@@ -44,6 +44,7 @@
 - Changed the main title of the login page from "Welcome Back" to "Pantry AI" to reinforce project branding.
 
 ### Completed (Features):
+- **Mobile Swipe Gestures**: Added `onTouchStart`, `onTouchMove`, and `onTouchEnd` event handlers to the main Kanban board container to allow users to smoothly swipe left and right to switch between columns on mobile devices.
 - **Quick Re-buy Button**: Added a one-click `ShoppingCart` button to items in the "Consumed" column to quickly move them back to the "To Buy" list (`PantryItemCard.tsx`).
-- **AI Recipe Regeneration**: Added a "Refresh" button in the generated recipe dialog. This leverages a new AI Prompt engineering technique by passing `previouslyUsedIngredients` to the backend, instructing Gemini to actively down-weight previous ingredients and explore diverse recipe combinations while maintaining required ingredients.
+- **AI Recipe Regeneration**: Added a "Refresh" button in the generated recipe dialog (with layout adjustments to prevent overlapping the close button). This leverages a new AI Prompt engineering technique by passing `previouslyUsedIngredients` to the backend, instructing Gemini to actively down-weight previous ingredients and explore diverse recipe combinations while maintaining required ingredients.
 - **Onboarding Guide**: Implemented a responsive "Guide" modal in the Navbar with an interactive step-by-step tutorial explaining core app workflows.

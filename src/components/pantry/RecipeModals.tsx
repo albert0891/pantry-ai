@@ -32,11 +32,11 @@ export function RecipeModals({
       <Dialog open={isRecipeModalOpen} onOpenChange={setIsRecipeModalOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto bg-white/95 backdrop-blur-xl border-white shadow-2xl rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2 text-sky-700 font-bold">
-              <Wand2 className="text-amber-500" />
-              <span className="flex-1">{isGeneratingRecipe ? "Generating..." : recipeResult?.title}</span>
+            <DialogTitle className="text-2xl flex items-center gap-2 text-sky-700 font-bold pr-8">
+              <Wand2 className="text-amber-500 shrink-0" />
+              <span className="truncate">{isGeneratingRecipe ? "Generating..." : recipeResult?.title}</span>
               {!isGeneratingRecipe && recipeResult && (
-                <Button variant="ghost" size="icon" onClick={onRegenerate} title="Regenerate with different ingredients" className="h-8 w-8 text-sky-500 hover:text-sky-600 hover:bg-sky-50 rounded-full">
+                <Button variant="ghost" size="icon" onClick={onRegenerate} title="Regenerate with different ingredients" className="h-8 w-8 text-sky-500 hover:text-sky-600 hover:bg-sky-50 rounded-full shrink-0">
                   <RefreshCw size={18} />
                 </Button>
               )}

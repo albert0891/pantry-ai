@@ -24,6 +24,11 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('IN_PANTRY'); // Controls mobile Kanban col
   const [mobileNavTab, setMobileNavTab] = useState<'home' | 'recipes' | 'add'>('home');
   
+  // Swipe Handlers for Mobile Tabs
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+  
   // Dialog States
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -154,6 +159,32 @@ export default function DashboardPage() {
     { id: 'CONSUMED', title: '🗑️ Consumed' }
   ];
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEndEvent = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe || isRightSwipe) {
+      const currentIndex = columns.findIndex(c => c.id === activeTab);
+      if (isLeftSwipe && currentIndex < columns.length - 1) {
+        setActiveTab(columns[currentIndex + 1].id);
+      }
+      if (isRightSwipe && currentIndex > 0) {
+        setActiveTab(columns[currentIndex - 1].id);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative pb-20 overflow-hidden">
       
@@ -186,7 +217,12 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <main className="flex-1 p-4 sm:p-6 overflow-x-hidden md:overflow-x-auto">
+      <main 
+        className="flex-1 p-4 sm:p-6 overflow-x-hidden md:overflow-x-auto"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEndEvent}
+      >
         <KanbanBoard 
           items={items}
           activeTab={activeTab}
