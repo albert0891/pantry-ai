@@ -20,8 +20,10 @@ It is MUCH BETTER to use fewer ingredients and create a delicious, normal dish t
   prompt += `\n\nYou may also assume the user has basic kitchen staples (salt, pepper, cooking oil, water, garlic, etc.).`;
 
   if (previouslyUsedIngredients && previouslyUsedIngredients.length > 0) {
-    prompt += `\n\nIMPORTANT: The user wants a DIFFERENT recipe. Try to DE-PRIORITIZE these specific ingredients: ${previouslyUsedIngredients.join(', ')}. 
-    Focus on finding a DIFFERENT recipe utilizing OTHER available ingredients from my optional list, while STILL featuring the REQUIRED primary ingredients.`;
+    prompt += `\n\nIMPORTANT: The user wants a DIFFERENT recipe. The previous recipe used these ingredients: [${previouslyUsedIngredients.join(', ')}]. 
+    Please invent a completely new dish (e.g., different cuisine style, different cooking method, or different flavor profile) that STILL features the REQUIRED primary ingredients.
+    You may still use the same pantry items if needed, but the dish must feel distinct. 
+    DO NOT violate the CRITICAL FLAVOR RULE just to make it different! NEVER force incompatible ingredients together.`;
   }
     
   prompt += `\n\nCRITICAL LANGUAGE RULE: 
