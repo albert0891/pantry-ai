@@ -38,7 +38,7 @@ export async function generateRecipeWithAI(ingredients: string[], previouslyUsed
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
+        model: 'gemini-3.1-flash-lite',
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -66,9 +66,20 @@ export async function generateRecipeWithAI(ingredients: string[], previouslyUsed
     } catch (err: any) {
         console.warn(`[Gemini API] Attempt ${attempt} failed:`, err.message);
         lastError = err;
+        
+        // Exponential backoff to handle 429 Rate Limits
+        if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+        }
     }
   }
 
   console.error("Gemini API Error (All retries exhausted):", lastError);
+  
+  // Provide a more descriptive error if it's likely a rate limit
+  if (lastError?.message?.includes("429") || lastError?.message?.toLowerCase().includes("quota")) {
+      throw new Error("API Rate Limit Exceeded: The free tier is busy. Please wait a minute and try again.");
+  }
+  
   throw new Error("AI is currently feeling uninspired or busy. Please try again.");
 }
