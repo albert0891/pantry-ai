@@ -117,7 +117,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               <Label htmlFor="boardState" className="text-right text-slate-700 font-semibold">Target</Label>
               <div className="col-span-3">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || "TO_BUY")}>
-                  <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                  <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
                     <SelectValue placeholder="Select target board">
                       {BOARD_STATE_LABELS[boardState as keyof typeof BOARD_STATE_LABELS]}
                     </SelectValue>
@@ -146,7 +146,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               </div>
               <div className="col-span-3">
                 <Select value={category} onValueChange={(val) => setCategory(val || "OTHER")}>
-                  <SelectTrigger className="h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                  <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
                     <SelectValue placeholder="Select category">
                       {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
                     </SelectValue>
