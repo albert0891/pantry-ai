@@ -185,6 +185,8 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "src/app/icon.svg",
+    "src/app/icon.jpg",
     "docs/aws-cognito-notes.md",
     "docs/commands-cheatsheet.md",
     "docs/dev-log.md",
@@ -221,7 +223,6 @@
     "node_modules/bignumber.js/README.md",
     "node_modules/bignumber.js/LICENCE.md",
     "node_modules/bignumber.js/CHANGELOG.md",
-    "node_modules/extend/README.md",
     "public/pantry-icon.png",
     "public/logo.png"
   ]

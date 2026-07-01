@@ -39,3 +39,5 @@
 ### Completed (UI & Bug Fixes):
 - Fixed iOS Safari specific UI glitch in the "Add Item" dialog (`ItemFormDialog.tsx`) where the native date picker (`type="date"`) would overflow its container due to insufficient fixed height (`h-8`). 
 - Increased default height for Dialog inputs to `h-10` (40px) to meet Apple mobile touch target guidelines and enforced `block w-full appearance-none` on the date input for consistent cross-browser mobile layout.
+- Updated Next.js global metadata in `src/app/layout.tsx` to properly display the app title "Pantry AI" and description.
+- Restored the original `logo.svg` (carrot logo) as the official Next.js favicon (`src/app/icon.svg`).
