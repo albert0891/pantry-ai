@@ -20,13 +20,7 @@ export default function DashboardPage() {
 
   // UI States
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState('IN_PANTRY'); // Controls mobile Kanban col
   const [mobileNavTab, setMobileNavTab] = useState<'home' | 'recipes' | 'add'>('home');
-  
-  // Swipe Handlers for Mobile Tabs
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const minSwipeDistance = 50;
   
   // Dialog States
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -95,37 +89,7 @@ export default function DashboardPage() {
   };
 
 
-  const columns = [
-    { id: 'TO_BUY', title: '🛒 To Buy' },
-    { id: 'IN_PANTRY', title: '🧊 In Pantry' },
-    { id: 'CONSUMED', title: '🗑️ Consumed' }
-  ];
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEndEvent = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe || isRightSwipe) {
-      const currentIndex = columns.findIndex(c => c.id === activeTab);
-      if (isLeftSwipe && currentIndex < columns.length - 1) {
-        setActiveTab(columns[currentIndex + 1].id);
-      }
-      if (isRightSwipe && currentIndex > 0) {
-        setActiveTab(columns[currentIndex - 1].id);
-      }
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col relative pb-20 overflow-hidden">
@@ -142,35 +106,9 @@ export default function DashboardPage() {
         onOpenAddDialog={handleOpenAddDialog}
       />
 
-      {/* Mobile Tab Navigation for Kanban Columns */}
-      <div className="flex md:hidden bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-        {columns.map(col => {
-          const colItemsCount = items.filter((item: any) => item.boardState === col.id).length;
-          return (
-            <button
-              key={`tab-${col.id}`}
-              onClick={() => setActiveTab(col.id)}
-              className={`flex-1 py-3 text-sm font-bold text-center border-b-2 transition-colors flex items-center justify-center gap-1 ${
-                activeTab === col.id 
-                  ? 'border-sky-500 text-sky-600' 
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              {col.title} <span className="text-xs opacity-70">({colItemsCount})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <main 
-        className="flex-1 p-4 sm:p-6 overflow-x-hidden md:overflow-x-auto"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEndEvent}
-      >
+      <main className="flex-1 p-4 sm:p-6 overflow-x-hidden md:overflow-x-auto">
         <KanbanBoard 
           items={items}
-          activeTab={activeTab}
           selectedItemIds={selectedItemIds}
           onToggleSelection={toggleSelection}
           onMove={handleMove}

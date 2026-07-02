@@ -185,6 +185,7 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "src/hooks/useSwipe.ts",
     "src/components/pantry/AIRecipeManager.tsx",
     "src/components/ui/confirm-dialog.tsx",
     "src/app/actions/ai.ts",
@@ -208,7 +209,6 @@
     "src/app/api/cron",
     "src/lib/ai/recipeGenerator.ts",
     "src/lib/ai",
-    "src/components/pantry/KanbanBoard.tsx",
     "public/logo.svg",
     "node_modules/@protobufjs/fetch/CHANGELOG.md",
     "node_modules/@protobufjs/eventemitter/CHANGELOG.md",

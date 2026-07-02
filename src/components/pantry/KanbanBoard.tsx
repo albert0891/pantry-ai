@@ -4,6 +4,7 @@ import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PantryItemCard } from './PantryItemCard';
+import { useSwipe } from '@/hooks/useSwipe';
 
 const COLUMNS = [
   { id: 'TO_BUY', title: '🛒 To Buy' },
@@ -24,7 +25,6 @@ const CATEGORY_FILTERS = [
 
 interface KanbanBoardProps {
   items: any[];
-  activeTab: string;
   selectedItemIds: Set<string>;
   onToggleSelection: (id: string) => void;
   onMove: (id: string, amount: number, targetState: string) => void;
@@ -34,16 +34,51 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({
-  items, activeTab, selectedItemIds, onToggleSelection, onMove, onUpdateState, onEdit, onDelete
+  items, selectedItemIds, onToggleSelection, onMove, onUpdateState, onEdit, onDelete
 }: KanbanBoardProps) {
   const [activeFilter, setActiveFilter] = React.useState('ALL');
+  const [activeTab, setActiveTab] = React.useState('IN_PANTRY');
   
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => {
+      const currentIndex = COLUMNS.findIndex(c => c.id === activeTab);
+      if (currentIndex < COLUMNS.length - 1) setActiveTab(COLUMNS[currentIndex + 1].id);
+    },
+    onSwipeRight: () => {
+      const currentIndex = COLUMNS.findIndex(c => c.id === activeTab);
+      if (currentIndex > 0) setActiveTab(COLUMNS[currentIndex - 1].id);
+    }
+  });
+
   // Resolve the active column index for the mobile sliding animation
   let activeIndex = COLUMNS.findIndex(c => c.id === activeTab);
-  if (activeIndex === -1) activeIndex = 1; // Default to IN_PANTRY if "home" or unknown
+  if (activeIndex === -1) activeIndex = 1;
 
   return (
-    <div className="w-full h-full flex flex-col pb-20 md:pb-0 overflow-hidden md:overflow-visible">
+    <div 
+      className="w-full h-full flex flex-col pb-20 md:pb-0 overflow-hidden md:overflow-visible relative"
+      {...swipeHandlers}
+    >
+      {/* Mobile Tab Navigation for Kanban Columns */}
+      <div className="flex md:hidden bg-white/80 backdrop-blur-md sticky -top-4 sm:-top-6 z-10 shadow-sm -mx-4 sm:-mx-6 px-4 sm:px-6 mb-4">
+        {COLUMNS.map(col => {
+          const colItemsCount = items.filter((item: any) => item.boardState === col.id).length;
+          return (
+            <button
+              key={`tab-${col.id}`}
+              onClick={() => setActiveTab(col.id)}
+              className={`flex-1 py-3 text-sm font-bold text-center border-b-2 transition-colors flex items-center justify-center gap-1 ${
+                activeTab === col.id 
+                  ? 'border-sky-500 text-sky-600' 
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {col.title} <span className="text-xs opacity-70">({colItemsCount})</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Mobile Filter (Select) */}
       <div className="md:hidden px-4 mb-4">
         <Select value={activeFilter} onValueChange={(val) => setActiveFilter(val || 'ALL')}>

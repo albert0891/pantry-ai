@@ -60,3 +60,4 @@
 - **Deep Modules Architecture**: Eliminated the "God Component" anti-pattern in `src/app/page.tsx` by extracting all AI Recipe state and GraphQL logic into a highly cohesive, deep module (`AIRecipeManager.tsx`).
 - **State Decoupling**: Removed 5 state variables and 4 massive event handlers from the top-level route. `page.tsx` is now strictly responsible for high-level layout and Kanban state, significantly increasing code Locality and Leverage.
 - **Added Architectural Guardrails**: Updated `.agents/AGENTS.md` to strictly enforce the creation of Deep Modules and forbid shallow pass-through components for new features.
+- **Kanban Gesture Encapsulation**: Extracted touch physics into a dedicated `useSwipe` hook. Pushed `activeTab` state and mobile navigation UI down into `KanbanBoard.tsx`, completing the Deep Module architecture and cleanly decoupling `page.tsx` from all swipe physics and Kanban-specific layout concerns.
