@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Wand2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -39,17 +39,17 @@ export default function DashboardPage() {
   );
 
   // Handlers
-  const handleOpenAddDialog = () => {
+  const handleOpenAddDialog = useCallback(() => {
     setEditingItem(null);
     setIsAddDialogOpen(true);
-  };
+  }, []);
 
-  const handleOpenEditDialog = (item: any) => {
+  const handleOpenEditDialog = useCallback((item: any) => {
     setEditingItem(item);
     setIsAddDialogOpen(true);
-  };
+  }, []);
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = useCallback(async (data: any) => {
     try {
       if (data.id) {
         await editItem({ variables: data });
@@ -59,34 +59,33 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to save item", err);
     }
-  };
+  }, [editItem, addItem]);
 
-  const handleMove = async (id: string, amount: number, targetState: string) => {
+  const handleMove = useCallback(async (id: string, amount: number, targetState: string) => {
     try {
       await moveItem({ variables: { id, amount, targetState } });
-      setSelectedItemIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
+      // Note: Deliberately removed setSelectedItemIds(prev => prev.delete(id)) here
+      // so users can check items, move them to pantry, and immediately use them in AI generation.
     } catch (err) { console.error("Failed to move item", err); }
-  };
+  }, [moveItem]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     try { await deleteItem({ variables: { id } }); } 
     catch (err) { console.error("Failed to delete item", err); }
-  };
+  }, [deleteItem]);
 
-  const handleUpdateState = async (id: string, targetState: string) => {
+  const handleUpdateState = useCallback(async (id: string, targetState: string) => {
     try { await updateItemState({ variables: { id, newState: targetState } }); } 
     catch (err) { console.error("Failed to update item state", err); }
-  };
+  }, [updateItemState]);
 
-  const toggleSelection = (id: string) => {
-    const newSet = new Set(selectedItemIds);
-    if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
-    setSelectedItemIds(newSet);
-  };
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedItemIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
+      return newSet;
+    });
+  }, []);
 
 
 

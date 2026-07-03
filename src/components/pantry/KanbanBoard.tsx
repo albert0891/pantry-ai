@@ -122,10 +122,12 @@ export function KanbanBoard({
           style={{ '--mobile-translate': `calc(-100% * ${activeIndex})` } as React.CSSProperties}
         >
           {COLUMNS.map(col => {
-            const colItems = items.filter(item => 
-              item.boardState === col.id && 
-              (activeFilter === 'ALL' || item.category === activeFilter)
-            );
+            const colItems = React.useMemo(() => {
+              return items.filter(item => 
+                item.boardState === col.id && 
+                (activeFilter === 'ALL' || item.category === activeFilter)
+              );
+            }, [items, col.id, activeFilter]);
 
             return (
               <div 

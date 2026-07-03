@@ -61,3 +61,9 @@
 - **State Decoupling**: Removed 5 state variables and 4 massive event handlers from the top-level route. `page.tsx` is now strictly responsible for high-level layout and Kanban state, significantly increasing code Locality and Leverage.
 - **Added Architectural Guardrails**: Updated `.agents/AGENTS.md` to strictly enforce the creation of Deep Modules and forbid shallow pass-through components for new features.
 - **Kanban Gesture Encapsulation**: Extracted touch physics into a dedicated `useSwipe` hook. Pushed `activeTab` state and mobile navigation UI down into `KanbanBoard.tsx`, completing the Deep Module architecture and cleanly decoupling `page.tsx` from all swipe physics and Kanban-specific layout concerns.
+
+## 2026-07-02
+### Completed (Performance & UI/UX Audit):
+- **React Performance Optimization**: Audited the project against `vercel-react-best-practices`. Wrapped all top-level event handlers in `src/app/page.tsx` with `useCallback` to prevent massive re-renders of the Kanban board during typing. Wrapped column filtering logic in `KanbanBoard.tsx` with `useMemo` to prevent array iteration on every render.
+- **Mobile UX Refactor (Action Overload)**: Resolved a cluttered UI issue in `PantryItemCard.tsx`. Replaced the row of 4-6 tiny action buttons with a clean, touch-friendly `DropdownMenu` (from Shadcn/UI and Base UI) for secondary actions like Edit, Delete, and single-item moves. The primary interface now breathes better and strongly reinforces the premium Glassmorphism aesthetic.
+- **User Flow Fix (Selection Persistence)**: Fixed an issue where moving an item automatically un-checked it from the AI Recipe generation queue. Users can now check items from the "To Buy" list, move them to the "In Pantry" list, and immediately generate a recipe without losing their selection state.

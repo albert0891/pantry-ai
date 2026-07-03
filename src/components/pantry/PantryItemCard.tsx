@@ -1,10 +1,17 @@
 "use client";
 
 import React from 'react';
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Edit, Trash2, ShoppingCart } from 'lucide-react';
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Edit, Trash2, ShoppingCart, MoreHorizontal } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -76,12 +83,6 @@ export function PantryItemCard({
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'TO_BUY')} title="Return All to To Buy">
                 <ChevronsLeft size={16} />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, 1, 'TO_BUY')} title="Return 1 to To Buy">
-                <ChevronLeft size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, 1, 'CONSUMED')} title="Consume 1">
-                <ChevronRight size={16} />
-              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'CONSUMED')} title="Consume All">
                 <ChevronsRight size={16} />
               </Button>
@@ -93,20 +94,11 @@ export function PantryItemCard({
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'IN_PANTRY')} title="Move All back to Pantry">
                 <ChevronsLeft size={16} />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, 1, 'IN_PANTRY')} title="Move 1 back to Pantry">
-                <ChevronLeft size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'TO_BUY')} title="Return to To Buy list">
-                <ShoppingCart size={16} />
-              </Button>
             </>
           )}
 
           {colId === 'TO_BUY' && (
             <>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, 1, 'IN_PANTRY')} title="Move 1 to Pantry">
-                <ChevronRight size={16} />
-              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-sky-700 hover:bg-sky-100 hover:scale-110 rounded-full transition-all" onClick={() => onMove(item.id, item.quantity, 'IN_PANTRY')} title="Move All to Pantry">
                 <ChevronsRight size={16} />
               </Button>
@@ -115,12 +107,61 @@ export function PantryItemCard({
         </div>
 
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-800 hover:bg-slate-200 hover:scale-110 rounded-full transition-all" onClick={() => onEdit(item)}>
-            <Edit size={16} />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-700 hover:bg-rose-100 hover:scale-110 rounded-full transition-all" onClick={() => setIsDeleteDialogOpen(true)}>
-            <Trash2 size={16} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium h-8 w-8 text-slate-400 hover:text-slate-800 hover:bg-slate-200 hover:scale-110 rounded-full transition-all outline-none">
+              <MoreHorizontal size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-xl border-white/80 shadow-xl rounded-xl p-1.5">
+              
+              {colId === 'IN_PANTRY' && (
+                <>
+                  <DropdownMenuItem onClick={() => onMove(item.id, 1, 'TO_BUY')} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                    <ChevronLeft className="mr-2 h-4 w-4 text-amber-500" />
+                    <span>Return 1 to Buy</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onMove(item.id, 1, 'CONSUMED')} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                    <ChevronRight className="mr-2 h-4 w-4 text-sky-500" />
+                    <span>Consume 1</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-200/50 my-1" />
+                </>
+              )}
+              
+              {colId === 'CONSUMED' && (
+                <>
+                  <DropdownMenuItem onClick={() => onMove(item.id, 1, 'IN_PANTRY')} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                    <ChevronLeft className="mr-2 h-4 w-4 text-amber-500" />
+                    <span>Move 1 back to Pantry</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onMove(item.id, item.quantity, 'TO_BUY')} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                    <ShoppingCart className="mr-2 h-4 w-4 text-amber-500" />
+                    <span>Move to To Buy</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-200/50 my-1" />
+                </>
+              )}
+              
+              {colId === 'TO_BUY' && (
+                <>
+                  <DropdownMenuItem onClick={() => onMove(item.id, 1, 'IN_PANTRY')} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                    <ChevronRight className="mr-2 h-4 w-4 text-sky-500" />
+                    <span>Move 1 to Pantry</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-slate-200/50 my-1" />
+                </>
+              )}
+
+              <DropdownMenuItem onClick={() => onEdit(item)} className="cursor-pointer font-medium text-slate-600 rounded-md">
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit Item</span>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="cursor-pointer font-medium text-rose-600 focus:text-rose-700 focus:bg-rose-50 rounded-md">
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete Item</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
