@@ -36,3 +36,11 @@
 1. **Prioritize Deep Modules**: When creating features (especially modals, workflows, or distinct business logic like AI generation), encapsulate the state, GraphQL mutations, and UI components into a single "Deep Module" (e.g., `<AIRecipeManager>`).
 2. **Prevent God Components**: Do NOT dump all `useState` hooks, `handleX` functions, and mutation states into top-level Route Pages (like `page.tsx`). Root pages should strictly handle layout, route-level params, and high-level structural composition.
 3. **High Locality**: If a component acts solely as a "pass-through" for 5+ props just to render a modal or state managed 3 levels up, it is a "Shallow Module." Push the state down into the component so it manages itself.
+
+## Mandatory Post-Edit Verification (強制代碼驗證 S.O.P.)
+
+To prevent regressions and framework invariant violations (e.g., React Rules of Hooks), you must NEVER assume that a successful `build` means the code is bug-free. Next.js/TypeScript builds often compile successfully despite fatal runtime or linting errors.
+
+After any significant code modification, you MUST perform the following pipeline before ending your turn:
+1. **Static Analysis (Linting)**: Always run `npm run lint` (or the equivalent linter command). If the project is missing essential plugins (like `eslint-plugin-react-hooks`), proactively suggest installing them.
+2. **Semantic Diff Review**: Do not blindly trust the compiler. Mentally review your exact changes (or run `git diff`) and specifically check for framework anti-patterns (e.g., Hooks in loops, mutating state directly, incorrect dependency arrays).
