@@ -30,9 +30,6 @@ export default function DashboardPage() {
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [isMyRecipesOpen, setIsMyRecipesOpen] = useState(false);
 
-  if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading your premium pantry...</div>;
-  if (error) return <div className="p-8 text-center text-rose-500 font-medium">Error loading data: {error.message}</div>;
-
   // Filter items
   const items = rawItems.filter((item: any) => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -86,6 +83,9 @@ export default function DashboardPage() {
       return newSet;
     });
   }, []);
+
+  if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading your premium pantry...</div>;
+  if (error) return <div className="p-8 text-center text-rose-500 font-medium">Error loading data: {error.message}</div>;
 
 
 
