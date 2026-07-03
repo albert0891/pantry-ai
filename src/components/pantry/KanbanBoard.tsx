@@ -54,6 +54,18 @@ export function KanbanBoard({
   let activeIndex = COLUMNS.findIndex(c => c.id === activeTab);
   if (activeIndex === -1) activeIndex = 1;
 
+  // Group items by column ID at the top level to prevent useMemo inside .map()
+  const groupedItems = React.useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    for (const col of COLUMNS) {
+      groups[col.id] = items.filter(item => 
+        item.boardState === col.id && 
+        (activeFilter === 'ALL' || item.category === activeFilter)
+      );
+    }
+    return groups;
+  }, [items, activeFilter]);
+
   return (
     <div 
       className="w-full h-full flex flex-col pb-20 md:pb-0 overflow-hidden md:overflow-visible relative"
@@ -122,12 +134,7 @@ export function KanbanBoard({
           style={{ '--mobile-translate': `calc(-100% * ${activeIndex})` } as React.CSSProperties}
         >
           {COLUMNS.map(col => {
-            const colItems = React.useMemo(() => {
-              return items.filter(item => 
-                item.boardState === col.id && 
-                (activeFilter === 'ALL' || item.category === activeFilter)
-              );
-            }, [items, col.id, activeFilter]);
+            const colItems = groupedItems[col.id] || [];
 
             return (
               <div 
