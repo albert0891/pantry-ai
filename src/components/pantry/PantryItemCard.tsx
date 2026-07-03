@@ -64,7 +64,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 export function PantryItemCard({ 
   item, colId, isSelected, onToggleSelection, onMove, onUpdateState, onEdit, onDelete 
 }: PantryItemCardProps) {
-  const [isDeleteDialogOpen, ReactSetIsDeleteDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
   const expiryStatus = (item.expiryDate && colId === 'IN_PANTRY') ? getExpiryStatus(item.expiryDate) : 'OK';
   
@@ -199,7 +199,7 @@ export function PantryItemCard({
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
-        onOpenChange={ReactSetIsDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
         title={`Delete ${item.name}?`}
         description="Are you sure you want to delete this item? This action cannot be undone."
         onConfirm={() => onDelete(item.id)}
