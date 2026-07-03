@@ -60,6 +60,14 @@ export async function GET(request: Request) {
           userId: demoUserId,
           boardState: BoardState.TO_BUY,
         },
+        {
+          name: 'Ground Pork 250g',
+          quantity: 1,
+          unit: 'pcs',
+          category: Category.MEAT,
+          userId: demoUserId,
+          boardState: BoardState.IN_PANTRY,
+        },
       ],
     });
 

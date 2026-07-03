@@ -30,6 +30,24 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
+const getExpiryStatus = (dateString: string) => {
+  if (!dateString) return 'OK';
+  const expiry = /^\d+$/.test(dateString) ? new Date(parseInt(dateString, 10)) : new Date(dateString);
+  const now = new Date();
+  
+  // Set both to midnight to compare just dates
+  expiry.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  
+  const diffTime = expiry.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return 'EXPIRED'; // Passed
+  if (diffDays === 0) return 'TODAY'; // Expires today
+  if (diffDays <= 3) return 'SOON';   // Expires in 1-3 days
+  return 'OK';
+};
+
 interface PantryItemCardProps {
   item: any;
   colId: string;
@@ -46,15 +64,29 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 export function PantryItemCard({ 
   item, colId, isSelected, onToggleSelection, onMove, onUpdateState, onEdit, onDelete 
 }: PantryItemCardProps) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, ReactSetIsDeleteDialogOpen] = React.useState(false);
   
+  const expiryStatus = (item.expiryDate && colId === 'IN_PANTRY') ? getExpiryStatus(item.expiryDate) : 'OK';
+  
+  let borderStyle = 'border-white/50 hover:border-white/80';
+  let bgStyle = 'bg-white/40 hover:bg-white/50';
+
+  if (isSelected) {
+    borderStyle = 'border-sky-400';
+    bgStyle = 'bg-sky-50/60';
+  } else if (expiryStatus === 'EXPIRED' || expiryStatus === 'TODAY') {
+    borderStyle = 'border-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
+    bgStyle = 'bg-rose-50/40 hover:bg-rose-50/60';
+  } else if (expiryStatus === 'SOON') {
+    borderStyle = 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]';
+    bgStyle = 'bg-amber-50/40 hover:bg-amber-50/60';
+  }
+
   return (
     <div 
-      className={`relative flex flex-col p-4 rounded-2xl transition-all duration-300 ease-out border-2 ${
-        isSelected 
-          ? 'border-sky-400 bg-sky-50/60 backdrop-blur-2xl shadow-lg z-10' 
-          : 'border-white/50 bg-white/40 backdrop-blur-2xl shadow-sm hover:border-white/80 hover:bg-white/50'
-      }`}
+      className={`relative flex flex-col p-4 rounded-2xl transition-all duration-300 ease-out border-2 backdrop-blur-2xl ${
+        isSelected ? 'shadow-lg z-10' : 'shadow-sm'
+      } ${borderStyle} ${bgStyle}`}
     >
       <div className="flex justify-between items-start gap-2">
         <div className="flex items-start gap-3">
@@ -167,7 +199,7 @@ export function PantryItemCard({
 
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
+        onOpenChange={ReactSetIsDeleteDialogOpen}
         title={`Delete ${item.name}?`}
         description="Are you sure you want to delete this item? This action cannot be undone."
         onConfirm={() => onDelete(item.id)}

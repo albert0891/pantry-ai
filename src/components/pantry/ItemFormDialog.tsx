@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { X, Sparkles, Loader2 } from 'lucide-react';
+import { X, Sparkles, Loader2, Mic } from 'lucide-react';
 import { categorizeItem } from '@/app/actions/ai';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
@@ -38,6 +38,7 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
   const [category, setCategory] = useState(initialData?.category || "OTHER");
   const [boardState, setBoardState] = useState(initialData?.boardState || "TO_BUY");
   const [isAutoCategorizing, setIsAutoCategorizing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   
   // Format expiry date correctly for input type="date"
   let initialExpiry = "";
@@ -81,6 +82,35 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
     }
   };
 
+  const handleVoiceInput = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setName(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -107,6 +137,18 @@ export function ItemFormDialog({ isOpen, onOpenChange, onSubmit, initialData }: 
               <Label htmlFor="name" className="text-right text-slate-700 font-semibold">Name</Label>
               <div className="col-span-3 flex items-center gap-2">
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} className="flex-1 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl" placeholder="e.g. Apples" required />
+                <button 
+                  type="button"
+                  onClick={handleVoiceInput}
+                  className={`shrink-0 flex items-center justify-center h-10 w-10 rounded-xl transition-all shadow-sm border ${
+                    isListening 
+                      ? 'bg-rose-100 text-rose-600 border-rose-300 animate-pulse' 
+                      : 'bg-white/80 hover:bg-slate-100 text-slate-500 border-white/60 hover:text-slate-700'
+                  }`}
+                  title="Voice Input"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
                 <button 
                   type="button" 
                   onClick={handleAutoCategorize} 

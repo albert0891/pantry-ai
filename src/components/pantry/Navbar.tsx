@@ -130,6 +130,10 @@ export function Navbar({ searchQuery, setSearchQuery, onOpenMyRecipes, onOpenAdd
                 </ul>
               </div>
             </div>
+            <div className="flex gap-3 items-start">
+              <div className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">5</div>
+              <p>For fuzzy quantities (e.g., <strong className="text-purple-600">Ground Pork 250g</strong>), just type it all in the title and leave the quantity as 1!</p>
+            </div>
           </div>
           <DialogFooter>
             <Button onClick={() => setIsGuideOpen(false)} className="bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-full w-full">Got it!</Button>
