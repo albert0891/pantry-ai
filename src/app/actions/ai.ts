@@ -2,15 +2,17 @@
 
 import { GoogleGenAI } from '@google/genai';
 
-const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+const ai = process.env.GEMINI_API_KEY
+  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  : null;
 
-const VALID_CATEGORIES = ["PRODUCE", "DAIRY", "MEAT", "PANTRY", "FROZEN", "BEVERAGE", "OTHER"];
+const VALID_CATEGORIES = ['PRODUCE', 'DAIRY', 'MEAT', 'PANTRY', 'FROZEN', 'BEVERAGE', 'OTHER'];
 
 export async function categorizeItem(name: string): Promise<string> {
-  if (!name.trim()) return "OTHER";
+  if (!name.trim()) return 'OTHER';
   if (!ai) {
-    console.warn("No GEMINI_API_KEY found, falling back to OTHER.");
-    return "OTHER";
+    console.warn('No GEMINI_API_KEY found, falling back to OTHER.');
+    return 'OTHER';
   }
 
   const prompt = `Classify the grocery item "${name}" into exactly ONE of the following categories:
@@ -26,15 +28,68 @@ Rules:
       model: 'gemini-3.1-flash-lite',
       contents: prompt,
     });
-    
-    const text = response.text?.trim().toUpperCase() || "OTHER";
-    
+
+    const text = response.text?.trim().toUpperCase() || 'OTHER';
+
     if (VALID_CATEGORIES.includes(text)) {
       return text;
     }
-    return "OTHER";
+    return 'OTHER';
   } catch (error) {
-    console.error("Auto categorization failed:", error);
-    return "OTHER";
+    console.error('Auto categorization failed:', error);
+    return 'OTHER';
+  }
+}
+
+export interface ParsedItem {
+  name: string;
+  quantity?: number;
+  category?: string;
+  expiryDate?: string;
+}
+
+export async function parseVoiceInput(transcript: string): Promise<ParsedItem | null> {
+  if (!transcript.trim()) return null;
+  if (!ai) {
+    console.warn('No GEMINI_API_KEY found, returning null.');
+    return null;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const prompt = `You are a smart grocery assistant. Parse the following voice transcript from a user adding an item to their pantry.
+Extract the relevant fields and return a strict JSON object.
+
+Transcript: "${transcript}"
+
+Rules:
+1. "name" (string, required): The core item name (e.g., "Apples", "Ground Pork").
+2. "quantity" (number, optional): The quantity if mentioned (e.g., "3 apples" -> 3). Default to 1 if implied.
+3. "category" (string, optional): Classify into exactly ONE of: ${VALID_CATEGORIES.join(', ')}. If unsure, omit.
+4. "expiryDate" (string, optional): If they mention when it expires (e.g., "expires in 3 days", "good for a week"), calculate the date in YYYY-MM-DD format. Assume today is ${today}.
+
+Respond ONLY with a valid JSON object. No markdown formatting, no backticks.
+Example: {"name": "Milk", "quantity": 2, "category": "DAIRY", "expiryDate": "2026-07-10"}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-lite',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+
+    let text = response.text?.trim();
+    if (!text) return null;
+
+    // In case model wraps in markdown despite instructions
+    text = text
+      .replace(/^```json\s*/i, '')
+      .replace(/```$/, '')
+      .trim();
+    return JSON.parse(text) as ParsedItem;
+  } catch (error) {
+    console.error('Smart Voice parsing failed:', error);
+    return null;
   }
 }
