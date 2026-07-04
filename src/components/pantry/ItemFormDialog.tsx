@@ -175,24 +175,24 @@ export function ItemFormDialog({
               type="button"
               onClick={handleVoiceInput}
               disabled={isListening || isParsingVoice}
-              className={`w-full flex items-center justify-center gap-3 h-14 rounded-2xl transition-all shadow-md border-2 font-bold text-lg ${
+              className={`w-full flex items-center justify-center gap-2.5 h-12 rounded-xl transition-all shadow-sm border font-semibold text-sm ${
                 isListening
-                  ? 'bg-rose-100 text-rose-600 border-rose-400 shadow-rose-200 animate-pulse'
+                  ? 'bg-rose-50/50 text-rose-500 border-rose-200/60 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
                   : isParsingVoice
-                    ? 'bg-purple-100 text-purple-600 border-purple-400 shadow-purple-200 animate-pulse'
-                    : 'bg-gradient-to-r from-sky-400 to-indigo-500 hover:from-sky-500 hover:to-indigo-600 text-white border-transparent shadow-sky-200 hover:scale-[1.02]'
-              }`}
+                    ? 'bg-sky-50/50 text-sky-500 border-sky-200/60'
+                    : 'bg-white/40 hover:bg-white/60 text-slate-600 border-white/50 hover:border-white/80 hover:shadow-md'
+              } backdrop-blur-md`}
             >
               {isParsingVoice ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Mic className="w-6 h-6" />
+                <Mic className={`w-4 h-4 ${isListening ? 'animate-pulse' : ''}`} />
               )}
               {isListening
-                ? 'Listening... (Speak now)'
+                ? 'Listening...'
                 : isParsingVoice
-                  ? 'AI is Parsing...'
-                  : 'Tap to Smart Fill via Voice'}
+                  ? 'Parsing...'
+                  : 'Tap to Smart Voice Fill'}
             </button>
 
             <div className="grid grid-cols-4 items-center gap-4">

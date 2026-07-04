@@ -226,10 +226,10 @@ export function Navbar({
                   <strong className="text-purple-600">Smart Voice Fill 🎙️:</strong>
                 </p>
                 <p className="text-xs text-slate-600">
-                  Tap the top microphone button and say{' '}
-                  <strong className="text-purple-500">"3 apples expiring next week"</strong>. Our AI
-                  will automatically parse the name, quantity, category, and exact expiry date! For
-                  fuzzy amounts like "250g pork", just say it naturally.
+                  Tap the mic and speak naturally (e.g.{' '}
+                  <strong className="text-purple-500">"3 apples expiring next week"</strong> or{' '}
+                  <strong className="text-purple-500">"250g minced pork"</strong>). AI handles the
+                  rest!
                 </p>
               </div>
             </div>
