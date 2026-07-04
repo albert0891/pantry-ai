@@ -109,7 +109,7 @@ export function ItemFormDialog({
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = navigator.language || 'en-US';
+    recognition.lang = 'zh-TW'; // Defaults to Chinese (which naturally supports mixed English words)
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
