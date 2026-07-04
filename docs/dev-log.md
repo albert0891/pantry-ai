@@ -1,7 +1,9 @@
 # Pantry AI - Development Log
 
 ## 2026-06-21
+
 ### Completed:
+
 - Migrated default Gemini model to `gemini-3.5-flash` to bypass Free Tier quota restrictions on 2.0.
 - Implemented robust UI states for KanBan cards, resolving layout shifts and "blurry" borders using a solid `border-2` system.
 - Corrected Z-index stacking contexts ensuring the "Inspire Me" Floating Action Bar (`z-50`) is never blocked by selected cards (`z-10`).
@@ -13,13 +15,17 @@
 - Finalized premium Glassmorphism aesthetic with color-tinted ambient background blobs and strict `border-2` layouts to prevent mobile layout shifts.
 - Upgraded components (`Navbar`, `ItemFormDialog`, `PantryItemCard`) with strong physical hover interactions (`scale-110`, solid color feedback) and deep `backdrop-blur-3xl` glass panels for maximum contrast and readability.
 - Fixed critical data duplication bug in `moveItem` GraphQL resolver by enforcing strict item merging (matching by name, unit, and expiryDate) when moving items between columns, resolving frontend Apollo cache errors.
+
 ### Next Steps:
+
 - Implement Voice Input (Web Speech API) for friction-less pantry logging.
 - Implement Mock Receipt Scanner using Gemini Multimodal.
 - Add premium empty states illustrations for onboarding.
 
 ## 2026-06-29
+
 ### Completed:
+
 - Successfully deployed Pantry-AI to production using Vercel (Frontend & Next.js API Routes).
 - Provisioned and linked Neon Serverless PostgreSQL for the production database.
 - Configured Vercel environment variables, including AWS Cognito fallbacks and Mock Auth configuration.
@@ -29,6 +35,7 @@
 - Configured a Vercel Cron Job (`/api/cron/reset-demo`) to automatically reset the public demo pantry to default ingredients every midnight.
 
 ### Completed (Codebase Audit & Refactor):
+
 - Refactored `src/graphql/resolvers.ts` to adhere to enterprise clean code standards.
 - Extracted repetitive authentication logic into a reusable `ensureAuthenticatedUser` helper function.
 - Deconstructed the complex, monolithic `moveItem` resolver into separate, readable logical branches (`handleFullMove` and `handlePartialMove`).
@@ -36,19 +43,22 @@
 - Re-wrote open-source `README.md` to properly document tech stack and local setup instructions.
 
 ## 2026-06-30
+
 ### Completed (UI & Bug Fixes):
-- Fixed iOS Safari specific UI glitch in the "Add Item" dialog (`ItemFormDialog.tsx`) where the native date picker (`type="date"`) would overflow its container due to insufficient fixed height (`h-8`). 
+
+- Fixed iOS Safari specific UI glitch in the "Add Item" dialog (`ItemFormDialog.tsx`) where the native date picker (`type="date"`) would overflow its container due to insufficient fixed height (`h-8`).
 - Increased default height for Dialog inputs to `h-10` (40px) to meet Apple mobile touch target guidelines and enforced `block w-full appearance-none` on the date input for consistent cross-browser mobile layout.
 - Updated Next.js global metadata in `src/app/layout.tsx` to properly display the app title "Pantry AI" and description.
 - Restored the original `logo.svg` (carrot logo) as the official Next.js favicon (`src/app/icon.svg`).
 - Changed the main title of the login page from "Welcome Back" to "Pantry AI" to reinforce project branding.
 
 ### Completed (Features):
+
 - **Mobile UX Enhancements**:
-  - **Swipe Gestures**: Added `onTouchStart`, `onTouchMove`, and `onTouchEnd` event handlers to the main Kanban board container to allow users to smoothly swipe left and right to switch between columns on mobile devices. Enhanced this with a lightweight, native-feeling CSS sliding animation (`translateX` with `cubic-bezier` easing) that completely avoids heavy JS libraries. 
+  - **Swipe Gestures**: Added `onTouchStart`, `onTouchMove`, and `onTouchEnd` event handlers to the main Kanban board container to allow users to smoothly swipe left and right to switch between columns on mobile devices. Enhanced this with a lightweight, native-feeling CSS sliding animation (`translateX` with `cubic-bezier` easing) that completely avoids heavy JS libraries.
   - **Minimalist Mobile Headers**: Removed the redundant Kanban column headers (and floating count badges) entirely on mobile devices. Instead, the item counts `(X)` are now beautifully integrated directly into the sticky mobile navigation tabs at the top of the screen (e.g. `🛒 To Buy (12)`). This maximizes screen real estate for the actual item cards and resolves visual awkwardness.
 - **Quick Re-buy Button**: Added a one-click `ShoppingCart` button to items in the "Consumed" column to quickly move them back to the "To Buy" list (`PantryItemCard.tsx`).
-- **AI Recipe Regeneration & Cross-Board Planning**: Added a "Regenerate" button in the generated recipe dialog. The entire modal UX was fully redesigned to use a **Responsive Floating Pill (懸浮膠囊)** instead of a traditional footer. On mobile, it displays as space-saving, sleek circular icons (`[ ✕ | 🔄 | 💖 ]`). On desktop, it seamlessly expands to show full text labels (`[ 💖 Save Recipe ]`) to ensure maximum clarity without sacrificing the premium, glassmorphism aesthetic. 
+- **AI Recipe Regeneration & Cross-Board Planning**: Added a "Regenerate" button in the generated recipe dialog. The entire modal UX was fully redesigned to use a **Responsive Floating Pill (懸浮膠囊)** instead of a traditional footer. On mobile, it displays as space-saving, sleek circular icons (`[ ✕ | 🔄 | 💖 ]`). On desktop, it seamlessly expands to show full text labels (`[ 💖 Save Recipe ]`) to ensure maximum clarity without sacrificing the premium, glassmorphism aesthetic.
   - **Toggle Save Workflow**: Replaced the disruptive "save and jump" UX with a continuous "Heart Toggle" UX. Clicking "Save" instantly turns the button into a green "✅ Saved!", keeping the modal open and selections intact to maintain user flow. Clicking it again instantly unsaves (deletes) the recipe. Regenerating automatically resets the button state.
   - **Cross-Board Capability**: Refactored the backend `generateRecipe` resolver. Users can now check items in the `TO_BUY` or `CONSUMED` lists, and the AI will explicitly include them as "must-use" main ingredients, allowing users to do "pre-shopping meal planning". Unchecked ingredients are still strictly pulled only from `IN_PANTRY`.
   - **Prompt Engineering**: Leverages a new technique by passing `previouslyUsedIngredients` to the backend, instructing Gemini to actively down-weight previous ingredients and explore diverse recipe combinations while maintaining required ingredients. Additionally, solved an "over-crowded recipe" hallucination by strictly separating `mustUseIngredients` (primary requirements) from `supportingIngredients` (optional pantry items) in the prompt. Added a `CRITICAL FLAVOR RULE` instructing the AI to act as a Michelin-star chef, strictly forbidding weird flavor combinations (like mixing cocoa powder with ground meat) and emphasizing that it is better to ignore pantry items entirely than to force them into a bad dish.
@@ -56,21 +66,30 @@
 - **Onboarding Guide**: Implemented a responsive "Guide" modal in the Navbar with an interactive step-by-step tutorial explaining core app workflows.
 
 ## 2026-07-01
+
 ### Completed (Codebase Architecture & Refactor):
+
 - **Deep Modules Architecture**: Eliminated the "God Component" anti-pattern in `src/app/page.tsx` by extracting all AI Recipe state and GraphQL logic into a highly cohesive, deep module (`AIRecipeManager.tsx`).
 - **State Decoupling**: Removed 5 state variables and 4 massive event handlers from the top-level route. `page.tsx` is now strictly responsible for high-level layout and Kanban state, significantly increasing code Locality and Leverage.
 - **Added Architectural Guardrails**: Updated `.agents/AGENTS.md` to strictly enforce the creation of Deep Modules and forbid shallow pass-through components for new features.
 - **Kanban Gesture Encapsulation**: Extracted touch physics into a dedicated `useSwipe` hook. Pushed `activeTab` state and mobile navigation UI down into `KanbanBoard.tsx`, completing the Deep Module architecture and cleanly decoupling `page.tsx` from all swipe physics and Kanban-specific layout concerns.
 
 ## 2026-07-02
+
 ### Completed (Performance & UI/UX Audit):
+
 - **React Performance Optimization**: Audited the project against `vercel-react-best-practices`. Wrapped all top-level event handlers in `src/app/page.tsx` with `useCallback` to prevent massive re-renders of the Kanban board during typing. Wrapped column filtering logic in `KanbanBoard.tsx` with `useMemo` to prevent array iteration on every render.
 - **Mobile UX Refactor (Action Overload)**: Resolved a cluttered UI issue in `PantryItemCard.tsx`. Replaced the row of 4-6 tiny action buttons with a clean, touch-friendly `DropdownMenu` (from Shadcn/UI and Base UI) for secondary actions like Edit, Delete, and single-item moves. The primary interface now breathes better and strongly reinforces the premium Glassmorphism aesthetic.
 - **User Flow Fix (Selection Persistence)**: Fixed an issue where moving an item automatically un-checked it from the AI Recipe generation queue. Users can now check items from the "To Buy" list, move them to the "In Pantry" list, and immediately generate a recipe without losing their selection state.
 
 ## 2026-07-03
+
 ### Completed (Roadmap Execution & Defensive Engineering):
-- **Defensive Engineering**: Adopted the **Mandatory Post-Edit Verification** rule in `.agents/AGENTS.md` to prevent React Hooks violations (e.g., Hooks in `.map()` or after early returns). Every change is now strictly verified via `npm run lint`.
-- **Frictionless Voice Input**: Implemented the Web Speech API (`SpeechRecognition`) in the `ItemFormDialog.tsx`. Users can now tap the Microphone icon to dictate ingredients directly, significantly lowering the friction of manual typing on mobile devices.
-- **Fuzzy Quantities Guide**: Added a "Ground Pork 250g" demo item and an updated Onboarding Guide to teach users that fuzzy, non-standard quantities can simply be typed into the item name itself, preserving the app's minimalist design without adding complex unit dropdowns.
+
+- **Defensive Engineering**: Adopted the **Mandatory Post-Edit Verification** rule in `.agents/AGENTS.md` and formally enforced it by installing **Husky pre-commit hooks**. All code pushes are now strictly gated by `npm run build` and `npx lint-staged` to absolutely prevent Vercel deployment crashes.
+- **Smart Voice Parsing (AI-Driven)**: Replaced the dumb speech-to-text dictation with a true AI Voice Assistant. Transcripts are now sent to a new Server Action (`parseVoiceInput`) powered by Gemini 3.1 Flash Lite. The AI extracts the item name, exact quantity, category, and calculates the expiry date automatically, returning a strict JSON response to instantly populate the entire Add Item form.
+- **UI Architecture Refactor (ItemFormDialog)**: Resolved visual clutter and AI-button ambiguity in the Add Item modal.
+  - The `Auto Categorize` button was demoted visually and moved down next to the `Category` dropdown.
+  - The `Smart Voice Input` button was promoted to a massive, full-width, gradient-styled hero button at the top of the form, complete with dynamic loading and listening animations (`animate-pulse`).
+- **Fuzzy Quantities Guide**: Added a "Ground Pork 250g" demo item and an updated Onboarding Guide to teach users about the new Smart Voice Fill feature and how to handle fuzzy quantities.
 - **Visual Expiry Cues**: Added a subtle, premium visual warning system to `PantryItemCard.tsx`. Items in the Pantry now emit a glowing yellow border (`shadow-[0_0_15px_rgba(251,191,36,0.3)]`) if they expire within 3 days, and a glowing red border if they expire today or have already passed their date.
