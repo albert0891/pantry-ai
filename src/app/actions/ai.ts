@@ -55,7 +55,9 @@ export async function parseVoiceInput(transcript: string): Promise<ParsedItem | 
     return null;
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const todayDate = new Date();
+  const todayStr = todayDate.toISOString().split('T')[0];
+  const dayOfWeek = todayDate.toLocaleDateString('en-US', { weekday: 'long' });
   const prompt = `You are a smart grocery assistant. Parse the following voice transcript from a user adding an item to their pantry.
 Extract the relevant fields and return a strict JSON object.
 
@@ -65,7 +67,7 @@ Rules:
 1. "name" (string, required): The core item name. IF the user mentions a weight or volume measurement (e.g., "250g", "兩百五十克", "500ml", "半斤"), you MUST append this measurement directly to the name (e.g., "絞肉 250克" or "Minced Pork 250g").
 2. "quantity" (number, optional): ONLY for discrete countable units (e.g., "3顆蘋果" -> 3, "兩盒" -> 2). If the input is primarily a weight/volume (like "兩百五十克絞肉"), set quantity to 1. Default to 1 if not explicitly countable.
 3. "category" (string, optional): Classify into exactly ONE of: ${VALID_CATEGORIES.join(', ')}. If unsure, omit.
-4. "expiryDate" (string, optional): If they mention when it expires (e.g., "下週過期", "expires in 3 days"), calculate the date in YYYY-MM-DD format. Assume today is ${today}.
+4. "expiryDate" (string, optional): If they mention when it expires (e.g., "下週三過期", "expires in 3 days"), calculate the exact date in YYYY-MM-DD format. Assume today is ${dayOfWeek}, ${todayStr}. Be precise with day of week calculations.
 
 Respond ONLY with a valid JSON object. No markdown formatting, no backticks.
 Example 1: "買三百克豬肉下禮拜過期" -> {"name": "豬肉 300克", "quantity": 1, "category": "MEAT", "expiryDate": "2026-07-11"}
