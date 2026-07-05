@@ -37,11 +37,20 @@ const CATEGORY_LABELS: Record<string, string> = {
   OTHER: 'Other',
 };
 
+export interface ItemFormData {
+  id?: string;
+  name: string;
+  quantity: number;
+  category: string;
+  boardState: string;
+  expiryDate: string;
+}
+
 interface ItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: any) => Promise<void>;
-  initialData?: any;
+  onSubmit: (data: ItemFormData) => Promise<void>;
+  initialData?: Partial<ItemFormData>;
 }
 
 export function ItemFormDialog({
@@ -102,7 +111,9 @@ export function ItemFormDialog({
   };
 
   const handleVoiceInput = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognition =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert('Voice input is not supported in this browser.');
@@ -116,6 +127,7 @@ export function ItemFormDialog({
 
     recognition.onstart = () => setIsListening(true);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = async (event: any) => {
       recognition.stop();
       setIsListening(false);
@@ -147,6 +159,7 @@ export function ItemFormDialog({
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
       setIsListening(false);

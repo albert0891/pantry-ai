@@ -60,6 +60,9 @@ export async function parseVoiceInput(
     return { success: false, error: 'AI not configured' };
   }
 
+  // Force HMR recompile
+  console.log('parseVoiceInput triggered with transcript:', transcript);
+
   const todayDate = new Date();
   const todayStr = todayDate.toISOString().split('T')[0];
   const dayOfWeek = todayDate.toLocaleDateString('en-US', { weekday: 'long' });
@@ -114,9 +117,12 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
       validData.category = 'OTHER';
     }
 
-    return { success: true, data: validData };
-  } catch (error: any) {
+    // Ensure the object is perfectly plain for Next.js Server Action serialization
+    const plainData = JSON.parse(JSON.stringify(validData));
+    return { success: true, data: plainData };
+  } catch (error: unknown) {
     console.error('Smart Voice parsing failed:', error);
-    return { success: false, error: error.message || 'Parse failed' };
+    const msg = error instanceof Error ? error.message : 'Parse failed';
+    return { success: false, error: msg };
   }
 }

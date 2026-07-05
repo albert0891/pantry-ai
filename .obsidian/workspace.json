@@ -185,6 +185,8 @@
   },
   "active": "3c6da351a2eaae1d",
   "lastOpenFiles": [
+    "src/app/api/test-voice/route.ts",
+    "src/app/api/test-voice",
     "test-gemini.ts",
     "test-voice.js",
     "node_modules/zod/src/v4/locales/ro.ts",
@@ -194,8 +196,6 @@
     "node_modules/zod/src/v4/classic/tests/locales_ka.test.ts",
     "node_modules/zod/src/v4/classic/tests/jitless-allows-eval.test.ts",
     "node_modules/zod/src/v4/locales/hr.ts",
-    "node_modules/zod/src/v4/core/tests/locales/hr.test.ts",
-    "node_modules/zod/v4/locales/hr.d.ts",
     "node_modules/wrap-ansi/node_modules/string-width/readme.md",
     "node_modules/slice-ansi/node_modules/ansi-styles/readme.md",
     "node_modules/slice-ansi/readme.md",
