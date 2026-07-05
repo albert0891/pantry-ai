@@ -52,3 +52,15 @@ After any significant code modification, you MUST perform the following pipeline
 2. **Strict Runtime Validation**: Never use blind type casting (`as Type`) for external data. Always use `zod` or explicit validation before passing data to the database or rendering logic.
 3. **Structured AI Outputs**: When prompting LLMs for data extraction, strictly use `responseSchema` or Function Calling instead of relying on prompt instructions to enforce JSON format.
 4. **Prototype Override**: Only bypass these rules if the user explicitly invokes the `prototype` skill, mentions "prototype", or calls `/prototype`.
+
+## Core Logic & Boundary Testing (防禦性單元測試)
+
+1. **Test AI Boundaries**: When modifying AI parsing logic, Zod schemas, or any pure business logic, you MUST create or update Vitest unit tests (e.g., `ai.test.ts`).
+2. **No UI Testing**: Do NOT use Vitest to test React components. Focus strictly on pure logic, data transformations, and schema coercion (Happy Path & Edge Cases).
+3. **Red-Green-Refactor**: Never refactor core logic without first ensuring that existing tests cover it.
+
+## Thin Server Actions (極簡 Server Action 架構)
+
+1. **Strict 'use server' Boundaries**: Files with `'use server'` at the top MUST ONLY export `async function`s.
+2. **No Schema Exports in Actions**: NEVER define or export Zod schemas, constants, or types directly inside a `'use server'` file. Doing so will crash Next.js compilation with a 500 Error.
+3. **Extract Logic**: All Zod schemas and constants must be defined in `src/lib/` (e.g., `src/lib/schemas/pantry.ts`) and imported into the Server Action.

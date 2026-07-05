@@ -7,8 +7,7 @@ const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
 
-const VALID_CATEGORIES = ['PRODUCE', 'DAIRY', 'MEAT', 'PANTRY', 'FROZEN', 'BEVERAGE', 'OTHER'];
-
+import { VALID_CATEGORIES, ParsedItemSchema, ParsedItem } from '@/lib/schemas/pantry';
 export async function categorizeItem(name: string): Promise<string> {
   if (!name.trim()) return 'OTHER';
   if (!ai) {
@@ -41,15 +40,6 @@ Rules:
     return 'OTHER';
   }
 }
-
-const ParsedItemSchema = z.object({
-  name: z.coerce.string().min(1, 'Name is required'),
-  quantity: z.coerce.number().positive().optional(),
-  category: z.coerce.string().optional(),
-  expiryDate: z.coerce.string().optional(),
-});
-
-type ParsedItem = z.infer<typeof ParsedItemSchema>;
 
 export async function parseVoiceInput(
   transcript: string,
