@@ -17,11 +17,11 @@ import { generateRecipeWithAI } from '../lib/ai/recipeGenerator';
  */
 const ensureAuthenticatedUser = async (context: { userId?: string }): Promise<User> => {
   if (!context.userId) {
-    throw new Error("Unauthorized: Please log in");
+    throw new Error('Unauthorized: Please log in');
   }
   const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
   if (!user) {
-    throw new Error("Unauthorized: User not found in database");
+    throw new Error('Unauthorized: User not found in database');
   }
   return user;
 };
@@ -29,13 +29,13 @@ const ensureAuthenticatedUser = async (context: { userId?: string }): Promise<Us
 export const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL in Next.js!',
-    
+
     myPantryItems: async (_: unknown, args: any, context: { userId?: string }) => {
       // For queries, if user doesn't exist, we might just return empty instead of throwing to be resilient
-      if (!context.userId) throw new Error("Unauthorized: Please log in");
+      if (!context.userId) throw new Error('Unauthorized: Please log in');
       const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
-      if (!user) return []; 
-      
+      if (!user) return [];
+
       return await prisma.pantryItem.findMany({
         where: { userId: user.id },
         orderBy: { expiryDate: 'asc' },
@@ -43,25 +43,36 @@ export const resolvers = {
     },
 
     myRecipes: async (_: unknown, args: any, context: { userId?: string }) => {
-      if (!context.userId) throw new Error("Unauthorized");
+      if (!context.userId) throw new Error('Unauthorized');
       const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
       if (!user) return [];
-      
+
       return await prisma.recipe.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: 'desc' },
       });
-    }
+    },
   },
-  
+
   Mutation: {
-    addPantryItem: async (_: unknown, args: { name: string, quantity: number, unit?: string, category?: Category, expiryDate?: string, boardState?: BoardState }, context: { userId?: string }) => {
-      if (!context.userId) throw new Error("Unauthorized");
+    addPantryItem: async (
+      _: unknown,
+      args: {
+        name: string;
+        quantity: number;
+        unit?: string;
+        category?: Category;
+        expiryDate?: string;
+        boardState?: BoardState;
+      },
+      context: { userId?: string },
+    ) => {
+      if (!context.userId) throw new Error('Unauthorized');
       // Enterprise Pattern: Upsert guarantees the user exists before associating data to them.
       const user = await prisma.user.upsert({
         where: { cognitoId: context.userId },
         update: {},
-        create: { cognitoId: context.userId, email: `${context.userId}@cognito.local` }
+        create: { cognitoId: context.userId, email: `${context.userId}@cognito.local` },
       });
 
       return await prisma.pantryItem.create({
@@ -72,16 +83,27 @@ export const resolvers = {
           category: args.category || 'OTHER',
           boardState: args.boardState || 'TO_BUY',
           ...(args.expiryDate && { expiryDate: new Date(args.expiryDate) }),
-          userId: user.id
-        }
+          userId: user.id,
+        },
       });
     },
 
-    editPantryItem: async (_: unknown, args: { id: string, name: string, quantity: number, unit?: string, category: Category, expiryDate?: string }, context: { userId?: string }) => {
+    editPantryItem: async (
+      _: unknown,
+      args: {
+        id: string;
+        name: string;
+        quantity: number;
+        unit?: string;
+        category: Category;
+        expiryDate?: string;
+      },
+      context: { userId?: string },
+    ) => {
       const user = await ensureAuthenticatedUser(context);
 
       const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
-      if (!item || item.userId !== user.id) throw new Error("Forbidden");
+      if (!item || item.userId !== user.id) throw new Error('Forbidden');
 
       return await prisma.pantryItem.update({
         where: { id: args.id },
@@ -90,30 +112,34 @@ export const resolvers = {
           quantity: args.quantity,
           unit: args.unit,
           category: args.category,
-          expiryDate: args.expiryDate ? new Date(args.expiryDate) : null
-        }
+          expiryDate: args.expiryDate ? new Date(args.expiryDate) : null,
+        },
       });
     },
-    
+
     deletePantryItem: async (_: unknown, { id }: { id: string }, context: { userId?: string }) => {
       const user = await ensureAuthenticatedUser(context);
 
       const item = await prisma.pantryItem.findUnique({ where: { id } });
-      if (item?.userId !== user.id) throw new Error("Forbidden");
+      if (item?.userId !== user.id) throw new Error('Forbidden');
 
       await prisma.pantryItem.delete({ where: { id } });
       return true;
     },
 
-    updateItemState: async (_: unknown, args: { id: string, newState: BoardState }, context: { userId?: string }) => {
+    updateItemState: async (
+      _: unknown,
+      args: { id: string; newState: BoardState },
+      context: { userId?: string },
+    ) => {
       const user = await ensureAuthenticatedUser(context);
 
       const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
-      if (item?.userId !== user.id) throw new Error("Forbidden");
+      if (item?.userId !== user.id) throw new Error('Forbidden');
 
       return await prisma.pantryItem.update({
         where: { id: args.id },
-        data: { boardState: args.newState }
+        data: { boardState: args.newState },
       });
     },
 
@@ -121,11 +147,15 @@ export const resolvers = {
      * Enterprise Refactor:
      * Broken down complex item movement (split vs whole) into clear conditional branches.
      */
-    moveItem: async (_: unknown, args: { id: string, amount: number, targetState: BoardState }, context: { userId?: string }) => {
+    moveItem: async (
+      _: unknown,
+      args: { id: string; amount: number; targetState: BoardState },
+      context: { userId?: string },
+    ) => {
       const user = await ensureAuthenticatedUser(context);
 
       const sourceItem = await prisma.pantryItem.findUnique({ where: { id: args.id } });
-      if (!sourceItem || sourceItem.userId !== user.id) throw new Error("Forbidden");
+      if (!sourceItem || sourceItem.userId !== user.id) throw new Error('Forbidden');
 
       const moveAmount = Math.min(args.amount, sourceItem.quantity);
       const isFullMove = moveAmount >= sourceItem.quantity;
@@ -137,35 +167,57 @@ export const resolvers = {
           boardState: args.targetState,
           name: sourceItem.name,
           unit: sourceItem.unit,
-          expiryDate: sourceItem.expiryDate 
-        }
+          expiryDate: sourceItem.expiryDate,
+        },
       });
 
       if (isFullMove) {
         return await handleFullMove(sourceItem, existingTargetItem, args.targetState);
       } else {
-        return await handlePartialMove(sourceItem, existingTargetItem, moveAmount, args.targetState, user.id);
+        return await handlePartialMove(
+          sourceItem,
+          existingTargetItem,
+          moveAmount,
+          args.targetState,
+          user.id,
+        );
       }
     },
 
-    generateRecipe: async (_: unknown, args: { mustUseItemIds: string[], previouslyUsedIngredients?: string[] }, context: { userId?: string }) => {
+    generateRecipe: async (
+      _: unknown,
+      args: { mustUseItemIds: string[]; previouslyUsedIngredients?: string[] },
+      context: { userId?: string },
+    ) => {
       const user = await ensureAuthenticatedUser(context);
 
       // Fetch ALL items to allow cross-board recipe planning
       const allItems = await prisma.pantryItem.findMany({
-        where: { userId: user.id }
+        where: { userId: user.id },
       });
 
       // 1. Must-use items: Anything the user explicitly checked (can be TO_BUY, IN_PANTRY, or CONSUMED)
-      const mustUseItems = allItems.filter(item => args.mustUseItemIds.includes(item.id)).map(i => i.name);
-      
-      // 2. Supporting items: Only items currently IN_PANTRY that weren't explicitly checked
-      const supportingItems = allItems.filter(item => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id)).map(i => i.name);
+      const mustUseItems = allItems
+        .filter((item) => args.mustUseItemIds.includes(item.id))
+        .map((i) => i.name);
 
-      return await generateRecipeWithAI(mustUseItems, supportingItems, args.previouslyUsedIngredients);
+      // 2. Supporting items: Only items currently IN_PANTRY that weren't explicitly checked
+      const supportingItems = allItems
+        .filter((item) => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id))
+        .map((i) => i.name);
+
+      return await generateRecipeWithAI(
+        mustUseItems,
+        supportingItems,
+        args.previouslyUsedIngredients,
+      );
     },
 
-    saveRecipe: async (_: unknown, args: { title: string, ingredients: string[], instructions: string[] }, context: { userId?: string }) => {
+    saveRecipe: async (
+      _: unknown,
+      args: { title: string; ingredients: string[]; instructions: string[] },
+      context: { userId?: string },
+    ) => {
       const user = await ensureAuthenticatedUser(context);
 
       return await prisma.recipe.create({
@@ -173,8 +225,8 @@ export const resolvers = {
           title: args.title,
           ingredients: args.ingredients,
           instructions: args.instructions,
-          userId: user.id
-        }
+          userId: user.id,
+        },
       });
     },
 
@@ -182,66 +234,82 @@ export const resolvers = {
       const user = await ensureAuthenticatedUser(context);
 
       const recipe = await prisma.recipe.findUnique({ where: { id } });
-      if (recipe?.userId !== user.id) throw new Error("Forbidden");
+      if (recipe?.userId !== user.id) throw new Error('Forbidden');
 
       await prisma.recipe.delete({ where: { id } });
       return true;
-    }
-  }
+    },
+  },
 };
 
 // ---------------------------------------------------------------------------
 // Helper Functions for Move Logic
 // ---------------------------------------------------------------------------
 
-async function handleFullMove(sourceItem: PantryItem, existingTargetItem: PantryItem | null, targetState: BoardState) {
+async function handleFullMove(
+  sourceItem: PantryItem,
+  existingTargetItem: PantryItem | null,
+  targetState: BoardState,
+) {
   if (existingTargetItem && existingTargetItem.id !== sourceItem.id) {
-    // Merge into the existing target item
-    const mergedItem = await prisma.pantryItem.update({
-      where: { id: existingTargetItem.id },
-      data: { quantity: existingTargetItem.quantity + sourceItem.quantity }
-    });
-    // Delete the original item since it was completely moved and merged
-    await prisma.pantryItem.delete({ where: { id: sourceItem.id } });
+    // Merge into the existing target item atomically
+    const [mergedItem] = await prisma.$transaction([
+      prisma.pantryItem.update({
+        where: { id: existingTargetItem.id },
+        data: { quantity: existingTargetItem.quantity + sourceItem.quantity },
+      }),
+      prisma.pantryItem.delete({ where: { id: sourceItem.id } }),
+    ]);
     return mergedItem;
   } else {
     // No identical item exists in the target state, so just move the card
     return await prisma.pantryItem.update({
       where: { id: sourceItem.id },
-      data: { boardState: targetState }
+      data: { boardState: targetState },
     });
   }
 }
 
-async function handlePartialMove(sourceItem: PantryItem, existingTargetItem: PantryItem | null, moveAmount: number, targetState: BoardState, userId: string) {
-  // 1. Reduce the original item's quantity
-  const updatedSourceItem = await prisma.pantryItem.update({
-    where: { id: sourceItem.id },
-    data: { quantity: sourceItem.quantity - moveAmount }
-  });
-
-  // 2. Add to target
+async function handlePartialMove(
+  sourceItem: PantryItem,
+  existingTargetItem: PantryItem | null,
+  moveAmount: number,
+  targetState: BoardState,
+  userId: string,
+) {
   if (existingTargetItem) {
-    // Merge into existing identical item
-    await prisma.pantryItem.update({
-      where: { id: existingTargetItem.id },
-      data: { quantity: existingTargetItem.quantity + moveAmount }
-    });
+    // Merge into existing identical item atomically
+    const [updatedSourceItem] = await prisma.$transaction([
+      prisma.pantryItem.update({
+        where: { id: sourceItem.id },
+        data: { quantity: sourceItem.quantity - moveAmount },
+      }),
+      prisma.pantryItem.update({
+        where: { id: existingTargetItem.id },
+        data: { quantity: existingTargetItem.quantity + moveAmount },
+      }),
+    ]);
+    return updatedSourceItem;
   } else {
-    // Create a new card in the target state
-    await prisma.pantryItem.create({
-      data: {
-        name: sourceItem.name,
-        quantity: moveAmount,
-        unit: sourceItem.unit,
-        category: sourceItem.category,
-        expiryDate: sourceItem.expiryDate,
-        imageUrl: sourceItem.imageUrl,
-        boardState: targetState,
-        userId: userId
-      }
-    });
+    // Create a new card in the target state atomically
+    const [updatedSourceItem] = await prisma.$transaction([
+      prisma.pantryItem.update({
+        where: { id: sourceItem.id },
+        data: { quantity: sourceItem.quantity - moveAmount },
+      }),
+      prisma.pantryItem.create({
+        data: {
+          name: sourceItem.name,
+          quantity: moveAmount,
+          unit: sourceItem.unit,
+          category: sourceItem.category,
+          expiryDate: sourceItem.expiryDate,
+          imageUrl: sourceItem.imageUrl,
+          boardState: targetState,
+          userId: userId,
+        },
+      }),
+    ]);
+    return updatedSourceItem;
   }
-  
-  return updatedSourceItem;
 }

@@ -99,6 +99,8 @@
 ### Completed (AI & Engineering Robustness):
 
 - **Smart Voice AI Schema Validation**: Refactored the core AI parsing layer in `ai.ts` to use `zod` for strict runtime validation. Upgraded Gemini API calls to use `responseSchema` (Structured Outputs) to guarantee JSON format from the LLM, completely eliminating "blind type casting" (`as Type`) vulnerabilities.
+- **Recipe Generator AI Schema Validation**: Applied the exact same Zod and `responseSchema` refactoring to `recipeGenerator.ts`, eliminating prompt-engineering hacks and preventing app crashes from AI hallucinations during recipe creation.
+- **Kanban Prisma Transactions**: Wrapped Kanban drag-and-drop item movements (`handleFullMove`, `handlePartialMove`) in Prisma `$transaction` blocks within the GraphQL resolver. This ensures atomic database updates, preventing data loss if a network failure occurs midway through an item split/move.
 - **Graceful Error Handling (Toast UI)**: Handled edge cases where AI fails to parse voice input. Replaced silent `console.error` crashes with a soft red inline error message in `ItemFormDialog.tsx`, providing a robust, user-friendly fallback.
 - **Relative Date Context Fix**: Supplied the current day of the week to the Gemini prompt to ensure accurate relative date calculations (e.g., "next Wednesday").
 - **Enterprise Engineering Rules**: Established the `Default to Enterprise-Grade Robustness` rule in `.agents/AGENTS.md`, formally rejecting MVP technical debt. Established `/prototype` as the official override switch for rapid ideation.
