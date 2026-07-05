@@ -43,19 +43,21 @@ Rules:
 }
 
 export const ParsedItemSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  quantity: z.number().positive().optional(),
-  category: z.string().optional(),
-  expiryDate: z.string().optional(),
+  name: z.coerce.string().min(1, 'Name is required'),
+  quantity: z.coerce.number().positive().optional(),
+  category: z.coerce.string().optional(),
+  expiryDate: z.coerce.string().optional(),
 });
 
 export type ParsedItem = z.infer<typeof ParsedItemSchema>;
 
-export async function parseVoiceInput(transcript: string): Promise<ParsedItem | null> {
-  if (!transcript.trim()) return null;
+export async function parseVoiceInput(
+  transcript: string,
+): Promise<{ success: true; data: ParsedItem } | { success: false; error: string }> {
+  if (!transcript.trim()) return { success: false, error: 'Empty transcript' };
   if (!ai) {
-    console.warn('No GEMINI_API_KEY found, returning null.');
-    return null;
+    console.warn('No GEMINI_API_KEY found.');
+    return { success: false, error: 'AI not configured' };
   }
 
   const todayDate = new Date();
@@ -96,7 +98,7 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
     });
 
     let text = response.text?.trim();
-    if (!text) return null;
+    if (!text) return { success: false, error: 'AI returned empty response' };
 
     // In case model wraps in markdown despite instructions
     text = text
@@ -105,9 +107,16 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
       .trim();
 
     const parsedJson = JSON.parse(text);
-    return ParsedItemSchema.parse(parsedJson);
-  } catch (error) {
+    const validData = ParsedItemSchema.parse(parsedJson);
+
+    // Auto-correct category if it hallucinated
+    if (validData.category && !VALID_CATEGORIES.includes(validData.category)) {
+      validData.category = 'OTHER';
+    }
+
+    return { success: true, data: validData };
+  } catch (error: any) {
     console.error('Smart Voice parsing failed:', error);
-    return null;
+    return { success: false, error: error.message || 'Parse failed' };
   }
 }

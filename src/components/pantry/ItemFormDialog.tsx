@@ -124,20 +124,24 @@ export function ItemFormDialog({
       setIsParsingVoice(true);
       setErrorMsg(null);
       try {
-        const parsed = await parseVoiceInput(transcript);
-        if (parsed) {
+        const result = await parseVoiceInput(transcript);
+        if (result && result.success) {
+          const parsed = result.data;
           if (parsed.name) setName(parsed.name);
           if (parsed.quantity) setQuantity(parsed.quantity);
           if (parsed.category) setCategory(parsed.category);
           if (parsed.expiryDate) setExpiryDate(parsed.expiryDate);
         } else {
-          setErrorMsg('AI 聽不懂，請再試一次或手動輸入');
-          setTimeout(() => setErrorMsg(null), 4000);
+          // If Zod or Gemini threw an error, display it directly
+          const errMsg = result && 'error' in result ? result.error : 'AI 聽不懂，請再試一次';
+          console.error('Voice parse failed:', errMsg);
+          setErrorMsg(errMsg);
+          setTimeout(() => setErrorMsg(null), 5000);
         }
       } catch (err) {
-        console.error('Parse voice failed', err);
+        console.error('Parse voice failed completely:', err);
         setErrorMsg('系統發生錯誤，請稍後再試');
-        setTimeout(() => setErrorMsg(null), 4000);
+        setTimeout(() => setErrorMsg(null), 5000);
       } finally {
         setIsParsingVoice(false);
       }
