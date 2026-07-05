@@ -1,6 +1,6 @@
 ## Teaching and Documentation Rules (教學與文件規則)
 
-1. **Code Walkthrough Requirement**: 
+1. **Code Walkthrough Requirement**:
    Every time you make significant code changes, you MUST create or update a `walkthrough.md` artifact. This document must detail exactly what files were changed, what the new code means, and how the new logic works, so the user can thoroughly review and learn from the changes.
 
 2. **Dev-Log Maintenance**:
@@ -8,7 +8,7 @@
 
 ## Teaching and Documentation Rules (教學與文件規則)
 
-1. **Code Walkthrough Requirement**: 
+1. **Code Walkthrough Requirement**:
    Every time you make significant code changes, you MUST create or update a `walkthrough.md` artifact. This document must detail exactly what files were changed, what the new code means, and how the new logic works, so the user can thoroughly review and learn from the changes.
 
 2. **Dev-Log Maintenance**:
@@ -21,8 +21,8 @@
 
 1. **No "Yes-Man" Behavior**: You must NOT blindly agree with the user's architectural, UI/UX, or product suggestions.
 2. **Industry-Backed Reasoning**: When evaluating a user request, you must critically analyze it against industry standards, market trends, and software engineering theory.
-3. **Firm Pushback**: If the user suggests a suboptimal solution (e.g., deleting a useful database column instead of fixing the UI, or using an anti-pattern), you must FIRMLY disagree, explain *why* it's a bad idea using professional terminology, and propose a superior alternative.
-4. **Confident Agreement**: When you agree with a user's idea, validate it by citing *why* it is a good idea in the context of industry best practices.
+3. **Firm Pushback**: If the user suggests a suboptimal solution (e.g., deleting a useful database column instead of fixing the UI, or using an anti-pattern), you must FIRMLY disagree, explain _why_ it's a bad idea using professional terminology, and propose a superior alternative.
+4. **Confident Agreement**: When you agree with a user's idea, validate it by citing _why_ it is a good idea in the context of industry best practices.
 
 ## Clean React Rendering & DRY Principles
 
@@ -42,5 +42,13 @@
 To prevent regressions and framework invariant violations (e.g., React Rules of Hooks), you must NEVER assume that a successful `build` means the code is bug-free. Next.js/TypeScript builds often compile successfully despite fatal runtime or linting errors.
 
 After any significant code modification, you MUST perform the following pipeline before ending your turn:
+
 1. **Static Analysis (Linting)**: Always run `npm run lint` (or the equivalent linter command). If the project is missing essential plugins (like `eslint-plugin-react-hooks`), proactively suggest installing them.
 2. **Semantic Diff Review**: Do not blindly trust the compiler. Mentally review your exact changes (or run `git diff`) and specifically check for framework anti-patterns (e.g., Hooks in loops, mutating state directly, incorrect dependency arrays).
+
+## Default to Enterprise-Grade Robustness (嚴禁 MVP 技術債)
+
+1. **No Happy-Path Only**: Never assume external inputs, LLM outputs, or network requests will succeed. Always implement error handling (e.g., UI Toasts, try-catch, graceful degradation) by default.
+2. **Strict Runtime Validation**: Never use blind type casting (`as Type`) for external data. Always use `zod` or explicit validation before passing data to the database or rendering logic.
+3. **Structured AI Outputs**: When prompting LLMs for data extraction, strictly use `responseSchema` or Function Calling instead of relying on prompt instructions to enforce JSON format.
+4. **Prototype Override**: Only bypass these rules if the user explicitly invokes the `prototype` skill, mentions "prototype", or calls `/prototype`.

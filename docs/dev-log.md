@@ -93,3 +93,13 @@
   - The `Smart Voice Input` button was promoted to a massive, full-width, gradient-styled hero button at the top of the form, complete with dynamic loading and listening animations (`animate-pulse`).
 - **Fuzzy Quantities Guide**: Added a "Ground Pork 250g" demo item and an updated Onboarding Guide to teach users about the new Smart Voice Fill feature and how to handle fuzzy quantities.
 - **Visual Expiry Cues**: Added a subtle, premium visual warning system to `PantryItemCard.tsx`. Items in the Pantry now emit a glowing yellow border (`shadow-[0_0_15px_rgba(251,191,36,0.3)]`) if they expire within 3 days, and a glowing red border if they expire today or have already passed their date.
+
+## 2026-07-04
+
+### Completed (AI & Engineering Robustness):
+
+- **Smart Voice AI Schema Validation**: Refactored the core AI parsing layer in `ai.ts` to use `zod` for strict runtime validation. Upgraded Gemini API calls to use `responseSchema` (Structured Outputs) to guarantee JSON format from the LLM, completely eliminating "blind type casting" (`as Type`) vulnerabilities.
+- **Graceful Error Handling (Toast UI)**: Handled edge cases where AI fails to parse voice input. Replaced silent `console.error` crashes with a soft red inline error message in `ItemFormDialog.tsx`, providing a robust, user-friendly fallback.
+- **Relative Date Context Fix**: Supplied the current day of the week to the Gemini prompt to ensure accurate relative date calculations (e.g., "next Wednesday").
+- **Enterprise Engineering Rules**: Established the `Default to Enterprise-Grade Robustness` rule in `.agents/AGENTS.md`, formally rejecting MVP technical debt. Established `/prototype` as the official override switch for rapid ideation.
+- **Research-Driven Design Rule**: Established the `apply-premium-aesthetics` skill to strictly enforce active web trend research and contextual Glassmorphism integration during UI planning phases.

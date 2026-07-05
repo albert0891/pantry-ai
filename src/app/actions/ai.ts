@@ -1,6 +1,7 @@
 'use server';
 
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
+import { z } from 'zod';
 
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
@@ -41,12 +42,14 @@ Rules:
   }
 }
 
-export interface ParsedItem {
-  name: string;
-  quantity?: number;
-  category?: string;
-  expiryDate?: string;
-}
+export const ParsedItemSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  quantity: z.number().positive().optional(),
+  category: z.string().optional(),
+  expiryDate: z.string().optional(),
+});
+
+export type ParsedItem = z.infer<typeof ParsedItemSchema>;
 
 export async function parseVoiceInput(transcript: string): Promise<ParsedItem | null> {
   if (!transcript.trim()) return null;
@@ -79,6 +82,16 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            quantity: { type: Type.NUMBER },
+            category: { type: Type.STRING },
+            expiryDate: { type: Type.STRING },
+          },
+          required: ['name'],
+        },
       },
     });
 
@@ -90,7 +103,9 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
       .replace(/^```json\s*/i, '')
       .replace(/```$/, '')
       .trim();
-    return JSON.parse(text) as ParsedItem;
+
+    const parsedJson = JSON.parse(text);
+    return ParsedItemSchema.parse(parsedJson);
   } catch (error) {
     console.error('Smart Voice parsing failed:', error);
     return null;

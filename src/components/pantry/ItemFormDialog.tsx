@@ -57,6 +57,7 @@ export function ItemFormDialog({
   const [isAutoCategorizing, setIsAutoCategorizing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isParsingVoice, setIsParsingVoice] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Format expiry date correctly for input type="date"
   let initialExpiry = '';
@@ -121,6 +122,7 @@ export function ItemFormDialog({
       const transcript = event.results[0][0].transcript;
 
       setIsParsingVoice(true);
+      setErrorMsg(null);
       try {
         const parsed = await parseVoiceInput(transcript);
         if (parsed) {
@@ -128,9 +130,14 @@ export function ItemFormDialog({
           if (parsed.quantity) setQuantity(parsed.quantity);
           if (parsed.category) setCategory(parsed.category);
           if (parsed.expiryDate) setExpiryDate(parsed.expiryDate);
+        } else {
+          setErrorMsg('AI 聽不懂，請再試一次或手動輸入');
+          setTimeout(() => setErrorMsg(null), 4000);
         }
       } catch (err) {
         console.error('Parse voice failed', err);
+        setErrorMsg('系統發生錯誤，請稍後再試');
+        setTimeout(() => setErrorMsg(null), 4000);
       } finally {
         setIsParsingVoice(false);
       }
@@ -194,6 +201,12 @@ export function ItemFormDialog({
                   ? 'Parsing...'
                   : 'Tap to Smart Voice Fill'}
             </button>
+
+            {errorMsg && (
+              <div className="text-sm font-medium text-rose-500 text-center animate-in fade-in slide-in-from-top-1">
+                {errorMsg}
+              </div>
+            )}
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right text-slate-700 font-semibold">
