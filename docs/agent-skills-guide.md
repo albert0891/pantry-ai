@@ -1,70 +1,78 @@
 # AI 代理技能與互動指南 (Agent Skills Guide)
 
-這份文件記錄了我們專案中安裝的 AI 擴充技能（Skills），以及你應該如何使用特定的「Slash Commands (對話捷徑)」來跟我互動，以達到最高效的開發體驗。
+這份文件記錄了我們專案中安裝的 AI 擴充技能（Skills），以及你應該如何使用它們來跟我互動，以達到最高效的開發體驗。
+**⚠️ 注意：本指南已更新至 Superpower Gen 6 架構。我們淘汰了部分寬鬆的舊版技能，全面導入嚴格的紀律系統。**
 
 ## 為什麼需要這些技能？
-AI 寫程式很快，但如果沒有嚴謹的架構規劃，專案很快就會變成難以維護的「義大利麵條程式碼 (Spaghetti Code)」。
+
+AI 寫程式很快，但如果沒有嚴謹的架構規劃，專案很快就會變成難以維護的技術債。
 我們安裝的技能套件，就是為了強制 AI（也就是我）遵守資深工程師的開發紀律（如 TDD、領域驅動設計、深層除錯等）。
 
-## 核心互動場景 (Highlights)
+## 🌟 核心互動場景 (Superpower Gen 6 升級版)
 
-### 1. 企劃與架構設計 (規劃階段)
-當你想要開發一個「大型新功能」，或是要對現有架構做大改動時使用。
-*   **指令**：`/grill-me [你的功能想法]`
-*   **場景**：「`/grill-me 我想要新增一個能上傳食材收據並自動辨識的功能。`」
-*   **AI 的反應**：我不會馬上丟一堆程式碼給你。我會進入「架構師面試模式」，反問你關於資料表設計、邊界情況 (Edge cases)、權限控管的問題。直到我們討論出一個完美的架構，我才會開始寫程式碼。
+### 1. 執行期嚴謹除錯 (Runtime Debugging)
 
-### 2. 嚴謹除錯 (Debug 階段)
-當你遇到一個非常難解、報錯訊息很模糊，或是你自己也毫無頭緒的 Bug 時使用。
-*   **指令**：`/diagnose [Bug 描述]`
-*   **場景**：「`/diagnose 使用者登入後，畫面一直閃爍然後跳轉到 500 錯誤頁面。`」
-*   **AI 的反應**：我會停止盲目猜測。我會建立一個嚴謹的除錯循環：試圖重現問題 -> 縮小範圍 -> 提出假設 -> 加入 console.log 或中斷點驗證 -> 修復 -> 進行回歸測試。
+當你遇到一個非常難解、報錯訊息很模糊，或是邏輯發生靈異現象時。
 
-### 3. 測試驅動開發 (TDD 實作階段)
-當你想確保某個關鍵功能絕對不能出錯時使用。
-*   **指令**：`/tdd [功能描述]`
-*   **場景**：「`/tdd 幫我實作『把過期食材標記為紅色』的 Component。`」
-*   **AI 的反應**：我會嚴格遵守「紅燈-綠燈-重構」的循環。先寫出會報錯的單元測試，然後才寫功能程式碼讓測試通過。
+- **呼叫方式**：要求我使用 `systematic-debugging` 技能。
+- **AI 的反應**：我會停止盲目猜測與通靈。我會進入最高級別的除錯 SOP：重現問題 -> 縮小範圍 -> 提出假設 -> 驗證。**在找出 Root Cause 之前，我絕對不會寫任何修復代碼**。如果你看到我嘗試修復 3 次都失敗，這個技能會強制我停下來，並質疑你的專案架構是否有根本性的問題。
 
-### 4. 節省 Token 與專注模式
-當你只需要我給你最核心的答案，不需要寒暄或是落落長的解釋時使用。
-*   **指令**：`/caveman [你的問題]`
-*   **場景**：「`/caveman 把這個 button 置中`」
-*   **AI 的反應**：我會省去所有的「好的」、「沒問題」，直接給出精準的語法，大幅節省 token 與閱讀時間。
+### 2. 測試驅動開發 (TDD 實作階段)
+
+開發新功能，或修復複雜的核心商業邏輯時。
+
+- **呼叫方式**：要求我使用 `test-driven-development` 技能。
+- **AI 的反應**：我會嚴格遵守「紅燈-綠燈-重構」的循環。最重要的是，**沒有先寫出會報錯的自動化測試 (Red)，我絕對不准開始寫實作代碼。**
+
+### 3. 企劃與架構設計 (規劃階段)
+
+實作重大架構改動、跨元件新功能之前。
+
+- **呼叫方式**：要求我使用 `writing-plans` 技能。
+- **AI 的反應**：我不會馬上丟一堆 To-Do List 給你。我會先進行「邊界條件 (Edge Case) 掃描」與「架構衝突質疑」。直到確認計畫無懈可擊，才會開始動工。
+
+### 4. 嚴格代碼審查 (Strict Code Review)
+
+完成大功能準備 Merge，想確保沒有留下技術債時。
+
+- **呼叫方式**：要求我使用 `requesting-code-review` 技能。
+- **AI 的反應**：我會戴上架構師的帽子，嚴格比對專案 `.agents/AGENTS.md` 裡的自訂規則（例如不可在 Server Action 輸出 Schema 等），有一絲妥協就會退件。
+
+### 5. 節省 Token 與專注模式
+
+當你只需要我給你最核心的答案，不需要寒暄時。
+
+- **指令**：`/caveman [你的問題]`
+- **AI 的反應**：省略廢話，直接給出精準的語法，節省 75% 的 Token。
 
 ---
 
 ## 技能庫總覽 (Skills Directory)
 
-以下是已消化整理的完整技能列表，依照用途分類如下：
+以下是已消化整理的完整技能列表，包含防禦性編譯與其他輔助工具：
 
-### 🛠️ Engineering (工程與日常程式開發技能)
-這些是日常寫程式與軟體工程最常用的技能：
+### 🛡️ 防禦與架構 (Defense & Architecture)
 
-*   **`diagnose`**：針對困難的 Bugs 與效能衰退進行嚴謹的除錯循環：重現 → 縮小範圍 → 假設 → 驗證 → 修復 → 回歸測試。
-*   **`grill-with-docs`**：結合文件的拷問對話。用現有的領域模型 (Domain Model) 來挑戰你的計畫，精確化術語，並即時更新 `CONTEXT.md` 與 ADRs。
-*   **`triage`**：透過多種角色狀態機來分流與處理 Issue Tracker 上的問題。
-*   **`improve-codebase-architecture`**：根據 `CONTEXT.md` 的領域語言與 `docs/adr/` 的架構決策，尋找改善並深化 codebase 架構的機會。
-*   **`setup-matt-pocock-skills`**：初始化技能設定。建立每個 repo 專屬的配置（如 Issue Tracker、分流標籤詞彙表、領域文件佈局）。建議在使用 `to-issues`, `to-prd`, `triage`, `diagnose`, `tdd`, `improve-codebase-architecture`, 或 `zoom-out` 前執行一次。
-*   **`tdd`**：測試驅動開發。遵循「紅燈-綠燈-重構」循環，透過一次一個垂直切片 (vertical slice) 來開發功能或修復 Bug。
-*   **`to-issues`**：將任何計畫、規格書或 PRD，拆解成可獨立領取實作的 GitHub Issues。
-*   **`to-prd`**：將當前的對話脈絡直接整理成一份產品需求文件 (PRD) 並發布為 GitHub Issue。不需要額外提問對話，直接總結討論內容。
-*   **`zoom-out`**：退一步提供大局觀。讓 AI 針對你不熟悉的程式碼區域提供更廣泛的背景資訊與高層次視角。
-*   **`prototype`**：快速建立用過即丟的原型來具現化設計——可能是用來釐清狀態與商業邏輯的終端機應用，或是在同一路由下可切換的多種截然不同的 UI 變體。
+- **`setup-matt-pocock-skills`**：專注於極端嚴謹的 TypeScript 型別安全與 Zod 驗證。保證只要能過編譯，資料型別就絕對不會出錯。
+- **`vercel-react-best-practices`**：Vercel 官方的最佳實踐指南。確保 Next.js / React 開發時，效能、Cache 機制、RSC (React Server Components) 都在最優狀態。
+- **`improve-codebase-architecture`**：根據 `CONTEXT.md` 的領域語言與 `docs/adr/` 的架構決策，尋找改善並深化 codebase 架構的機會。
 
-### ⚡ Productivity (生產力與工作流程)
-不侷限於程式碼，幫助提升整體工作流效率的工具：
+### 🛠️ 工程核心 (Engineering Core - Gen 6)
 
-*   **`caveman`**：極度壓縮溝通模式。省略廢話與語氣詞，在保持完整技術精準度的前提下減少約 75% 的 Token 消耗。
-*   **`grill-me`**：無情拷問模式。針對你的計畫或設計進行嚴厲面試與提問，直到決策樹上的每一個分支都被釐清與解決。
-*   **`handoff`**：交接工作。將當前的長篇對話壓縮總結成一份「交接文件」，讓另一個 AI 代理可以無縫接手。
-*   **`teach`**：教學模式。在多次對話中教導使用者新技能或新概念，並使用當前目錄作為有狀態的教學工作區。
-*   **`write-a-skill`**：撰寫新技能。引導建立具有正確結構、漸進式揭露設計與綁定資源的新 AI 技能。
+- **`systematic-debugging`**：[已升級] 取代傳統除錯，強制落實四階段鑑識流程。
+- **`test-driven-development`**：[已升級] 取代原 `tdd`，強制紅燈機制。
+- **`writing-plans`**：[已升級] 取代原 `request-refactor-plan`，強制邊界條件掃描。
+- **`requesting-code-review`**：[已升級] 取代原 `review`，強制架構師級距審查。
+
+### ⚡ 生產力與工作流程 (Productivity)
+
+- **`caveman`**：極度壓縮溝通模式。
+- **`grill-me`**：無情拷問模式。針對你的計畫或設計進行嚴厲面試與提問。
+- **`handoff`**：交接工作。將當前的長篇對話壓縮總結成一份「交接文件」。
+- **`to-issues` / `to-prd`**：將對話或計畫轉換為 Issue Tracker 上的工單或 PRD 文件。
+- **`prototype`**：快速建立用過即丟的原型來具現化設計。
 
 ### 🧰 Misc (其他與基礎設施)
-保留備用但不常直接調用的底層工具：
 
-*   **`git-guardrails-claude-code`**：設定 Git 防護欄。在執行危險的 Git 指令 (例如 `push`, `reset --hard`, `clean` 等) 之前進行攔截。
-*   **`migrate-to-shoehorn`**：將測試檔案中的 `as` 型別斷言轉移至 `@total-typescript/shoehorn`。
-*   **`scaffold-exercises`**：建立練習題結構，包含章節、問題、解答與說明文件。
-*   **`setup-pre-commit`**：設定 Husky pre-commit hooks，自動整合 lint-staged, Prettier, 型別檢查與測試。
+- **`git-guardrails-claude-code`**：設定 Git 防護欄，防止危險操作 (`push -f`, `reset --hard`)。
+- **`setup-pre-commit`**：設定 Husky pre-commit hooks，自動整合 lint-staged, Prettier。

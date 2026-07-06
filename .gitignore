@@ -44,3 +44,4 @@ next-env.d.ts
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/backlink-cache
+.obsidian/graph.json

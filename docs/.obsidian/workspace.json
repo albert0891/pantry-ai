@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "graphql-notes.md",
+                "file": "agent-skills-guide.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "graphql-notes"
+              "title": "agent-skills-guide"
             }
           }
         ]
@@ -185,13 +185,14 @@
   },
   "active": "86bf5a8e948b3d5b",
   "lastOpenFiles": [
-    "css-best-practices.md",
-    "react-architecture-notes.md",
     "aws-cognito-notes.md",
-    "tailwind-shadcn-notes.md",
-    "react-graphql-flow.md",
-    "agent-skills-guide.md",
     "commands-cheatsheet.md",
-    "dev-log.md"
+    "css-best-practices.md",
+    "dev-log.md",
+    "graphql-notes.md",
+    "react-architecture-notes.md",
+    "react-graphql-flow.md",
+    "tailwind-shadcn-notes.md",
+    "agent-skills-guide.md"
   ]
 }
