@@ -114,3 +114,12 @@
 ### Completed (Documentation):
 
 - **Project README & Profile Updates**: Updated the open-source `README.md` to feature a refined, high-impact introductory summary emphasizing the smart kitchen AI capabilities, strictly typed GraphQL architecture, and premium Glassmorphism UI. Prepared the corresponding GitHub profile snippet.
+
+## 2026-07-08
+
+### Completed (Infrastructure & Bug Fixes):
+
+- **Vercel Cron Bug Resolution**: Resolved a multi-day debugging issue where the Vercel Cron Job (`vercel.json`) failed to register in the Vercel Dashboard despite a valid `Ready` Production deployment. Root cause was identified as Vercel platform-level silent failure (likely due to Hobby plan account-wide limits or Git integration desync).
+- **Migration to cron-job.org**: Bypassed Vercel's opaque cron infrastructure by migrating to the external `cron-job.org` service.
+- **Secure API Endpoints**: Verified that the Next.js API route (`/api/cron/reset-demo`) correctly handles unauthorized manual browser triggers (401 Unauthorized), ensuring that database resets are strictly gated by the `CRON_SECRET` Bearer token.
+- **Environment Variable Tracking**: Created a safe `.env.example` file and pushed it to GitHub to securely track required environment variables (Cognito settings, `CRON_SECRET`) without leaking actual secrets, following industry standard practices.
