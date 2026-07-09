@@ -64,9 +64,3 @@ After any significant code modification, you MUST perform the following pipeline
 1. **Strict 'use server' Boundaries**: Files with `'use server'` at the top MUST ONLY export `async function`s.
 2. **No Schema Exports in Actions**: NEVER define or export Zod schemas, constants, or types directly inside a `'use server'` file. Doing so will crash Next.js compilation with a 500 Error.
 3. **Extract Logic**: All Zod schemas and constants must be defined in `src/lib/` (e.g., `src/lib/schemas/pantry.ts`) and imported into the Server Action.
-
-## Chat Communication Formatting
-
-- **File Links in Chat**: When providing links to local files in chat responses to the user, NEVER use Obsidian WikiLinks (e.g., `[[filename]]`). You MUST always use standard GitHub-style markdown links with absolute paths and the `file://` scheme to ensure they are clickable in the chat UI.
-  - **Correct:** `[filename](file:///absolute/path/to/file)`
-  - **Incorrect:** `[[filename]]`
