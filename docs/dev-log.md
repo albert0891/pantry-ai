@@ -108,3 +108,9 @@
 - **Automated Pure Logic Testing**: Installed `vitest` and created boundary unit tests for AI schema validation (`ai.test.ts`, `recipeGenerator.test.ts`). This guarantees that Edge Cases (like Zod coercion of strings to numbers) work perfectly outside the React UI layer.
 - **Husky Testing Integration**: Enforced `npm run test` inside the `.husky/pre-commit` hook to automatically run unit tests on every commit, creating an impenetrable defense against logic regressions.
 - **Thin Server Actions Architecture**: Diagnosed and fixed a fatal Next.js 500 Error caused by exporting Zod schemas directly from a `'use server'` file. Extracted all core logic schemas (`ParsedItemSchema`, `VALID_CATEGORIES`) into a dedicated `src/lib/schemas/pantry.ts` file, keeping Server Actions strictly for async API handlers and safely enabling frontend schema reuse. Updated `AGENTS.md` to formally enforce this architecture.
+
+## 2026-07-08
+
+### Completed (Documentation):
+
+- **Project README & Profile Updates**: Updated the open-source `README.md` to feature a refined, high-impact introductory summary emphasizing the smart kitchen AI capabilities, strictly typed GraphQL architecture, and premium Glassmorphism UI. Prepared the corresponding GitHub profile snippet.
