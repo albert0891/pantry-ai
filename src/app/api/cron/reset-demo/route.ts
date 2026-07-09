@@ -2,17 +2,22 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Category, BoardState } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
+  console.log('[CRON DEBUG] Cron job triggered.');
+  console.log('[CRON DEBUG] Headers:', Object.fromEntries(request.headers.entries()));
+
   // Prevent unauthorized access. Vercel automatically adds an Authorization header to Cron requests.
+
   // The header value is Bearer <CRON_SECRET> where CRON_SECRET is defined in Vercel Env Vars.
   const authHeader = request.headers.get('authorization');
-  if (
-    process.env.NODE_ENV === 'production' &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  if (process.env.NODE_ENV === 'production' && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    console.warn(`[CRON DEBUG] Unauthorized request. authHeader: ${authHeader}`);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  console.log('[CRON DEBUG] Authorization successful. Proceeding with database reset.');
   try {
     const demoUserId = 'public-demo-user';
 
