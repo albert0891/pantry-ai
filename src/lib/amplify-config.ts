@@ -5,9 +5,15 @@ export const configureAmplify = () => {
   Amplify.configure({
     Auth: {
       Cognito: {
-        userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'dummy-pool-id',
-        userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || 'dummy-client-id',
-      }
-    }
+        userPoolId:
+          process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID ||
+          process.env.NEXT_PUBLIC_AWS_USER_POOL_ID ||
+          'dummy-pool-id',
+        userPoolClientId:
+          process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ||
+          process.env.NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID ||
+          'dummy-client-id',
+      },
+    },
   });
 };

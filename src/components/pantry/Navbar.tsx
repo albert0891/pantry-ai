@@ -30,8 +30,10 @@ export function Navbar({
 }: NavbarProps) {
   const [isGuideOpen, setIsGuideOpen] = React.useState(false);
   const handleLogout = async () => {
-    if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
+    const isMockLoggedIn = localStorage.getItem('mock_logged_in');
+    if (isMockLoggedIn) {
       localStorage.removeItem('mock_logged_in');
+      localStorage.removeItem('auth_token');
       window.location.href = '/login';
       return;
     }

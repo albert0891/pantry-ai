@@ -9,22 +9,22 @@ import { CognitoJwtVerifier } from 'aws-jwt-verify';
 // Design Pattern Note: Middleware / Interceptor (Backend)
 //
 // To secure the API, we need to verify the token sent by the client.
-// We use the `aws-jwt-verify` library to securely unpack and cryptographically 
+// We use the `aws-jwt-verify` library to securely unpack and cryptographically
 // verify the Cognito JWT token without making a round-trip to the AWS servers.
 // ---------------------------------------------------------------------------
 
 const verifier = CognitoJwtVerifier.create({
   userPoolId: process.env.NEXT_PUBLIC_AWS_USER_POOL_ID!,
-  tokenUse: "id", // We expect the ID token from Amplify
+  tokenUse: 'id', // We expect the ID token from Amplify
   clientId: process.env.NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID!,
 });
 
 // ---------------------------------------------------------------------------
 // Design Pattern Note: Adapter Pattern
-// 
+//
 // Apollo Server is framework agnostic (it can run on Express, Fastify, Next.js).
 // To make it work inside the Next.js App Router, we use `startServerAndCreateNextHandler`.
-// This acts as an Adapter pattern, translating Next.js Request/Response objects 
+// This acts as an Adapter pattern, translating Next.js Request/Response objects
 // into standard HTTP objects that Apollo Server understands natively.
 // ---------------------------------------------------------------------------
 
@@ -39,37 +39,25 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
     // ---------------------------------------------------------------------------
     // Design Pattern Note: Context Injection
     //
-    // We intercept every request here. We look for the 'Authorization: Bearer <token>' 
-    // header sent by our frontend ApolloProvider. If the token is valid, we extract 
+    // We intercept every request here. We look for the 'Authorization: Bearer <token>'
+    // header sent by our frontend ApolloProvider. If the token is valid, we extract
     // the user's `sub` (Subject ID) from Cognito and pass it to every resolver.
     // ---------------------------------------------------------------------------
     const authHeader = req.headers.get('authorization');
     let userId: string | null = null;
 
-    if (process.env.MOCK_AUTH === 'true') {
-      const mockToken = authHeader?.replace('Bearer ', '');
-      if (mockToken === 'demo_token') {
-        userId = 'public-demo-user';
-      } else if (mockToken?.startsWith('admin_attempt_')) {
-        const attemptedPassword = mockToken.replace('admin_attempt_', '');
-        if (attemptedPassword === (process.env.ADMIN_PASSWORD || 'let_me_in_123')) {
-          userId = 'albert-admin-id';
-        } else {
-          throw new Error('Unauthorized');
-        }
-      } else {
-        throw new Error('Missing or invalid mock token');
-      }
-      return { req, userId };
-    }
-
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      try {
-        const payload = await verifier.verify(token);
-        userId = payload.sub; // The unique Cognito user ID
-      } catch (err) {
-        console.warn("Invalid or expired token provided to GraphQL API", err);
+
+      if (token === 'demo_token') {
+        userId = 'public-demo-user';
+      } else {
+        try {
+          const payload = await verifier.verify(token);
+          userId = payload.sub; // The unique Cognito user ID
+        } catch (err) {
+          console.warn('Invalid or expired token provided to GraphQL API', err);
+        }
       }
     }
 
