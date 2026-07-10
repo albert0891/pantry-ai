@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signIn, signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
+import { signIn, signUp, confirmSignUp, resendSignUpCode, signOut } from 'aws-amplify/auth';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Image from 'next/image';
 
@@ -78,6 +78,9 @@ export default function LoginPage() {
     setError('');
     setSuccessMsg('');
     try {
+      // Clear any stale tokens from previous sessions (e.g. if the user was deleted in AWS Console)
+      await signOut().catch(() => {});
+
       await signIn({ username: email, password });
 
       // 觸發全局狀態更新，AuthProvider 的路由保護會自動將我們導向首頁
@@ -99,6 +102,9 @@ export default function LoginPage() {
     setError('');
     setSuccessMsg('');
     try {
+      // Clear any stale tokens before signing up
+      await signOut().catch(() => {});
+
       await signUp({
         username: email,
         password,
