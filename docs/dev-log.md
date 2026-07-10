@@ -131,3 +131,9 @@
 - **Aesthetic Overhaul (Warm & Organic)**: Completely removed the "AI Slop" (heavy glassmorphism, glowing cyan/magenta shadows, translucent blobs) from the entire application. Transitioned to "Direction B", a warm, organic, and efficient design system featuring solid `stone` backgrounds, clean `orange` primary buttons, and solid white cards.
 - **Global Layout Reset**: Removed the floating fixed background blobs in `page.tsx` and changed the global background to `bg-stone-50`.
 - **Component Refactoring**: Redesigned `PantryItemCard`, `AIRecipeManager`, `Navbar`, `MobileBottomNav`, `KanbanBoard`, and `ItemFormDialog` to adhere strictly to the new solid-color, high-contrast palette. This significantly improves visual clarity and mobile performance by eliminating expensive `backdrop-blur` CSS rules.
+
+### Completed (Authentication & Security Refactoring):
+
+- **Restored AWS Cognito Integration**: Completely removed the hard-coded `MOCK_AUTH` backdoor for admin logins and restored native `aws-amplify/auth` capabilities across the frontend. Users can now successfully sign up, verify emails, and sign in using real credentials.
+- **Hybrid Auth System**: Preserved the "Try Demo" feature by refactoring `AuthProvider`, `ApolloProvider`, and the GraphQL `/api/graphql` backend to seamlessly support both AWS Cognito JWTs (for real users) and `demo_token` overrides (for public visitors).
+- **Global Error Interceptor**: Implemented a global Apollo Client `onError` link to elegantly handle `Unauthorized` errors. Invalid or expired tokens now automatically trigger a redirect to `/login`, eliminating jarring GraphQL error overlays.
