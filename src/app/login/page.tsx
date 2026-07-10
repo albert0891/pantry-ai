@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signIn, signUp, confirmSignUp } from 'aws-amplify/auth';
+import { signIn, signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 import { useAuth } from '@/components/providers/AuthProvider';
 import Image from 'next/image';
 
@@ -28,19 +28,47 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleDemoLogin = async () => {
     setLoading(true);
     setError('');
+    setSuccessMsg('');
     try {
       localStorage.setItem('mock_logged_in', 'true');
       localStorage.setItem('auth_token', 'demo_token');
       await refreshAuth();
     } catch (err: any) {
-      setError('無法啟動訪客模式');
+      setError('Failed to launch guest mode');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const translateError = (err: any, fallback: string) => {
+    const errorCode = err?.name || err?.code;
+    const msg = err?.message || '';
+
+    switch (errorCode) {
+      case 'NotAuthorizedException':
+        return 'Incorrect email or password. Please try again.';
+      case 'UserNotFoundException':
+        return 'Account not found. Please check your email.';
+      case 'UsernameExistsException':
+        return 'An account with this email already exists. Please sign in.';
+      case 'InvalidParameterException':
+      case 'InvalidPasswordException':
+        return 'Invalid password format (requires at least 8 characters, numbers, and symbols).';
+      case 'CodeMismatchException':
+        return 'Invalid verification code. Please check your email.';
+      case 'ExpiredCodeException':
+        return 'Verification code expired. Please request a new one.';
+      case 'LimitExceededException':
+      case 'TooManyRequestsException':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return msg || fallback;
     }
   };
 
@@ -48,24 +76,14 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMsg('');
     try {
-      if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
-        if (email === 'admin@pantry.ai') {
-          localStorage.setItem('mock_logged_in', 'true');
-          localStorage.setItem('auth_token', `admin_attempt_${password}`);
-        } else {
-          setError('Invalid email or password.');
-          setLoading(false);
-          return;
-        }
-      } else {
-        await signIn({ username: email, password });
-      }
+      await signIn({ username: email, password });
 
       // 觸發全局狀態更新，AuthProvider 的路由保護會自動將我們導向首頁
       await refreshAuth();
     } catch (err: any) {
-      setError(err.message || '登入失敗，請確認帳號密碼。');
+      setError(translateError(err, 'Sign in failed. Please check your credentials.'));
     } finally {
       setLoading(false);
     }
@@ -74,25 +92,21 @@ export default function LoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError('兩次輸入的密碼不一致');
+      setError('Passwords do not match');
       return;
     }
     setLoading(true);
     setError('');
+    setSuccessMsg('');
     try {
-      if (process.env.NEXT_PUBLIC_MOCK_AUTH === 'true') {
-        // 模擬註冊成功
-        setMode('CONFIRM_SIGN_UP');
-      } else {
-        await signUp({
-          username: email,
-          password,
-          options: { userAttributes: { email } },
-        });
-        setMode('CONFIRM_SIGN_UP');
-      }
+      await signUp({
+        username: email,
+        password,
+        options: { userAttributes: { email } },
+      });
+      setMode('CONFIRM_SIGN_UP');
     } catch (err: any) {
-      setError(err.message || '註冊失敗');
+      setError(translateError(err, 'Sign up failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -102,14 +116,27 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMsg('');
     try {
-      if (process.env.NEXT_PUBLIC_MOCK_AUTH !== 'true') {
-        await confirmSignUp({ username: email, confirmationCode: code });
-      }
+      await confirmSignUp({ username: email, confirmationCode: code });
       setMode('SIGN_IN');
-      setError('驗證成功！請登入你的帳號。');
+      setSuccessMsg('Verification successful! Please sign in.');
     } catch (err: any) {
-      setError(err.message || '驗證碼錯誤');
+      setError(translateError(err, 'Invalid or expired verification code.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setLoading(true);
+    setError('');
+    setSuccessMsg('');
+    try {
+      await resendSignUpCode({ username: email });
+      setSuccessMsg('Verification code resent! Please check your email.');
+    } catch (err: any) {
+      setError(translateError(err, 'Failed to resend code. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -151,6 +178,11 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+            {successMsg && (
+              <div className="mb-5 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-semibold text-center">
+                {successMsg}
+              </div>
+            )}
 
             {mode === 'SIGN_IN' && (
               <form onSubmit={handleSignIn} className="space-y-4">
@@ -188,19 +220,17 @@ export default function LoginPage() {
                 >
                   {loading ? 'Signing In...' : 'Sign In'}
                 </Button>
-                {process.env.NEXT_PUBLIC_MOCK_AUTH === 'true' && (
-                  <div className="pt-2 border-t border-stone-100 mt-4 text-center">
-                    <p className="text-sm text-stone-500 mb-3">Or just looking around?</p>
-                    <Button
-                      type="button"
-                      onClick={handleDemoLogin}
-                      className="w-full h-11 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold rounded-lg shadow-sm border border-stone-300"
-                      disabled={loading}
-                    >
-                      Try Demo
-                    </Button>
-                  </div>
-                )}
+                <div className="pt-2 border-t border-stone-100 mt-4 text-center">
+                  <p className="text-sm text-stone-500 mb-3">Or just looking around?</p>
+                  <Button
+                    type="button"
+                    onClick={handleDemoLogin}
+                    className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-md"
+                    disabled={loading}
+                  >
+                    Try Demo
+                  </Button>
+                </div>
               </form>
             )}
 
@@ -279,6 +309,16 @@ export default function LoginPage() {
                 >
                   {loading ? 'Verifying...' : 'Verify Email'}
                 </Button>
+                <div className="pt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={loading}
+                    className="text-sm font-semibold text-stone-500 hover:text-amber-700 underline underline-offset-4 disabled:opacity-50"
+                  >
+                    Didn&apos;t receive the code? Resend
+                  </button>
+                </div>
               </form>
             )}
           </CardContent>
