@@ -64,3 +64,8 @@ After any significant code modification, you MUST perform the following pipeline
 1. **Strict 'use server' Boundaries**: Files with `'use server'` at the top MUST ONLY export `async function`s.
 2. **No Schema Exports in Actions**: NEVER define or export Zod schemas, constants, or types directly inside a `'use server'` file. Doing so will crash Next.js compilation with a 500 Error.
 3. **Extract Logic**: All Zod schemas and constants must be defined in `src/lib/` (e.g., `src/lib/schemas/pantry.ts`) and imported into the Server Action.
+
+## Strict English-Only Codebase
+
+1. **No Chinese Comments or Code**: You must NEVER write Chinese comments, documentation strings, or variables in the codebase. All inline documentation and code logic must be written strictly in English.
+2. **No Chinese Hard-Coded UI Text**: Do not hard-code Chinese text into UI components or error messages unless explicitly requested for internationalization. Keep the application language strictly English.
