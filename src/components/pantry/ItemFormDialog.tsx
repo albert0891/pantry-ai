@@ -187,10 +187,10 @@ export function ItemFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white/60 backdrop-blur-3xl border border-white/80 shadow-[0_10px_40px_rgb(0,0,0,0.1)] !rounded-3xl">
+      <DialogContent className="sm:max-w-[425px] bg-white border-stone-200 shadow-2xl !rounded-3xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-slate-800 drop-shadow-sm">
+            <DialogTitle className="text-xl font-bold text-stone-800">
               {initialData ? 'Edit Item' : 'Add New Item'}
             </DialogTitle>
           </DialogHeader>
@@ -199,13 +199,13 @@ export function ItemFormDialog({
               type="button"
               onClick={handleVoiceInput}
               disabled={isListening || isParsingVoice}
-              className={`w-full flex items-center justify-center gap-2.5 h-12 rounded-xl transition-all shadow-sm border font-semibold text-sm ${
+              className={`w-full flex items-center justify-center gap-2.5 h-12 rounded-xl transition-colors shadow-sm border font-semibold text-sm ${
                 isListening
-                  ? 'bg-rose-50/50 text-rose-500 border-rose-200/60 shadow-[0_0_10px_rgba(244,63,94,0.1)]'
+                  ? 'bg-rose-50 text-rose-600 border-rose-200'
                   : isParsingVoice
-                    ? 'bg-sky-50/50 text-sky-500 border-sky-200/60'
-                    : 'bg-white/40 hover:bg-white/60 text-slate-600 border-white/50 hover:border-white/80 hover:shadow-md'
-              } backdrop-blur-md`}
+                    ? 'bg-amber-50 text-amber-700 border-amber-300'
+                    : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200 hover:border-stone-300'
+              }`}
             >
               {isParsingVoice ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -226,7 +226,7 @@ export function ItemFormDialog({
             )}
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right text-slate-700 font-semibold">
+              <Label htmlFor="name" className="text-right text-stone-700 font-semibold">
                 Name
               </Label>
               <div className="col-span-3">
@@ -234,7 +234,7 @@ export function ItemFormDialog({
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl"
+                  className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
                   placeholder="e.g. Apples"
                   required
                 />
@@ -242,7 +242,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="quantity" className="text-right text-slate-700 font-semibold">
+              <Label htmlFor="quantity" className="text-right text-stone-700 font-semibold">
                 Quantity
               </Label>
               <Input
@@ -251,24 +251,24 @@ export function ItemFormDialog({
                 min="1"
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                className="col-span-3 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl"
+                className="col-span-3 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
               />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="boardState" className="text-right text-slate-700 font-semibold">
+              <Label htmlFor="boardState" className="text-right text-stone-700 font-semibold">
                 Target
               </Label>
               <div className="col-span-3">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || 'TO_BUY')}>
-                  <SelectTrigger className="w-full h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                  <SelectTrigger className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select target board">
                       {BOARD_STATE_LABELS[boardState as keyof typeof BOARD_STATE_LABELS]}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
+                  <SelectContent className="bg-white border-stone-200 rounded-xl shadow-lg">
                     {Object.entries(BOARD_STATE_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
+                      <SelectItem key={value} value={value} className="text-stone-700 font-medium">
                         {label}
                       </SelectItem>
                     ))}
@@ -278,19 +278,19 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right text-slate-700 font-semibold">
+              <Label htmlFor="category" className="text-right text-stone-700 font-semibold">
                 Category
               </Label>
               <div className="col-span-3 flex items-center gap-2">
                 <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
-                  <SelectTrigger className="flex-1 h-10 bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl">
+                  <SelectTrigger className="flex-1 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select category">
                       {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white/90 backdrop-blur-xl border-white/80 rounded-xl shadow-lg">
+                  <SelectContent className="bg-white border-stone-200 rounded-xl shadow-lg">
                     {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
+                      <SelectItem key={value} value={value} className="text-stone-700 font-medium">
                         {label}
                       </SelectItem>
                     ))}
@@ -300,13 +300,13 @@ export function ItemFormDialog({
                   type="button"
                   onClick={handleAutoCategorize}
                   disabled={isAutoCategorizing || !name.trim()}
-                  className="shrink-0 text-xs flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 h-10 px-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 shadow-sm"
+                  className="shrink-0 text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 h-10 px-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-stone-200 shadow-sm"
                   title="Auto Categorize"
                 >
                   {isAutoCategorizing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <Sparkles className="w-4 h-4 text-amber-600" />
                   )}
                   {isAutoCategorizing ? 'Wait' : 'Auto'}
                 </button>
@@ -314,7 +314,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="expiry" className="text-right text-slate-700 font-semibold">
+              <Label htmlFor="expiry" className="text-right text-stone-700 font-semibold">
                 Expiry Date
               </Label>
               <div className="col-span-3 relative">
@@ -323,13 +323,13 @@ export function ItemFormDialog({
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="h-10 block w-full bg-white/70 border-white/60 shadow-inner focus-visible:ring-sky-400 rounded-xl text-slate-700 appearance-none pr-10"
+                  className="h-10 block w-full bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800 appearance-none pr-10"
                 />
                 {expiryDate && (
                   <button
                     type="button"
                     onClick={() => setExpiryDate('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -340,7 +340,7 @@ export function ItemFormDialog({
           <DialogFooter>
             <Button
               type="submit"
-              className="w-full sm:w-auto bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-full shadow-md shadow-sky-200 px-8 transition-transform hover:scale-105"
+              className="w-full sm:w-auto bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-full shadow-sm px-8 transition-colors"
             >
               {initialData ? 'Save Changes' : 'Save Item'}
             </Button>

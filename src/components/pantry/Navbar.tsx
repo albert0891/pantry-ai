@@ -44,29 +44,21 @@ export function Navbar({
   };
 
   return (
-    <header className="bg-sky-500/90 backdrop-blur-xl border-b border-sky-400/50 px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3 shadow-md z-20 sticky top-0">
+    <header className="bg-amber-700 border-b border-amber-800 px-4 py-3 sm:px-6 sm:py-4 flex flex-col gap-3 shadow-md z-20 sticky top-0">
       {/* Desktop Navbar */}
       <div className="hidden sm:flex justify-between items-center w-full">
         <div className="flex items-center gap-2">
-          <Image
-            src="/logo.svg"
-            width={25}
-            height={25}
-            alt="Pantry AI Logo"
-            className="drop-shadow-sm"
-          />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white drop-shadow-sm">
-            Pantry AI
-          </h1>
+          <Image src="/logo.svg" width={25} height={25} alt="Pantry AI Logo" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Pantry AI</h1>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative w-72">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
             <Input
               type="text"
               placeholder="Search items..."
-              className="w-full pl-9 bg-white text-slate-900 border-none shadow-inner placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-sky-200 rounded-full"
+              className="w-full pl-9 bg-white text-stone-900 border-none placeholder:text-stone-400 focus-visible:ring-2 focus-visible:ring-amber-300 rounded-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -90,7 +82,7 @@ export function Navbar({
 
           <Button
             onClick={onOpenAddDialog}
-            className="flex items-center gap-1.5 font-bold text-sky-600 bg-white hover:bg-sky-50 shadow-sm rounded-full px-5 transition-transform hover:scale-105"
+            className="flex items-center gap-1.5 font-bold text-amber-700 bg-white hover:bg-amber-50 rounded-full px-5 transition-colors"
           >
             <Plus size={18} /> <span>Add Item</span>
           </Button>
@@ -109,14 +101,8 @@ export function Navbar({
       {/* Mobile Top Navbar (Simplified) */}
       <div className="flex sm:hidden justify-between items-center w-full">
         <div className="flex items-center gap-2">
-          <Image
-            src="/logo.svg"
-            width={24}
-            height={24}
-            alt="Pantry AI Logo"
-            className="drop-shadow-sm"
-          />
-          <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-sm">Pantry AI</h1>
+          <Image src="/logo.svg" width={24} height={24} alt="Pantry AI Logo" />
+          <h1 className="text-xl font-bold tracking-tight text-white">Pantry AI</h1>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -140,11 +126,11 @@ export function Navbar({
       {/* Mobile Search Bar */}
       <div className="flex sm:hidden w-full mt-1">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
           <Input
             type="text"
             placeholder="Search items..."
-            className="w-full pl-9 bg-white text-slate-900 border-none shadow-inner placeholder:text-slate-400 rounded-full"
+            className="w-full pl-9 bg-white text-stone-900 border-none placeholder:text-stone-400 rounded-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -152,23 +138,23 @@ export function Navbar({
       </div>
 
       <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white/90 backdrop-blur-xl border-white rounded-2xl shadow-2xl">
+        <DialogContent className="sm:max-w-[425px] bg-white border-stone-200 rounded-2xl shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2 text-sky-600 font-bold">
-              <HelpCircle className="text-amber-500" />
+            <DialogTitle className="text-xl flex items-center gap-2 text-stone-800 font-bold">
+              <HelpCircle className="text-amber-600" />
               Welcome to Pantry AI!
             </DialogTitle>
-            <DialogDescription className="text-slate-600 font-medium pt-2">
+            <DialogDescription className="text-stone-500 font-medium pt-2">
               Your smart, AI-powered kitchen assistant.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4 text-sm text-slate-700">
+          <div className="space-y-4 py-4 text-sm text-stone-700">
             <div className="flex gap-3 items-start">
-              <div className="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">
+              <div className="bg-amber-100 text-amber-700 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">
                 1
               </div>
               <p>
-                Type a name and hit <strong className="text-sky-600">✨ Auto</strong> to let AI
+                Type a name and hit <strong className="text-amber-700">✨ Auto</strong> to let AI
                 auto-categorize it.
               </p>
             </div>
@@ -198,7 +184,7 @@ export function Navbar({
                 <p className="mb-1">
                   <strong className="text-rose-600">Quick Movement Arrows:</strong>
                 </p>
-                <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-600">
+                <ul className="list-disc pl-4 space-y-1.5 text-xs text-stone-600">
                   <li>
                     <strong>
                       Single Arrow ( {'>'} or {'<'} )
@@ -218,18 +204,20 @@ export function Navbar({
               </div>
             </div>
             <div className="flex gap-3 items-start">
-              <div className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">
+              <div className="bg-amber-100 text-amber-700 rounded-full w-6 h-6 flex items-center justify-center font-bold shrink-0">
                 5
               </div>
               <div className="flex-1">
                 <p className="mb-1">
-                  <strong className="text-purple-600">Smart Voice Fill 🎙️:</strong>
+                  <strong className="text-amber-700">Smart Voice Fill 🎙️:</strong>
                 </p>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-stone-600">
                   Tap the mic and speak naturally (e.g.{' '}
-                  <strong className="text-purple-500">"3 apples expiring next week"</strong> or{' '}
-                  <strong className="text-purple-500">"250g minced pork"</strong>). AI handles the
-                  rest!
+                  <strong className="text-amber-600">
+                    &quot;3 apples expiring next week&quot;
+                  </strong>{' '}
+                  or <strong className="text-amber-600">&quot;250g minced pork&quot;</strong>). AI
+                  handles the rest!
                 </p>
               </div>
             </div>
@@ -237,7 +225,7 @@ export function Navbar({
           <DialogFooter>
             <Button
               onClick={() => setIsGuideOpen(false)}
-              className="bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-full w-full"
+              className="bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-full w-full"
             >
               Got it!
             </Button>
