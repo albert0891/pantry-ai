@@ -100,14 +100,11 @@ export function Navbar({
           </Button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-10 w-10 p-0 transition-colors"
-                title="Profile"
-              >
-                <User size={18} />
-              </Button>
+            <DropdownMenuTrigger
+              className="flex items-center justify-center text-white/80 hover:bg-white/20 hover:text-white rounded-full h-10 w-10 transition-colors cursor-pointer outline-none"
+              title="Profile"
+            >
+              <User size={18} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
               <DropdownMenuLabel className="font-normal text-stone-500">
@@ -145,14 +142,11 @@ export function Navbar({
             <HelpCircle size={18} />
           </Button>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0"
-                title="Profile"
-              >
-                <User size={18} />
-              </Button>
+            <DropdownMenuTrigger
+              className="flex items-center justify-center text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 cursor-pointer outline-none"
+              title="Profile"
+            >
+              <User size={18} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
               <DropdownMenuLabel className="font-normal text-stone-500">
