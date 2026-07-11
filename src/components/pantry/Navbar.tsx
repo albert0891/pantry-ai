@@ -2,9 +2,18 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Search, Plus, BookOpen, LogOut, HelpCircle } from 'lucide-react';
+import { Search, Plus, BookOpen, LogOut, HelpCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/components/providers/AuthProvider';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +38,7 @@ export function Navbar({
   onOpenAddDialog,
 }: NavbarProps) {
   const [isGuideOpen, setIsGuideOpen] = React.useState(false);
+  const { userEmail } = useAuth();
   const handleLogout = async () => {
     const isMockLoggedIn = localStorage.getItem('mock_logged_in');
     if (isMockLoggedIn) {
@@ -89,14 +99,33 @@ export function Navbar({
             <Plus size={18} /> <span>Add Item</span>
           </Button>
 
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-10 w-10 p-0 transition-colors"
-            title="Logout"
-          >
-            <LogOut size={18} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-10 w-10 p-0 transition-colors"
+                title="Profile"
+              >
+                <User size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
+              <DropdownMenuLabel className="font-normal text-stone-500">
+                <p className="text-xs text-stone-500">Logged in as</p>
+                <p className="text-sm font-medium text-stone-900 truncate">
+                  {userEmail || 'Loading...'}
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-stone-100" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer font-medium"
+              >
+                <LogOut size={16} className="mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -115,14 +144,33 @@ export function Navbar({
           >
             <HelpCircle size={18} />
           </Button>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0"
-            title="Logout"
-          >
-            <LogOut size={18} />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0"
+                title="Profile"
+              >
+                <User size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
+              <DropdownMenuLabel className="font-normal text-stone-500">
+                <p className="text-xs text-stone-500">Logged in as</p>
+                <p className="text-sm font-medium text-stone-900 truncate">
+                  {userEmail || 'Loading...'}
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-stone-100" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer font-medium"
+              >
+                <LogOut size={16} className="mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       {/* Mobile Search Bar */}

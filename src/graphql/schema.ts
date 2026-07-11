@@ -29,7 +29,7 @@ export const typeDefs = gql`
 
   type User {
     id: ID!
-    email: String!
+    cognitoId: String!
     items: [PantryItem!]!
   }
 

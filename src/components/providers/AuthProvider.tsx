@@ -23,6 +23,7 @@ configureAmplify();
 // 2. Define the shape of our Context
 interface AuthContextType {
   user: AuthUser | null;
+  userEmail: string | null;
   isLoading: boolean;
   refreshAuth: () => Promise<void>;
 }
@@ -30,6 +31,7 @@ interface AuthContextType {
 // 3. Create the Context (with a default empty state)
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userEmail: null,
   isLoading: true,
   refreshAuth: async () => {},
 });
@@ -37,6 +39,7 @@ const AuthContext = createContext<AuthContextType>({
 // 4. Create the Provider Component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -48,15 +51,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = localStorage.getItem('auth_token');
         if (token === 'demo_token') {
           setUser({ username: 'Demo User', userId: 'Demo User' } as any);
+          setUserEmail('demo@pantry.ai');
         } else {
           setUser(null);
+          setUserEmail(null);
         }
       } else {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
+        try {
+          const { fetchUserAttributes } = await import('aws-amplify/auth');
+          const attributes = await fetchUserAttributes();
+          setUserEmail(attributes.email || null);
+        } catch (e) {
+          console.error('Failed to fetch user attributes', e);
+        }
       }
     } catch (_error) {
       setUser(null);
+      setUserEmail(null);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, refreshAuth: checkUser }}>
+    <AuthContext.Provider value={{ user, userEmail, isLoading, refreshAuth: checkUser }}>
       {children}
     </AuthContext.Provider>
   );

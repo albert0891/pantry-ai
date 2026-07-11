@@ -23,7 +23,6 @@ export async function GET(request: Request) {
       create: {
         id: demoUserId,
         cognitoId: demoUserId,
-        email: 'demo@pantry.ai',
       },
     });
 

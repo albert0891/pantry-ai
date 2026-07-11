@@ -137,3 +137,9 @@
 - **Restored AWS Cognito Integration**: Completely removed the hard-coded `MOCK_AUTH` backdoor for admin logins and restored native `aws-amplify/auth` capabilities across the frontend. Users can now successfully sign up, verify emails, and sign in using real credentials.
 - **Hybrid Auth System**: Preserved the "Try Demo" feature by refactoring `AuthProvider`, `ApolloProvider`, and the GraphQL `/api/graphql` backend to seamlessly support both AWS Cognito JWTs (for real users) and `demo_token` overrides (for public visitors).
 - **Global Error Interceptor**: Implemented a global Apollo Client `onError` link to elegantly handle `Unauthorized` errors. Invalid or expired tokens now automatically trigger a redirect to `/login`, eliminating jarring GraphQL error overlays.
+
+### Completed (Architecture & User Profile UI):
+
+- **Database Cleanup (Decoupling PII)**: Executed a database schema migration to permanently drop the `email` column from the Prisma `User` model. This resolves technical debt and adheres to enterprise architecture standards by making AWS Cognito the strict, sole source of truth for user identity and PII.
+- **Client-Side Profile Fetching**: Updated `AuthProvider.tsx` to dynamically fetch the user's real email directly from AWS (`fetchUserAttributes`) upon successful session validation, completely bypassing the local database.
+- **Responsive Avatar Dropdown**: Upgraded the `Navbar` component (both Desktop and Mobile layouts) by replacing the simple logout button with a Shadcn `DropdownMenu`. The new Avatar menu cleanly displays the current user's email address and provides a distinct logout action, resolving user confusion in multi-account scenarios.

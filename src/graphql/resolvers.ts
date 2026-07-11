@@ -72,7 +72,7 @@ export const resolvers = {
       const user = await prisma.user.upsert({
         where: { cognitoId: context.userId },
         update: {},
-        create: { cognitoId: context.userId, email: `${context.userId}@cognito.local` },
+        create: { cognitoId: context.userId },
       });
 
       return await prisma.pantryItem.create({
