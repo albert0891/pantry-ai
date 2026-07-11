@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/components/providers/AuthProvider';
 import {
@@ -107,12 +108,14 @@ export function Navbar({
               <User size={18} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
-              <DropdownMenuLabel className="font-normal text-stone-500">
-                <p className="text-xs text-stone-500">Logged in as</p>
-                <p className="text-sm font-medium text-stone-900 truncate">
-                  {userEmail || 'Loading...'}
-                </p>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal text-stone-500">
+                  <p className="text-xs text-stone-500">Logged in as</p>
+                  <p className="text-sm font-medium text-stone-900 truncate">
+                    {userEmail || 'Loading...'}
+                  </p>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-stone-100" />
               <DropdownMenuItem
                 onClick={handleLogout}
@@ -149,12 +152,14 @@ export function Navbar({
               <User size={18} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl border-stone-200">
-              <DropdownMenuLabel className="font-normal text-stone-500">
-                <p className="text-xs text-stone-500">Logged in as</p>
-                <p className="text-sm font-medium text-stone-900 truncate">
-                  {userEmail || 'Loading...'}
-                </p>
-              </DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal text-stone-500">
+                  <p className="text-xs text-stone-500">Logged in as</p>
+                  <p className="text-sm font-medium text-stone-900 truncate">
+                    {userEmail || 'Loading...'}
+                  </p>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-stone-100" />
               <DropdownMenuItem
                 onClick={handleLogout}
