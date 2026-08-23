@@ -60,7 +60,7 @@ export function ItemFormDialog({
   initialData,
 }: ItemFormDialogProps) {
   const [name, setName] = useState(initialData?.name || '');
-  const [quantity, setQuantity] = useState(initialData?.quantity || 1);
+  const [quantity, setQuantity] = useState<number | ''>(initialData?.quantity || 1);
   const [category, setCategory] = useState(initialData?.category || 'OTHER');
   const [boardState, setBoardState] = useState(initialData?.boardState || 'TO_BUY');
   const [isAutoCategorizing, setIsAutoCategorizing] = useState(false);
@@ -111,7 +111,6 @@ export function ItemFormDialog({
   };
 
   const handleVoiceInput = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognition =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -174,10 +173,14 @@ export function ItemFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    
+    // Ensure quantity is a valid number before submitting
+    const parsedQuantity = typeof quantity === 'number' && !isNaN(quantity) ? quantity : 1;
+    
     await onSubmit({
       id: initialData?.id,
       name,
-      quantity,
+      quantity: parsedQuantity,
       category,
       boardState,
       expiryDate,
@@ -250,8 +253,12 @@ export function ItemFormDialog({
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setQuantity(val === '' ? '' : parseInt(val, 10));
+                }}
                 className="col-span-3 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
+                required
               />
             </div>
 
