@@ -7,7 +7,8 @@ import { usePantry } from '@/hooks/usePantry';
 import { Navbar } from '@/components/pantry/Navbar';
 import { MobileBottomNav } from '@/components/pantry/MobileBottomNav';
 import { KanbanBoard } from '@/components/pantry/KanbanBoard';
-import { ItemFormDialog } from '@/components/pantry/ItemFormDialog';
+import { PantryItem } from '@prisma/client';
+import { ItemFormDialog, ItemFormData } from '@/components/pantry/ItemFormDialog';
 import { AIRecipeManager } from '@/components/pantry/AIRecipeManager';
 
 export default function DashboardPage() {
@@ -28,14 +29,14 @@ export default function DashboardPage() {
 
   // Dialog States
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<PantryItem | null>(null);
 
   // AI Recipe States
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [isMyRecipesOpen, setIsMyRecipesOpen] = useState(false);
 
   // Filter items
-  const items = rawItems.filter((item: any) =>
+  const items = rawItems.filter((item: PantryItem) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
@@ -45,13 +46,13 @@ export default function DashboardPage() {
     setIsAddDialogOpen(true);
   }, []);
 
-  const handleOpenEditDialog = useCallback((item: any) => {
+  const handleOpenEditDialog = useCallback((item: PantryItem) => {
     setEditingItem(item);
     setIsAddDialogOpen(true);
   }, []);
 
   const handleFormSubmit = useCallback(
-    async (data: any) => {
+    async (data: ItemFormData) => {
       try {
         if (data.id) {
           await editItem({ variables: data });
@@ -118,7 +119,7 @@ export default function DashboardPage() {
   if (error)
     return (
       <div className="p-8 text-center text-rose-500 font-medium">
-        Error loading data: {error.message}
+        Error loading data: {error instanceof Error ? error.message : String(error)}
       </div>
     );
 
@@ -154,7 +155,20 @@ export default function DashboardPage() {
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={handleFormSubmit}
-        initialData={editingItem}
+        initialData={
+          editingItem
+            ? {
+                id: editingItem.id,
+                name: editingItem.name,
+                quantity: editingItem.quantity,
+                category: editingItem.category,
+                boardState: editingItem.boardState,
+                expiryDate: editingItem.expiryDate
+                  ? new Date(editingItem.expiryDate).toISOString().split('T')[0]
+                  : '',
+              }
+            : undefined
+        }
       />
 
       <AIRecipeManager

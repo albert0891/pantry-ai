@@ -39,16 +39,17 @@ export default function LoginPage() {
       localStorage.setItem('mock_logged_in', 'true');
       localStorage.setItem('auth_token', 'demo_token');
       await refreshAuth();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Failed to launch guest mode');
     } finally {
       setLoading(false);
     }
   };
 
-  const translateError = (err: any, fallback: string) => {
-    const errorCode = err?.name || err?.code;
-    const msg = err?.message || '';
+  const translateError = (err: unknown, fallback: string): string => {
+    const errorObj = err as Record<string, unknown>;
+    const errorCode = errorObj?.name || errorObj?.code;
+    const msg = (errorObj?.message as string) || '';
 
     switch (errorCode) {
       case 'NotAuthorizedException':
@@ -85,7 +86,7 @@ export default function LoginPage() {
 
       // 觸發全局狀態更新，AuthProvider 的路由保護會自動將我們導向首頁
       await refreshAuth();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(translateError(err, 'Sign in failed. Please check your credentials.'));
     } finally {
       setLoading(false);
@@ -111,7 +112,7 @@ export default function LoginPage() {
         options: { userAttributes: { email } },
       });
       setMode('CONFIRM_SIGN_UP');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(translateError(err, 'Sign up failed. Please try again.'));
     } finally {
       setLoading(false);
@@ -127,7 +128,7 @@ export default function LoginPage() {
       await confirmSignUp({ username: email, confirmationCode: code });
       setMode('SIGN_IN');
       setSuccessMsg('Verification successful! Please sign in.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(translateError(err, 'Invalid or expired verification code.'));
     } finally {
       setLoading(false);
@@ -141,7 +142,7 @@ export default function LoginPage() {
     try {
       await resendSignUpCode({ username: email });
       setSuccessMsg('Verification code resent! Please check your email.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(translateError(err, 'Failed to resend code. Please try again.'));
     } finally {
       setLoading(false);

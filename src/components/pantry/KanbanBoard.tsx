@@ -1,5 +1,6 @@
 'use client';
 
+import { PantryItem } from '@prisma/client';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,12 +31,12 @@ const CATEGORY_FILTERS = [
 ];
 
 interface KanbanBoardProps {
-  items: any[];
+  items: PantryItem[];
   selectedItemIds: Set<string>;
   onToggleSelection: (id: string) => void;
   onMove: (id: string, amount: number, targetState: string) => void;
   onUpdateState: (id: string, targetState: string) => void;
-  onEdit: (item: any) => void;
+  onEdit: (item: PantryItem) => void;
   onDelete: (id: string) => void;
 }
 
@@ -68,7 +69,7 @@ export function KanbanBoard({
 
   // Group items by column ID at the top level to prevent useMemo inside .map()
   const groupedItems = React.useMemo(() => {
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, PantryItem[]> = {};
     for (const col of COLUMNS) {
       groups[col.id] = items.filter(
         (item) =>
@@ -86,7 +87,9 @@ export function KanbanBoard({
       {/* Mobile Tab Navigation for Kanban Columns */}
       <div className="flex md:hidden bg-stone-50 sticky -top-4 sm:-top-6 z-10 shadow-sm -mx-4 sm:-mx-6 px-4 sm:px-6 mb-4">
         {COLUMNS.map((col) => {
-          const colItemsCount = items.filter((item: any) => item.boardState === col.id).length;
+          const colItemsCount = items.filter(
+            (item: PantryItem) => item.boardState === col.id,
+          ).length;
           return (
             <button
               key={`tab-${col.id}`}

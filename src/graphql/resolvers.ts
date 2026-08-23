@@ -30,7 +30,11 @@ export const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL in Next.js!',
 
-    myPantryItems: async (_: unknown, args: any, context: { userId?: string }) => {
+    myPantryItems: async (
+      _: unknown,
+      args: Record<string, unknown>,
+      context: { userId?: string },
+    ) => {
       // For queries, if user doesn't exist, we might just return empty instead of throwing to be resilient
       if (!context.userId) throw new Error('Unauthorized: Please log in');
       const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
@@ -42,7 +46,7 @@ export const resolvers = {
       });
     },
 
-    myRecipes: async (_: unknown, args: any, context: { userId?: string }) => {
+    myRecipes: async (_: unknown, args: Record<string, unknown>, context: { userId?: string }) => {
       if (!context.userId) throw new Error('Unauthorized');
       const user = await prisma.user.findUnique({ where: { cognitoId: context.userId } });
       if (!user) return [];

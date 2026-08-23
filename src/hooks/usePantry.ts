@@ -1,5 +1,6 @@
-"use client";
+'use client';
 
+import { PantryItem, Recipe } from '@prisma/client';
 import { gql } from '@apollo/client/core';
 import { useQuery, useMutation } from '@apollo/client/react';
 
@@ -33,8 +34,20 @@ export const UPDATE_ITEM_STATE = gql`
 `;
 
 export const ADD_ITEM = gql`
-  mutation AddPantryItem($name: String!, $quantity: Int!, $category: Category, $expiryDate: String, $boardState: BoardState) {
-    addPantryItem(name: $name, quantity: $quantity, category: $category, expiryDate: $expiryDate, boardState: $boardState) {
+  mutation AddPantryItem(
+    $name: String!
+    $quantity: Int!
+    $category: Category
+    $expiryDate: String
+    $boardState: BoardState
+  ) {
+    addPantryItem(
+      name: $name
+      quantity: $quantity
+      category: $category
+      expiryDate: $expiryDate
+      boardState: $boardState
+    ) {
       id
       name
       quantity
@@ -46,8 +59,20 @@ export const ADD_ITEM = gql`
 `;
 
 export const EDIT_ITEM = gql`
-  mutation EditPantryItem($id: ID!, $name: String!, $quantity: Int!, $category: Category!, $expiryDate: String) {
-    editPantryItem(id: $id, name: $name, quantity: $quantity, category: $category, expiryDate: $expiryDate) {
+  mutation EditPantryItem(
+    $id: ID!
+    $name: String!
+    $quantity: Int!
+    $category: Category!
+    $expiryDate: String
+  ) {
+    editPantryItem(
+      id: $id
+      name: $name
+      quantity: $quantity
+      category: $category
+      expiryDate: $expiryDate
+    ) {
       id
       name
       quantity
@@ -75,7 +100,10 @@ export const DELETE_ITEM = gql`
 
 export const GENERATE_RECIPE = gql`
   mutation GenerateRecipe($mustUseItemIds: [String!]!, $previouslyUsedIngredients: [String!]) {
-    generateRecipe(mustUseItemIds: $mustUseItemIds, previouslyUsedIngredients: $previouslyUsedIngredients) {
+    generateRecipe(
+      mustUseItemIds: $mustUseItemIds
+      previouslyUsedIngredients: $previouslyUsedIngredients
+    ) {
       title
       ingredients
       instructions
@@ -99,7 +127,9 @@ export const DELETE_RECIPE = gql`
 `;
 
 export function usePantry() {
-  const { data, loading, error } = useQuery<any>(GET_PANTRY_ITEMS);
+  const { data, loading, error } = useQuery<{ myPantryItems: PantryItem[]; myRecipes: Recipe[] }>(
+    GET_PANTRY_ITEMS,
+  );
   const [updateItemState] = useMutation(UPDATE_ITEM_STATE);
   const [addItem] = useMutation(ADD_ITEM, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
   const [editItem] = useMutation(EDIT_ITEM, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
@@ -107,7 +137,9 @@ export function usePantry() {
   const [deleteItem] = useMutation(DELETE_ITEM, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
   const [generateRecipe] = useMutation(GENERATE_RECIPE);
   const [saveRecipe] = useMutation(SAVE_RECIPE, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
-  const [deleteRecipe] = useMutation(DELETE_RECIPE, { refetchQueries: [{ query: GET_PANTRY_ITEMS }] });
+  const [deleteRecipe] = useMutation(DELETE_RECIPE, {
+    refetchQueries: [{ query: GET_PANTRY_ITEMS }],
+  });
 
   return {
     items: data?.myPantryItems || [],
@@ -121,6 +153,6 @@ export function usePantry() {
     deleteItem,
     generateRecipe,
     saveRecipe,
-    deleteRecipe
+    deleteRecipe,
   };
 }

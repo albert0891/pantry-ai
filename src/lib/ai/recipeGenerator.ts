@@ -96,9 +96,12 @@ export async function generateRecipeWithAI(
       const result = JSON.parse(jsonText);
 
       return RecipeSchema.parse(result);
-    } catch (err: any) {
-      console.warn(`[Gemini API] Attempt ${attempt} failed:`, err.message);
-      lastError = err;
+    } catch (err: unknown) {
+      console.warn(
+        `[Gemini API] Attempt ${attempt} failed:`,
+        err instanceof Error ? err.message : String(err),
+      );
+      lastError = err instanceof Error ? err : new Error(String(err));
 
       // Exponential backoff to handle 429 Rate Limits
       if (attempt < MAX_RETRIES) {

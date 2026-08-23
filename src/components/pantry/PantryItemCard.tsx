@@ -1,5 +1,6 @@
 'use client';
 
+import { PantryItem } from '@prisma/client';
 import React from 'react';
 import {
   ChevronsLeft,
@@ -35,19 +36,23 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | Date) => {
   if (!dateString) return '';
+  if (dateString instanceof Date) return dateString.toLocaleDateString();
   if (/^\d+$/.test(dateString)) {
     return new Date(parseInt(dateString, 10)).toLocaleDateString();
   }
   return new Date(dateString).toLocaleDateString();
 };
 
-const getExpiryStatus = (dateString: string) => {
+const getExpiryStatus = (dateString: string | Date) => {
   if (!dateString) return 'OK';
-  const expiry = /^\d+$/.test(dateString)
-    ? new Date(parseInt(dateString, 10))
-    : new Date(dateString);
+  const expiry =
+    dateString instanceof Date
+      ? dateString
+      : /^\d+$/.test(dateString)
+        ? new Date(parseInt(dateString, 10))
+        : new Date(dateString);
   const now = new Date();
 
   // Set both to midnight to compare just dates
@@ -64,13 +69,13 @@ const getExpiryStatus = (dateString: string) => {
 };
 
 interface PantryItemCardProps {
-  item: any;
+  item: PantryItem;
   colId: string;
   isSelected: boolean;
   onToggleSelection: (id: string) => void;
   onMove: (id: string, amount: number, targetState: string) => void;
   onUpdateState: (id: string, targetState: string) => void;
-  onEdit: (item: any) => void;
+  onEdit: (item: PantryItem) => void;
   onDelete: (id: string) => void;
 }
 

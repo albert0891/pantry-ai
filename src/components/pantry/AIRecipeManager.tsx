@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Recipe } from '@prisma/client';
 import { Wand2, BookOpen, Loader2, RefreshCw, X, Heart, Trash2, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,13 +25,16 @@ export function AIRecipeManager({
   // Internal AI Generation States
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
-  const [recipeResult, setRecipeResult] = useState<any>(null);
+  const [recipeResult, setRecipeResult] = useState<Omit<
+    Recipe,
+    'id' | 'userId' | 'createdAt' | 'updatedAt'
+  > | null>(null);
   const [recipeError, setRecipeError] = useState('');
   const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
-  const [recipeToDelete, setRecipeToDelete] = useState<any | null>(null);
+  const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
 
   const handleGenerateRecipe = async () => {
-    setIsGeneratingRecipe(true);
+    if (selectedItemIds.size === 0) return;
     setIsRecipeModalOpen(true);
     setRecipeResult(null);
     setRecipeError('');
@@ -39,11 +43,14 @@ export function AIRecipeManager({
       const res = await generateRecipe({
         variables: { mustUseItemIds: Array.from(selectedItemIds) },
       });
-      setRecipeResult((res.data as any).generateRecipe);
-    } catch (err: any) {
-      setRecipeError(err.message || 'Unknown error occurred.');
-    } finally {
-      setIsGeneratingRecipe(false);
+      setRecipeResult(
+        (res.data as { generateRecipe: Omit<Recipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'> })
+          .generateRecipe,
+      );
+    } catch (err: unknown) {
+      setRecipeError(
+        (err instanceof Error ? err.message : String(err)) || 'Unknown error occurred.',
+      );
     }
   };
 
@@ -61,9 +68,14 @@ export function AIRecipeManager({
           previouslyUsedIngredients: previousIngredients,
         },
       });
-      setRecipeResult((res.data as any).generateRecipe);
-    } catch (err: any) {
-      setRecipeError(err.message || 'Unknown error occurred.');
+      setRecipeResult(
+        (res.data as { generateRecipe: Omit<Recipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'> })
+          .generateRecipe,
+      );
+    } catch (err: unknown) {
+      setRecipeError(
+        (err instanceof Error ? err.message : String(err)) || 'Unknown error occurred.',
+      );
     } finally {
       setIsGeneratingRecipe(false);
     }
@@ -92,7 +104,7 @@ export function AIRecipeManager({
           instructions: recipeResult.instructions,
         },
       });
-      setSavedRecipeId((res.data as any).saveRecipe.id);
+      setSavedRecipeId((res.data as { saveRecipe: { id: string } }).saveRecipe.id);
     } catch (err) {
       console.error('Failed to save recipe', err);
     }
@@ -253,7 +265,7 @@ export function AIRecipeManager({
                 <p className="text-sm mt-1">Select ingredients and ask AI to generate one.</p>
               </div>
             ) : (
-              myRecipes.map((recipe: any) => (
+              myRecipes.map((recipe: Recipe) => (
                 <Card
                   key={recipe.id}
                   className="border-stone-200 shadow-sm hover:shadow-md transition-shadow bg-white rounded-xl overflow-hidden relative group"

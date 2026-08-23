@@ -50,7 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isMockLoggedIn) {
         const token = localStorage.getItem('auth_token');
         if (token === 'demo_token') {
-          setUser({ username: 'Demo User', userId: 'Demo User' } as any);
+          setUser({ username: 'Demo User', userId: 'Demo User' } as unknown as {
+            username: string;
+            userId: string;
+          });
           setUserEmail('demo@pantry.ai');
         } else {
           setUser(null);

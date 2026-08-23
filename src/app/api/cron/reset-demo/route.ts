@@ -71,8 +71,14 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Demo database reset successfully.' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to reset demo DB:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    const errMsg =
+      error instanceof Error
+        ? error instanceof Error
+          ? error.message
+          : String(error)
+        : String(error);
+    return NextResponse.json({ success: false, error: errMsg }, { status: 500 });
   }
 }
