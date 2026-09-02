@@ -1,5 +1,7 @@
 # Pantry-AI: Smart Kitchen & AI Recipe Generator
 
+📌 **Demo Site**: [Visit Now](https://pantry-ai-eta.vercel.app/)
+
 Pantry-AI is a premium, full-stack Next.js web application that transforms how you manage your kitchen inventory. Built with a focus on **Enterprise-Grade Robustness** and **Glassmorphism Aesthetics**, it utilizes a mobile-optimized Kanban interface to track items (To Buy, In Pantry, Consumed). It integrates natively with Google Gemini AI (3.1 Flash Lite) for two powerful features: **Smart Voice Input** for effortless grocery logging, and an **AI Chef** that generates creative recipes based strictly on your available and requested ingredients using Cross-Board Planning.
 
 ## 🚀 Features
