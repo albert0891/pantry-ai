@@ -152,3 +152,7 @@
 - **Error Handling Standardization**: Refactored all `catch (err: any)` blocks to `catch (err: unknown)` across the application (`login/page.tsx`, `ai/recipeGenerator.ts`, `api/cron/reset-demo/route.ts`). Implemented strict `err instanceof Error` type guards for safe error message extraction.
 - **GraphQL Type Safety**: Added explicit Prisma generated types (`PantryItem`, `Recipe`) to Apollo Client `useQuery` and `useMutation` hooks, as well as React component props (`KanbanBoard`, `PantryItemCard`), ensuring strict runtime and compile-time validation.
 - **Input Reset Bugfix**: Fixed the quantity input field in `ItemFormDialog.tsx` to allow complete clearing by accepting empty strings and utilizing native `required` HTML validation, replacing an aggressive `|| 1` parse fallback.
+
+## 2026-09-10
+
+- **Bug Fix (AI Recipe Modal)**: Fixed an issue where clicking the "Inspire Me" button would immediately show a "Generation failed" error message before the generated content loaded. This was caused by missing `setIsGeneratingRecipe(true)` and `setIsGeneratingRecipe(false)` state updates in the `handleGenerateRecipe` handler, which caused the UI to incorrectly fall back to the error render state while the API call was still in-flight. Also tightened the condition to render the error block only when `recipeError` is explicitly truthy.

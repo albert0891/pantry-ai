@@ -39,6 +39,7 @@ export function AIRecipeManager({
     setRecipeResult(null);
     setRecipeError('');
     setSavedRecipeId(null);
+    setIsGeneratingRecipe(true);
     try {
       const res = await generateRecipe({
         variables: { mustUseItemIds: Array.from(selectedItemIds) },
@@ -51,6 +52,8 @@ export function AIRecipeManager({
       setRecipeError(
         (err instanceof Error ? err.message : String(err)) || 'Unknown error occurred.',
       );
+    } finally {
+      setIsGeneratingRecipe(false);
     }
   };
 
@@ -177,14 +180,14 @@ export function AIRecipeManager({
                   </ol>
                 </div>
               </div>
-            ) : (
+            ) : recipeError ? (
               <div className="text-rose-600 bg-rose-50 border border-rose-200 p-4 rounded-lg font-mono text-sm break-words">
                 Generation failed:
                 <br />
                 <br />
                 {recipeError}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Responsive Floating Pill Action Bar */}
