@@ -156,3 +156,24 @@
 ## 2026-09-10
 
 - **Bug Fix (AI Recipe Modal)**: Fixed an issue where clicking the "Inspire Me" button would immediately show a "Generation failed" error message before the generated content loaded. This was caused by missing `setIsGeneratingRecipe(true)` and `setIsGeneratingRecipe(false)` state updates in the `handleGenerateRecipe` handler, which caused the UI to incorrectly fall back to the error render state while the API call was still in-flight. Also tightened the condition to render the error block only when `recipeError` is explicitly truthy.
+
+## 2026-10-21
+
+### Completed (AI Recipe Nutritionist - Phase 1):
+
+- **Structured Nutrition Engine (`recipeGenerator.ts`)**:
+  - Upgraded Gemini prompt to integrate certified clinical nutritionist intelligence alongside Michelin-star recipe creation.
+  - Designed and implemented strict Zod `NutritionSchema` covering calories (kcal), serving size, macronutrients (protein, carbs, fat, fiber), dietary tags, dietitian tips, and healthy swaps.
+  - Implemented Gemini `responseSchema` enforcing structured JSON generation directly from the LLM, eliminating post-processing hallucinations.
+  - Added defensive numeric transforms to round floating point values and enforce positive integers/floats.
+- **GraphQL Schema & Apollo Hook Modernization**:
+  - Extended GraphQL `typeDefs` (`src/graphql/schema.ts`) with `NutritionInfo` and embedded it into `GeneratedRecipe`.
+  - Updated `GENERATE_RECIPE` mutation in `usePantry.ts` to request comprehensive nutritional data.
+- **Presenter Component Architecture (`RecipeNutritionCard.tsx`)**:
+  - Created a modular presenter component following Clean React Rendering and DRY principles.
+  - Data-driven macronutrient rendering using static configuration mappings (`MACRO_CONFIGS`) outside component lifecycle.
+  - Implemented glassmorphic styling, dietary tags, calorie breakdown badges, and dietitian advice callouts.
+  - Added standard nutritional/medical disclaimer.
+- **Unit Testing & Boundary Validation (`recipeGenerator.test.ts`)**:
+  - Expanded Vitest test suite to cover valid full nutrition parsing, backward compatibility for legacy recipes without nutrition, and mandatory macro validation.
+  - Verified 100% test pass rate and static type check compliance (`npx tsc --noEmit`).

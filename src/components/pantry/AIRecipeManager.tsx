@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { usePantry } from '@/hooks/usePantry';
+import { GeneratedRecipe } from '@/lib/ai/recipeGenerator';
+import { RecipeNutritionCard } from './RecipeNutritionCard';
 
 interface AIRecipeManagerProps {
   selectedItemIds: Set<string>;
@@ -25,10 +27,7 @@ export function AIRecipeManager({
   // Internal AI Generation States
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
-  const [recipeResult, setRecipeResult] = useState<Omit<
-    Recipe,
-    'id' | 'userId' | 'createdAt' | 'updatedAt'
-  > | null>(null);
+  const [recipeResult, setRecipeResult] = useState<GeneratedRecipe | null>(null);
   const [recipeError, setRecipeError] = useState('');
   const [savedRecipeId, setSavedRecipeId] = useState<string | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
@@ -44,10 +43,7 @@ export function AIRecipeManager({
       const res = await generateRecipe({
         variables: { mustUseItemIds: Array.from(selectedItemIds) },
       });
-      setRecipeResult(
-        (res.data as { generateRecipe: Omit<Recipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'> })
-          .generateRecipe,
-      );
+      setRecipeResult((res.data as { generateRecipe: GeneratedRecipe }).generateRecipe);
     } catch (err: unknown) {
       setRecipeError(
         (err instanceof Error ? err.message : String(err)) || 'Unknown error occurred.',
@@ -71,10 +67,7 @@ export function AIRecipeManager({
           previouslyUsedIngredients: previousIngredients,
         },
       });
-      setRecipeResult(
-        (res.data as { generateRecipe: Omit<Recipe, 'id' | 'userId' | 'createdAt' | 'updatedAt'> })
-          .generateRecipe,
-      );
+      setRecipeResult((res.data as { generateRecipe: GeneratedRecipe }).generateRecipe);
     } catch (err: unknown) {
       setRecipeError(
         (err instanceof Error ? err.message : String(err)) || 'Unknown error occurred.',
@@ -157,6 +150,9 @@ export function AIRecipeManager({
               </div>
             ) : recipeResult ? (
               <div className="space-y-6">
+                {/* AI Recipe Nutritionist Card */}
+                <RecipeNutritionCard nutrition={recipeResult.nutrition} />
+
                 <div className="bg-stone-50 p-5 rounded-xl border border-stone-200">
                   <h3 className="text-lg font-bold text-stone-800 mb-3 border-b border-stone-200 pb-2">
                     🛒 Ingredients

@@ -108,6 +108,17 @@ export const GENERATE_RECIPE = gql`
       ingredients
       instructions
       unused_ingredients
+      nutrition {
+        calories
+        servings
+        protein
+        carbs
+        fat
+        fiber
+        dietary_tags
+        dietitian_tip
+        healthy_swaps
+      }
     }
   }
 `;

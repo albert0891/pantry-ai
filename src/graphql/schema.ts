@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 
 // ---------------------------------------------------------------------------
 // Design Pattern Note: Schema-First API Design
-// 
+//
 // In GraphQL, we define the "Contract" first. This is similar to defining
 // an Interface in C# / .NET. The frontend and backend both agree on this shape.
 // Any client requesting data that doesn't match this schema will be rejected,
@@ -52,11 +52,24 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
+  type NutritionInfo {
+    calories: Int!
+    servings: Int!
+    protein: Float!
+    carbs: Float!
+    fat: Float!
+    fiber: Float
+    dietary_tags: [String!]!
+    dietitian_tip: String!
+    healthy_swaps: [String!]
+  }
+
   type GeneratedRecipe {
     title: String!
     ingredients: [String!]!
     instructions: [String!]!
     unused_ingredients: [String!]
+    nutrition: NutritionInfo
   }
 
   # The root Query type defines all GET operations (Read)
@@ -76,7 +89,7 @@ export const typeDefs = gql`
       expiryDate: String
       boardState: BoardState
     ): PantryItem!
-    
+
     editPantryItem(
       id: ID!
       name: String!
@@ -87,19 +100,18 @@ export const typeDefs = gql`
     ): PantryItem!
 
     deletePantryItem(id: ID!): Boolean!
-    
+
     updateItemState(id: ID!, newState: BoardState!): PantryItem!
-    
+
     moveItem(id: ID!, amount: Int!, targetState: BoardState!): PantryItem!
-    
-    generateRecipe(mustUseItemIds: [String!]!, previouslyUsedIngredients: [String!]): GeneratedRecipe!
-    
-    saveRecipe(
-      title: String!
-      ingredients: [String!]!
-      instructions: [String!]!
-    ): Recipe!
-    
+
+    generateRecipe(
+      mustUseItemIds: [String!]!
+      previouslyUsedIngredients: [String!]
+    ): GeneratedRecipe!
+
+    saveRecipe(title: String!, ingredients: [String!]!, instructions: [String!]!): Recipe!
+
     deleteRecipe(id: ID!): Boolean!
   }
 `;

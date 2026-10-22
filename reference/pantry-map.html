@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pantry AI 架構速查</title>
+  <style>
+    body {
+      max-width: 900px;
+      margin: auto;
+      padding: 40px 24px;
+      color: #252c32;
+      background: #faf9f6;
+      font:
+        17px/1.8 system-ui,
+        sans-serif;
+    }
+    h1 {
+      line-height: 1.3;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid #ccd3ce;
+      padding: 12px;
+    }
+    code {
+      font-size: 0.85em;
+      overflow-wrap: anywhere;
+    }
+    a {
+      color: #235b81;
+    }
+    pre {
+      white-space: pre-wrap;
+      padding: 20px;
+      background: #edf1ec;
+      font-size: 14px;
+    }
+    small {
+      color: #59636a;
+    }
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+    }
+  </style>
+  <h1>Pantry AI：責任與資料流</h1>
+  <p>以目前程式碼為準。package.json：React 19.2.3 / Next.js 16.1.6。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>層</th>
+        <th>檔案</th>
+        <th>責任</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>頁面協調</td>
+        <td><code>src/app/page.tsx</code></td>
+        <td>搜尋、勾選、dialog；組合子元件。</td>
+      </tr>
+      <tr>
+        <td>互動畫面</td>
+        <td><code>src/components/pantry/</code></td>
+        <td>看板、卡片、表單、食譜對話框。</td>
+      </tr>
+      <tr>
+        <td>資料 Hook</td>
+        <td><code>src/hooks/usePantry.ts</code></td>
+        <td>Apollo query、mutation、refetch。</td>
+      </tr>
+      <tr>
+        <td>共用環境</td>
+        <td><code>src/components/providers/</code></td>
+        <td>Auth Context 與 Apollo Client/cache。</td>
+      </tr>
+      <tr>
+        <td>HTTP 入口</td>
+        <td><code>src/app/api/graphql/route.ts</code></td>
+        <td>Next.js 接收請求，Apollo 處理 GraphQL；token 轉成 context。</td>
+      </tr>
+      <tr>
+        <td>業務規則</td>
+        <td><code>src/graphql/resolvers.ts</code></td>
+        <td>資料歸屬、庫存拆分合併、食材選擇。</td>
+      </tr>
+      <tr>
+        <td>資料庫</td>
+        <td><code>prisma/schema.prisma</code></td>
+        <td>User、PantryItem、Recipe 模型；PostgreSQL 持久化。</td>
+      </tr>
+      <tr>
+        <td>AI 表單操作</td>
+        <td><code>src/app/actions/ai.ts</code></td>
+        <td>Server Actions：自動分類與語音文字解析。</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>三條路徑</h2>
+  <pre>
+勾選：卡片 → 頁面 setSelectedItemIds → React 更新 UI
+
+庫存操作：卡片／表單 → 頁面 → usePantry → HTTP
+  → Next.js Route Handler / Apollo → resolver → Prisma → PostgreSQL
+
+語音輸入：瀏覽器 SpeechRecognition → 文字 → Server Action
+  → Gemini → 驗證回傳資料 → 填入表單 → 使用者送出後走庫存新增路徑</pre>
+  <p>
+    AI 食譜生成另走 GraphQL mutation → resolver → recipeGenerator → Gemini。生成與儲存是不同操作。
+  </p>
+  <h2>面試時保持精確</h2>
+  <ul>
+    <li>
+      Hook 重用邏輯；這裡跨元件的伺服器資料由共用 Apollo cache 支持，不是「呼叫同一個 Hook
+      就自動共用所有 state」。
+    </li>
+    <li>
+      AuthProvider 的前端跳轉負責導覽體驗；GraphQL context 與 resolver
+      才檢查伺服器端存取權。demo_token 對應共用示範帳戶。
+    </li>
+    <li>
+      Server Action 的 server 執行位置不等於自動授權。目前 ai.ts
+      內沒有使用者身份檢查，不能宣稱所有後端入口都有相同驗證。
+    </li>
+    <li>useCallback 穩定函式參照；不能僅憑使用它就宣稱子元件不會重新渲染。效能改善需量測。</li>
+    <li>交易讓多筆寫入一起成功或失敗；目前部分讀取在交易外，不應宣稱已解決所有併發競爭。</li>
+  </ul>
+  <p>
+    <a href="../lessons/0001-follow-one-item.html">← 第一課：移動一顆蘋果</a> ·
+    <a href="https://nextjs.org/docs/app/getting-started/mutating-data"
+      >Next.js Server Functions 官方說明</a
+    >
+  </p>
+</html>

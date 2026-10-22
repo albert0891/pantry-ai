@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>第一課：一顆蘋果如何穿過整個系統</title>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #faf9f6;
+      color: #252c32;
+      font:
+        18px/1.85 system-ui,
+        sans-serif;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 56px 24px 80px;
+    }
+    h1 {
+      font-size: clamp(28px, 5vw, 40px);
+      line-height: 1.3;
+      letter-spacing: -0.03em;
+    }
+    h2 {
+      font-size: 24px;
+      margin-top: 40px;
+    }
+    a {
+      color: #235b81;
+    }
+    code {
+      font-size: 0.88em;
+      background: #eceeea;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    .eyebrow {
+      color: #666;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+    }
+    li {
+      margin: 12px 0;
+    }
+    aside {
+      border-left: 3px solid #49765e;
+      padding: 8px 20px;
+      background: #f0f3ee;
+    }
+    details {
+      border-top: 1px solid #d7dad4;
+      padding: 18px 0;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    blockquote {
+      margin: 24px 0;
+      padding-left: 20px;
+      border-left: 3px solid #b3bdb4;
+    }
+    .small {
+      font-size: 15px;
+      color: #59636a;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      main {
+        padding: 0;
+      }
+      details > * {
+        display: block;
+      }
+      a {
+        color: inherit;
+      }
+    }
+  </style>
+  <main>
+    <p class="eyebrow">PANTRY AI · 01 · 約 5 分鐘</p>
+    <h1>一顆蘋果如何穿過整個系統</h1>
+    <p>目標：面試時，能解釋「按下移動後，資料怎麼存下來，畫面為什麼會變」。先只理解這一條路徑。</p>
+    <aside>
+      情境：待購有三顆蘋果，使用者移動一顆到庫存。前端傳送物品 ID、數量 1、目標狀態 IN_PANTRY。
+    </aside>
+    <h2>六個步驟</h2>
+    <ol>
+      <li>
+        <strong>卡片通知上層。</strong><code>PantryItemCard</code> 呼叫 props 傳入的
+        <code>onMove(item.id, 1, 'IN_PANTRY')</code>。它不直接操作資料庫。
+      </li>
+      <li>
+        <strong>頁面協調操作。</strong><code>KanbanBoard</code> 將 callback 傳給卡片；callback
+        實際指向 <code>DashboardPage.handleMove</code>，再呼叫 <code>usePantry</code> 提供的
+        mutation。
+      </li>
+      <li>
+        <strong>Apollo 發出請求。</strong><code>usePantry</code> 封裝 GraphQL 文件和 Hook；Apollo 的
+        auth link 附上 token，送到 <code>/api/graphql</code>。這一步跨越瀏覽器與伺服器。
+      </li>
+      <li>
+        <strong>Next.js 接住 HTTP 請求。</strong><code>app/api/graphql/route.ts</code> 匯出 HTTP
+        handler，透過 adapter 交給 Apollo Server。context 處理 token，提供 userId；GraphQL schema
+        定義操作及輸入型別。
+      </li>
+      <li>
+        <strong>Resolver 執行业務邏輯。</strong
+        ><code>moveItem</code> 檢查使用者及物品歸屬。部分移動時，透過 Prisma transaction
+        扣除來源數量，並建立或合併目標資料。持久化位置是 PostgreSQL。
+      </li>
+      <li>
+        <strong>重新取得資料，再渲染。</strong><code>moveItem</code> 設有
+        <code>refetchQueries</code>，操作成功後重新查詢。Apollo 提供更新的資料給 React，看板依
+        boardState 分組，顯示待購兩顆、庫存一顆。
+      </li>
+    </ol>
+    <p class="small">
+      第六步是這個專案 moveItem 的策略。Apollo 也能直接更新 cache；並非每個 mutation 都必須
+      refetch。參考
+      <a href="https://www.apollographql.com/docs/react/data/mutations">Apollo 官方說明</a>。
+    </p>
+    <h2>你用了哪些 React 能力？</h2>
+    <p>
+      <strong>Component</strong> 拆開頁面、看板和卡片；<strong>props</strong> 傳資料及
+      callback；<strong>custom Hook</strong> 封裝資料操作。搜尋字串、dialog 開關等 UI 狀態由
+      <code>useState</code> 管理；資料庫資料則經由 Apollo query/cache 取得。
+    </p>
+    <p>
+      勾選食材是另一個例子：<code>selectedItemIds</code> 放在共同父元件
+      DashboardPage，讓看板顯示勾選，也讓 AIRecipeManager 取得食材 ID。這符合
+      <a href="https://react.dev/learn/sharing-state-between-components">React 的狀態提升原則</a>。
+    </p>
+    <h2>你用了哪些 Next.js 能力？</h2>
+    <p>
+      <code>app/page.tsx</code> 對應首頁，<code>layout.tsx</code> 組合共用外框與 providers；Route
+      Handler 承載 GraphQL API。首頁標記 <code>'use client'</code> 來支援互動，庫存主要由 client 端
+      Apollo 取得，沒有在首頁 Server Component 中預先讀取 Prisma。
+    </p>
+    <p class="small">
+      Client Component 仍可能參與初次 HTML 預先渲染；不要把 use client
+      解釋成「所有程式都只在瀏覽器執行」。參考
+      <a href="https://nextjs.org/docs/app/getting-started/server-and-client-components"
+        >Next.js 官方說明</a
+      >。
+    </p>
+    <h2>合上上面的說明，再練習</h2>
+    <details>
+      <summary>只勾選一顆蘋果，會不會寫入資料庫？先說出理由。</summary>
+      <p>
+        這條操作不會。toggleSelection 更新頁面中的 Set 狀態，React 重新渲染勾選與 AI 按鈕；沒有發起
+        mutation。移動、刪除、儲存才有各自的資料操作。
+      </p>
+    </details>
+    <details>
+      <summary>usePantry 是後端嗎？請說出真正跨越網路的位置。</summary>
+      <p>
+        不是。usePantry 是 Client Component 使用的 Hook。Apollo 將 GraphQL operation 送到
+        /api/graphql 時，才跨越網路進入伺服器處理。
+      </p>
+    </details>
+    <details>
+      <summary>為什麼移動後要重新查詢？先想一個部分移動的例子。</summary>
+      <p>
+        一次移動可能同時影響來源與目標，甚至新增或刪除資料。重新查詢可簡化前端同步邏輯，代價是額外請求；目前查詢還會一併取得食譜。
+      </p>
+    </details>
+    <h2>面試口述練習</h2>
+    <blockquote>
+      我把看板拆成頁面、看板與卡片。卡片透過 callback 回報操作，頁面使用 usePantry 封裝的 Apollo
+      mutation。Next.js 的 Route Handler 承載 GraphQL，resolver 驗證物品歸屬，再透過 Prisma 寫入
+      PostgreSQL。移動可能拆分或合併資料，所以目前成功後重新查詢，讓 React 根據最新資料更新看板。
+    </blockquote>
+    <p>
+      請用自己的話講一次；有任何不清楚的步驟，可以直接回到對話問我。下一步先練習「勾選食材」和「移動食材」的差異。
+    </p>
+    <p>
+      <a href="../reference/pantry-map.html">查看架構速查 →</a> ·
+      <a href="../RESOURCES.md">官方閱讀資源</a>
+    </p>
+  </main>
+</html>
