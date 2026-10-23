@@ -37,6 +37,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   OTHER: 'Other',
 };
 
+const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap';
+
 export interface ItemFormData {
   id?: string;
   name: string;
@@ -173,10 +175,10 @@ export function ItemFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    
+
     // Ensure quantity is a valid number before submitting
     const parsedQuantity = typeof quantity === 'number' && !isNaN(quantity) ? quantity : 1;
-    
+
     await onSubmit({
       id: initialData?.id,
       name,
@@ -229,7 +231,7 @@ export function ItemFormDialog({
             )}
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right text-stone-700 font-semibold">
+              <Label htmlFor="name" className={FORM_LABEL_CLASS}>
                 Name
               </Label>
               <div className="col-span-3">
@@ -245,25 +247,27 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="quantity" className="text-right text-stone-700 font-semibold">
+              <Label htmlFor="quantity" className={FORM_LABEL_CLASS}>
                 Quantity
               </Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setQuantity(val === '' ? '' : parseInt(val, 10));
-                }}
-                className="col-span-3 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
-                required
-              />
+              <div className="col-span-3">
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setQuantity(val === '' ? '' : parseInt(val, 10));
+                  }}
+                  className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="boardState" className="text-right text-stone-700 font-semibold">
+              <Label htmlFor="boardState" className={FORM_LABEL_CLASS}>
                 Target
               </Label>
               <div className="col-span-3">
@@ -285,7 +289,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right text-stone-700 font-semibold">
+              <Label htmlFor="category" className={FORM_LABEL_CLASS}>
                 Category
               </Label>
               <div className="col-span-3 flex items-center gap-2">
@@ -321,7 +325,7 @@ export function ItemFormDialog({
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="expiry" className="text-right text-stone-700 font-semibold">
+              <Label htmlFor="expiry" className={FORM_LABEL_CLASS}>
                 Expiry Date
               </Label>
               <div className="col-span-3 relative">

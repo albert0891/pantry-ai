@@ -177,3 +177,13 @@
 - **Unit Testing & Boundary Validation (`recipeGenerator.test.ts`)**:
   - Expanded Vitest test suite to cover valid full nutrition parsing, backward compatibility for legacy recipes without nutrition, and mandatory macro validation.
   - Verified 100% test pass rate and static type check compliance (`npx tsc --noEmit`).
+
+## 2026-10-22
+
+### Completed (UI & Layout Alignment):
+
+- **Item Form Dialog Label Alignment Fix (`ItemFormDialog.tsx`)**:
+  - Identified root cause of the "Expiry Date" label misalignment: the base Shadcn `Label` component enforces `display: flex; align-items: center; gap: 0.5rem;` in `label.tsx`. Without explicit `justify-content` styling, standard `text-right` was ineffective for single line text nodes, leaving them left-aligned, while two-word labels like "Expiry Date" could wrap onto multiple lines with right-indented second lines.
+  - Extracted a centralized constant `FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap'` following DRY and clean React principles.
+  - Unified all form labels (`Name`, `Quantity`, `Target`, `Category`, `Expiry Date`) with `justify-end` and `whitespace-nowrap`, guaranteeing consistent right alignment against input controls and preventing multiline wrapping.
+  - Standardized the DOM structure of the `Quantity` row with a `<div className="col-span-3">` wrapper to match the other form rows.
