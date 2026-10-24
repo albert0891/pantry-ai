@@ -212,3 +212,6 @@
 - **Unit Testing & Boundary Verification (`categories.test.ts`)**:
   - Created Vitest unit test suite validating complete coverage of schema categories, presence of metadata/examples, and fallback behaviors.
   - Verified 100% test pass rate (15/15 tests passing across the suite).
+- **Vercel Build Fix for Turbopack Font Bug (`package.json`)**:
+  - Diagnosed Vercel deployment crash: Next.js 16 defaults to Turbopack for production builds, which suffers from an upstream Rust parser bug when handling Google Fonts URLs containing multiple query parameters (e.g. `&skey=...&v=v37`), throwing `next/font/google queries have exactly one entry`.
+  - Configured `"build": "prisma generate && next build --webpack"` to utilize Webpack for production compilation, bypassing the Turbopack font loader bug and ensuring stable production deployments.
