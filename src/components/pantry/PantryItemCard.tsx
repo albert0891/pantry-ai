@@ -162,7 +162,7 @@ export function PantryItemCard({
                 size="icon"
                 className="h-8 w-8 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors"
                 onClick={() => onMove(item.id, item.quantity, 'IN_PANTRY')}
-                title="Move All back to Pantry"
+                title="Move All back to In Pantry"
               >
                 <ChevronsLeft size={16} />
               </Button>
@@ -176,7 +176,7 @@ export function PantryItemCard({
                 size="icon"
                 className="h-8 w-8 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors"
                 onClick={() => onMove(item.id, item.quantity, 'IN_PANTRY')}
-                title="Move All to Pantry"
+                title="Move All to In Pantry"
               >
                 <ChevronsRight size={16} />
               </Button>
@@ -200,7 +200,7 @@ export function PantryItemCard({
                     className="cursor-pointer font-medium text-stone-600 focus:bg-stone-100 rounded-md"
                   >
                     <ChevronLeft className="mr-2 h-4 w-4 text-stone-400" />
-                    <span>Return 1 to Buy</span>
+                    <span>Return 1 to To Buy</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onMove(item.id, 1, 'CONSUMED')}
@@ -220,7 +220,7 @@ export function PantryItemCard({
                     className="cursor-pointer font-medium text-stone-600 focus:bg-stone-100 rounded-md"
                   >
                     <ChevronLeft className="mr-2 h-4 w-4 text-stone-400" />
-                    <span>Move 1 back to Pantry</span>
+                    <span>Move 1 back to In Pantry</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onMove(item.id, item.quantity, 'TO_BUY')}
@@ -240,7 +240,7 @@ export function PantryItemCard({
                     className="cursor-pointer font-medium text-stone-600 focus:bg-stone-100 rounded-md"
                   >
                     <ChevronRight className="mr-2 h-4 w-4 text-stone-400" />
-                    <span>Move 1 to Pantry</span>
+                    <span>Move 1 to In Pantry</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-stone-100 my-1" />
                 </>
