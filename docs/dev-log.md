@@ -187,3 +187,28 @@
   - Extracted a centralized constant `FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap'` following DRY and clean React principles.
   - Unified all form labels (`Name`, `Quantity`, `Target`, `Category`, `Expiry Date`) with `justify-end` and `whitespace-nowrap`, guaranteeing consistent right alignment against input controls and preventing multiline wrapping.
   - Standardized the DOM structure of the `Quantity` row with a `<div className="col-span-3">` wrapper to match the other form rows.
+
+## 2026-10-23
+
+### Completed (Category Guide & Interactive Taxonomy UX):
+
+- **Data-Driven Category Taxonomy (`src/lib/constants/categories.ts`)**:
+  - Extracted centralized `CATEGORY_DEFINITIONS` and `CATEGORY_LIST` adhering to DRY and Clean React Rendering principles.
+  - Defined comprehensive metadata for each food category, including emoji icons, plain-English taglines, detailed storage descriptions, curated real-world examples, and accessible color badges.
+  - Provided `getCategoryDefinition` helper with graceful fallback to `OTHER`.
+- **Base UI Popover Primitive (`src/components/ui/popover.tsx`)**:
+  - Implemented accessible, unstyled Popover component utilizing `@base-ui/react/popover` following the `base-nova` Shadcn architecture.
+  - Added support for trigger, portal, positioner, popup content, close button, title, and description.
+- **Interactive Category Cheat Sheet (`src/components/pantry/CategoryGuidePopover.tsx`)**:
+  - Designed and built a Deep Module `CategoryGuidePopover` encapsulated within the pantry module.
+  - Provided an instant-reference cheat sheet listing all 7 food categories with representative examples (e.g. Produce: Apples, Bananas, Spinach, Garlic, Tomatoes; Pantry: Rice, Pasta, Olive Oil, Canned Beans, Spices).
+  - Implemented one-click selection: clicking any category card in the popover immediately applies the category to the form and dismisses the popover.
+- **Rich Category Select & Guide Affordance (`src/components/pantry/ItemFormDialog.tsx`)**:
+  - Placed the `HelpCircle` Category Guide trigger directly adjacent to the Category dropdown and AI Auto-categorize button.
+  - Enhanced the Select dropdown options with emoji icons and concise real-world examples, eliminating the need to wait 1 to 2 seconds for Gemini AI auto-classification in routine logging.
+- **Cross-Component Taxonomy Synchronization**:
+  - Refactored `KanbanBoard.tsx` category filter list to dynamically derive from `CATEGORY_LIST`.
+  - Refactored `PantryItemCard.tsx` category badges to utilize `getCategoryDefinition`, providing unified color badges and emojis across all cards.
+- **Unit Testing & Boundary Verification (`categories.test.ts`)**:
+  - Created Vitest unit test suite validating complete coverage of schema categories, presence of metadata/examples, and fallback behaviors.
+  - Verified 100% test pass rate (15/15 tests passing across the suite).

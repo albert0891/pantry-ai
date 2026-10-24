@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { PantryItemCard } from './PantryItemCard';
 import { useSwipe } from '@/hooks/useSwipe';
+import { CATEGORY_LIST } from '@/lib/constants/categories';
 
 const COLUMNS = [
   { id: 'TO_BUY', title: '🛒 To Buy' },
@@ -21,13 +22,7 @@ const COLUMNS = [
 
 const CATEGORY_FILTERS = [
   { id: 'ALL', label: '🌟 All' },
-  { id: 'PRODUCE', label: '🍎 Produce' },
-  { id: 'DAIRY', label: '🧀 Dairy' },
-  { id: 'MEAT', label: '🥩 Meat' },
-  { id: 'PANTRY', label: '🥫 Pantry' },
-  { id: 'FROZEN', label: '❄️ Frozen' },
-  { id: 'BEVERAGE', label: '🥤 Beverage' },
-  { id: 'OTHER', label: '📦 Other' },
+  ...CATEGORY_LIST.map((c) => ({ id: c.id, label: `${c.icon} ${c.name}` })),
 ];
 
 interface KanbanBoardProps {

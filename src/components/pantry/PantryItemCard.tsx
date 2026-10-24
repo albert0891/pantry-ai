@@ -22,19 +22,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'PRODUCE':
-      return 'bg-green-100/80 text-green-800 border-green-200/50';
-    case 'DAIRY':
-      return 'bg-blue-100/80 text-blue-800 border-blue-200/50';
-    case 'MEAT':
-      return 'bg-rose-100/80 text-rose-800 border-rose-200/50';
-    default:
-      return 'bg-slate-100/80 text-slate-800 border-slate-200/50';
-  }
-};
+import { getCategoryDefinition } from '@/lib/constants/categories';
 
 const formatDate = (dateString: string | Date) => {
   if (!dateString) return '';
@@ -95,6 +83,7 @@ export function PantryItemCard({
 
   const expiryStatus =
     item.expiryDate && colId === 'IN_PANTRY' ? getExpiryStatus(item.expiryDate) : 'OK';
+  const categoryDef = getCategoryDefinition(item.category);
 
   let borderStyle = 'border-stone-200 hover:border-stone-300';
   let bgStyle = 'bg-white';
@@ -135,9 +124,9 @@ export function PantryItemCard({
         </div>
         <Badge
           variant="outline"
-          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-none ${getCategoryColor(item.category)}`}
+          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-none ${categoryDef.badgeColor}`}
         >
-          {item.category}
+          {categoryDef.icon} {categoryDef.name}
         </Badge>
       </div>
 

@@ -20,21 +20,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { X, Sparkles, Loader2, Mic } from 'lucide-react';
 import { categorizeItem, parseVoiceInput } from '@/app/actions/ai';
+import { CATEGORY_DEFINITIONS, CATEGORY_LIST } from '@/lib/constants/categories';
+import { CategoryGuidePopover } from './CategoryGuidePopover';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
   TO_BUY: '🛒 To Buy',
   IN_PANTRY: '🧊 In Pantry',
   CONSUMED: '🗑️ Consumed',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  PRODUCE: 'Produce',
-  DAIRY: 'Dairy',
-  MEAT: 'Meat',
-  PANTRY: 'Pantry',
-  FROZEN: 'Frozen',
-  BEVERAGE: 'Beverage',
-  OTHER: 'Other',
 };
 
 const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap';
@@ -296,23 +288,41 @@ export function ItemFormDialog({
                 <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
                   <SelectTrigger className="flex-1 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select category">
-                      {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
+                      {CATEGORY_DEFINITIONS[category]
+                        ? `${CATEGORY_DEFINITIONS[category].icon} ${CATEGORY_DEFINITIONS[category].name}`
+                        : 'Select category'}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-stone-200 rounded-xl shadow-lg">
-                    {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value} className="text-stone-700 font-medium">
-                        {label}
+                  <SelectContent className="bg-white border-stone-200 rounded-xl shadow-lg max-h-72">
+                    {CATEGORY_LIST.map((item) => (
+                      <SelectItem
+                        key={item.id}
+                        value={item.id}
+                        className="text-stone-700 font-medium py-1.5"
+                      >
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <span className="flex items-center gap-1.5 font-semibold text-stone-800">
+                            <span>{item.icon}</span>
+                            <span>{item.name}</span>
+                          </span>
+                          <span className="text-[11px] text-stone-400 font-normal truncate max-w-[130px]">
+                            {item.examples.slice(0, 3).join(', ')}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <CategoryGuidePopover
+                  selectedCategory={category}
+                  onSelectCategory={(selected) => setCategory(selected)}
+                />
                 <button
                   type="button"
                   onClick={handleAutoCategorize}
                   disabled={isAutoCategorizing || !name.trim()}
                   className="shrink-0 text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 h-10 px-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-stone-200 shadow-sm"
-                  title="Auto Categorize"
+                  title="Auto Categorize with AI"
                 >
                   {isAutoCategorizing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
