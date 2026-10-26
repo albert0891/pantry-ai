@@ -36,7 +36,7 @@ export function CategoryGuidePopover({
         align="end"
         side="bottom"
         sideOffset={6}
-        className="w-[330px] sm:w-[380px] max-h-[430px] overflow-hidden flex flex-col p-0 rounded-2xl border border-stone-200 bg-white/95 backdrop-blur-md shadow-2xl z-[100]"
+        className="flex max-h-[min(430px,calc(100dvh-2rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white p-0 shadow-xl z-[100]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100 bg-stone-50/80">

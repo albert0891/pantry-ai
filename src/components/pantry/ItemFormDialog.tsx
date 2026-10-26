@@ -29,7 +29,8 @@ const BOARD_STATE_LABELS: Record<string, string> = {
   CONSUMED: '🗑️ Consumed',
 };
 
-const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap';
+const FORM_LABEL_CLASS =
+  'text-left justify-start text-stone-700 font-semibold sm:text-right sm:justify-end';
 
 export interface ItemFormData {
   id?: string;
@@ -184,14 +185,14 @@ export function ItemFormDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white border-stone-200 shadow-2xl !rounded-3xl">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-[425px] bg-white border-stone-200 shadow-2xl !rounded-3xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-stone-800">
               {initialData ? 'Edit Item' : 'Add New Item'}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-5 py-6">
+          <div className="grid gap-4 py-4 sm:gap-5 sm:py-6">
             <button
               type="button"
               onClick={handleVoiceInput}
@@ -222,11 +223,11 @@ export function ItemFormDialog({
               </div>
             )}
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="name" className={FORM_LABEL_CLASS}>
                 Name
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Input
                   id="name"
                   value={name}
@@ -238,11 +239,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="quantity" className={FORM_LABEL_CLASS}>
                 Quantity
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Input
                   id="quantity"
                   type="number"
@@ -258,11 +259,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="boardState" className={FORM_LABEL_CLASS}>
                 Target
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || 'TO_BUY')}>
                   <SelectTrigger className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select target board">
@@ -280,11 +281,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="category" className={FORM_LABEL_CLASS}>
                 Category
               </Label>
-              <div className="col-span-3 flex items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2 sm:col-span-3">
                 <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
                   <SelectTrigger className="flex-1 h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select category">
@@ -334,11 +335,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="expiry" className={FORM_LABEL_CLASS}>
                 Expiry Date
               </Label>
-              <div className="col-span-3 relative">
+              <div className="relative sm:col-span-3">
                 <Input
                   id="expiry"
                   type="date"
