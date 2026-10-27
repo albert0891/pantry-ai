@@ -215,3 +215,23 @@
 - **Vercel Build Fix for Turbopack Font Bug (`package.json`)**:
   - Diagnosed Vercel deployment crash: Next.js 16 defaults to Turbopack for production builds, which suffers from an upstream Rust parser bug when handling Google Fonts URLs containing multiple query parameters (e.g. `&skey=...&v=v37`), throwing `next/font/google queries have exactly one entry`.
   - Configured `"build": "prisma generate && next build --webpack"` to utilize Webpack for production compilation, bypassing the Turbopack font loader bug and ensuring stable production deployments.
+
+## 2026-10-27
+
+### Completed (Mobile-Safe Category Picker):
+
+- **Rebuilt the Category row in `ItemFormDialog.tsx`**:
+  - Removed the `?` Category Guide popover (`CategoryGuidePopover.tsx`) and the now-unused `ui/popover.tsx`. Three controls in one row overflowed and overlapped text on phones.
+  - Each dropdown option is now self-explanatory: icon + name on the first line, the category tagline (e.g. "Poultry, beef, pork, seafood, and tofu") on the second line. The dropdown may grow wider than its trigger but is capped to the viewport.
+  - A one-line hint under the trigger always describes the currently selected category.
+  - The AI auto-categorize button is now a compact 40px icon button (`aria-label` + tooltip) next to the dropdown.
+- **Consistent form rows**: replaced `grid-cols-4` / `col-span-3` with a shared `FORM_ROW_CLASS` (fixed label column, 5rem on mobile / 5.5rem on desktop) so long labels such as "Expiry Date" no longer overflow at 320px, while keeping the label-left / field-right layout.
+- The date input only reserves right padding for the clear button when a date is set, so the placeholder is not clipped on narrow screens.
+- Verified in the browser at 320px, 375px, and 1280px (longest option "Beverage" fits at 320px; no horizontal overflow).
+
+### Completed (Agent Docs Migration to Claude Code):
+
+- Moved `.agents/AGENTS.md` to the root `CLAUDE.md` (removed the duplicated section, adapted Antigravity-specific rules, added a Docs Map and a mandatory mobile verification rule).
+- Linked `.claude/skills` to `.agents/skills` and migrated the impeccable PostToolUse hook from `.codex/hooks.json` to `.claude/settings.json`.
+- Moved the interview-prep workspace (`MISSION.md`, `RESOURCES.md`, `lessons/`, `reference/`) into `docs/learning/`.
+- Added concrete mobile layout specs (supported widths, form-row pattern, popup sizing) to `DESIGN.md`.

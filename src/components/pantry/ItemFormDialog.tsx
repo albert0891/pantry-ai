@@ -20,8 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { X, Sparkles, Loader2, Mic } from 'lucide-react';
 import { categorizeItem, parseVoiceInput } from '@/app/actions/ai';
-import { CATEGORY_DEFINITIONS, CATEGORY_LIST } from '@/lib/constants/categories';
-import { CategoryGuidePopover } from './CategoryGuidePopover';
+import { CATEGORY_LIST, getCategoryDefinition } from '@/lib/constants/categories';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
   TO_BUY: '🛒 To Buy',
@@ -30,6 +29,9 @@ const BOARD_STATE_LABELS: Record<string, string> = {
 };
 
 const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap';
+// Fixed label column (fits 'Expiry Date') so labels never overflow on 320px phones.
+const FORM_ROW_CLASS =
+  'grid grid-cols-[5rem_minmax(0,1fr)] gap-2 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-3';
 
 export interface ItemFormData {
   id?: string;
@@ -71,6 +73,7 @@ export function ItemFormDialog({
     initialExpiry = d.toISOString().split('T')[0];
   }
   const [expiryDate, setExpiryDate] = useState(initialExpiry);
+  const selectedCategory = getCategoryDefinition(category);
 
   // Update local state when initialData changes (e.g. switching from Add to Edit)
   React.useEffect(() => {
@@ -222,11 +225,11 @@ export function ItemFormDialog({
               </div>
             )}
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={`${FORM_ROW_CLASS} items-center`}>
               <Label htmlFor="name" className={FORM_LABEL_CLASS}>
                 Name
               </Label>
-              <div className="col-span-3">
+              <div className="min-w-0">
                 <Input
                   id="name"
                   value={name}
@@ -238,11 +241,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={`${FORM_ROW_CLASS} items-center`}>
               <Label htmlFor="quantity" className={FORM_LABEL_CLASS}>
                 Quantity
               </Label>
-              <div className="col-span-3">
+              <div className="min-w-0">
                 <Input
                   id="quantity"
                   type="number"
@@ -258,11 +261,11 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={`${FORM_ROW_CLASS} items-center`}>
               <Label htmlFor="boardState" className={FORM_LABEL_CLASS}>
                 Target
               </Label>
-              <div className="col-span-3">
+              <div className="min-w-0">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || 'TO_BUY')}>
                   <SelectTrigger className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
                     <SelectValue placeholder="Select target board">
@@ -280,71 +283,68 @@ export function ItemFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
-              <Label htmlFor="category" className={FORM_LABEL_CLASS}>
+            <div className={`${FORM_ROW_CLASS} items-start`}>
+              <Label htmlFor="category" className={`${FORM_LABEL_CLASS} h-10`}>
                 Category
               </Label>
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2 sm:col-span-3 sm:flex sm:items-center">
-                <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
-                  <SelectTrigger className="col-span-2 h-10 w-full min-w-0 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800 sm:flex-1">
-                    <SelectValue placeholder="Select category">
-                      {CATEGORY_DEFINITIONS[category]
-                        ? `${CATEGORY_DEFINITIONS[category].icon} ${CATEGORY_DEFINITIONS[category].name}`
-                        : 'Select category'}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-stone-200 rounded-xl shadow-lg max-h-72">
-                    {CATEGORY_LIST.map((item) => (
-                      <SelectItem
-                        key={item.id}
-                        value={item.id}
-                        className="text-stone-700 font-medium py-1.5"
-                      >
-                        <div className="flex items-center justify-between w-full gap-2">
-                          <span className="flex items-center gap-1.5 font-semibold text-stone-800">
-                            <span>{item.icon}</span>
-                            <span>{item.name}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
+                    <SelectTrigger
+                      id="category"
+                      className="h-10 flex-1 min-w-0 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800"
+                    >
+                      <SelectValue placeholder="Select category">
+                        {`${selectedCategory.icon} ${selectedCategory.name}`}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="w-auto min-w-(--anchor-width) max-w-[min(20rem,calc(100vw-2rem))] bg-white border-stone-200 rounded-xl shadow-lg">
+                      {CATEGORY_LIST.map((item) => (
+                        <SelectItem key={item.id} value={item.id} className="items-start py-2">
+                          <span className="flex min-w-0 flex-col gap-0.5 whitespace-normal">
+                            <span className="font-semibold text-stone-800">
+                              {item.icon} {item.name}
+                            </span>
+                            <span className="text-xs leading-snug text-stone-500">
+                              {item.tagline}
+                            </span>
                           </span>
-                          <span className="text-[11px] text-stone-400 font-normal truncate max-w-[130px]">
-                            {item.examples.slice(0, 3).join(', ')}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <CategoryGuidePopover
-                  selectedCategory={category}
-                  onSelectCategory={(selected) => setCategory(selected)}
-                />
-                <button
-                  type="button"
-                  onClick={handleAutoCategorize}
-                  disabled={isAutoCategorizing || !name.trim()}
-                  className="col-start-2 row-start-2 shrink-0 text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 h-10 px-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-stone-200 shadow-sm sm:col-auto sm:row-auto"
-                  title="Auto Categorize with AI"
-                >
-                  {isAutoCategorizing ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                  )}
-                  {isAutoCategorizing ? 'Wait' : 'Auto'}
-                </button>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <button
+                    type="button"
+                    onClick={handleAutoCategorize}
+                    disabled={isAutoCategorizing || !name.trim()}
+                    className="shrink-0 flex items-center justify-center h-10 w-10 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Suggest category from name (AI)"
+                    aria-label="Suggest category from name"
+                  >
+                    {isAutoCategorizing ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-stone-600" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                    )}
+                  </button>
+                </div>
+                <p className="mt-1.5 px-1 text-xs leading-snug text-stone-500">
+                  {selectedCategory.tagline}
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className={`${FORM_ROW_CLASS} items-center`}>
               <Label htmlFor="expiry" className={FORM_LABEL_CLASS}>
                 Expiry Date
               </Label>
-              <div className="col-span-3 relative">
+              <div className="min-w-0 relative">
                 <Input
                   id="expiry"
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="h-10 block w-full bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800 appearance-none pr-10"
+                  className={`h-10 block w-full bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800 appearance-none ${expiryDate ? 'pr-10' : ''}`}
                 />
                 {expiryDate && (
                   <button

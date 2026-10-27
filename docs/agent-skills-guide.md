@@ -36,7 +36,7 @@ AI 寫程式很快，但如果沒有嚴謹的架構規劃，專案很快就會�
 完成大功能準備 Merge，想確保沒有留下技術債時。
 
 - **呼叫方式**：要求我使用 `requesting-code-review` 技能。
-- **AI 的反應**：我會戴上架構師的帽子，嚴格比對專案 `.agents/AGENTS.md` 裡的自訂規則（例如不可在 Server Action 輸出 Schema 等），有一絲妥協就會退件。
+- **AI 的反應**：我會戴上架構師的帽子，嚴格比對專案根目錄 `CLAUDE.md` 裡的自訂規則（例如不可在 Server Action 輸出 Schema 等），有一絲妥協就會退件。
 
 ### 5. 節省 Token 與專注模式
 
