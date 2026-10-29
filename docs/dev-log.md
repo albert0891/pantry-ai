@@ -235,3 +235,11 @@
 - Linked `.claude/skills` to `.agents/skills` and migrated the impeccable PostToolUse hook from `.codex/hooks.json` to `.claude/settings.json`.
 - Moved the interview-prep workspace (`MISSION.md`, `RESOURCES.md`, `lessons/`, `reference/`) into `docs/learning/`.
 - Added concrete mobile layout specs (supported widths, form-row pattern, popup sizing) to `DESIGN.md`.
+
+## 2026-10-28
+
+### Completed (README Refresh):
+
+- Rewrote `README.md` for GitHub visitors: a product summary that matches `PRODUCT.md` (management first, AI as an assistant), a feature tour (partial moves, expiry warnings, voice input, Inspire Me, nutrition card), a tech stack table, a Mermaid architecture diagram, and the project structure.
+- Removed outdated claims (Glassmorphism UI, the private admin login) and documented the real local setup: `docker compose up -d` → `cp .env.example .env` → `npx prisma db push` → `npm run dev` → Try Demo, plus `curl /api/cron/reset-demo` to load the sample pantry.
+- Updated `.env.example`: added the missing `GEMINI_API_KEY`, aligned `DATABASE_URL` with `docker-compose.yml`, and documented that the Cognito placeholders must stay because `CognitoJwtVerifier.create` throws on a missing pool ID, which breaks the GraphQL route even in demo mode.
