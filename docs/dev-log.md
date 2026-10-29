@@ -243,3 +243,10 @@
 - Rewrote `README.md` for GitHub visitors: a product summary that matches `PRODUCT.md` (management first, AI as an assistant), a feature tour (partial moves, expiry warnings, voice input, Inspire Me, nutrition card), a tech stack table, a Mermaid architecture diagram, and the project structure.
 - Removed outdated claims (Glassmorphism UI, the private admin login) and documented the real local setup: `docker compose up -d` → `cp .env.example .env` → `npx prisma db push` → `npm run dev` → Try Demo, plus `curl /api/cron/reset-demo` to load the sample pantry.
 - Updated `.env.example`: added the missing `GEMINI_API_KEY`, aligned `DATABASE_URL` with `docker-compose.yml`, and documented that the Cognito placeholders must stay because `CognitoJwtVerifier.create` throws on a missing pool ID, which breaks the GraphQL route even in demo mode.
+
+### Completed (Mobile Tab Switch Scroll Fix):
+
+- **Bug**: on mobile, switching from a long tab (scrolled to the bottom) to a short one left the user in empty space and forced a long scroll back up. The window is the scroll container and the three columns sit side by side, only shifted with `translate-x`, so the tallest column set the page height for every tab and `scrollY` carried over.
+- **Fix in `KanbanBoard.tsx`**: tab taps and swipes now go through one `goToTab()` that, on the mobile layout only (`MOBILE_LAYOUT_QUERY`, mirrors Tailwind `max-md:`), scrolls back to the top and marks the track as sliding. After the slide (`SLIDE_DURATION_MS`, shared with the track's inline `transitionDuration`), inactive columns collapse with `max-md:h-0 overflow-hidden`, so the page is only as tall as the visible tab. Columns stay full height during the slide so the animation never shows a blank panel.
+- A timer settles the slide instead of `transitionend`, which does not fire when a transition is interrupted or the tab is in the background.
+- Verified in the browser at 320px, 375px, and 1280px: after switching from a 3000px In Pantry list at the bottom, the short tab opens at the top with no blank scroll area (page height = viewport); desktop columns are unaffected; no horizontal overflow.

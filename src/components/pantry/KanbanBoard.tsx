@@ -25,6 +25,10 @@ const CATEGORY_FILTERS = [
   ...CATEGORY_LIST.map((c) => ({ id: c.id, label: `${c.icon} ${c.name}` })),
 ];
 
+// Mirrors Tailwind's `max-md:` variant: below this width only one column is shown as a tab
+const MOBILE_LAYOUT_QUERY = '(width < 48rem)';
+const SLIDE_DURATION_MS = 500;
+
 interface KanbanBoardProps {
   items: PantryItem[];
   selectedItemIds: Set<string>;
@@ -46,15 +50,34 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const [activeFilter, setActiveFilter] = React.useState('ALL');
   const [activeTab, setActiveTab] = React.useState('IN_PANTRY');
+  // True while the mobile track is sliding between tabs; inactive columns stay rendered until it ends
+  const [isSliding, setIsSliding] = React.useState(false);
+
+  const goToTab = (tabId: string) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    if (!window.matchMedia(MOBILE_LAYOUT_QUERY).matches) return;
+    setIsSliding(true);
+    // The window is the scroll container, so a new tab would otherwise open at the previous tab's depth
+    window.scrollTo({ top: 0 });
+  };
+
+  // A timer rather than `transitionend`, which never fires if the slide is interrupted or the
+  // tab is backgrounded, and would leave every column at full height
+  React.useEffect(() => {
+    if (!isSliding) return;
+    const timer = setTimeout(() => setIsSliding(false), SLIDE_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [isSliding, activeTab]);
 
   const swipeHandlers = useSwipe({
     onSwipeLeft: () => {
       const currentIndex = COLUMNS.findIndex((c) => c.id === activeTab);
-      if (currentIndex < COLUMNS.length - 1) setActiveTab(COLUMNS[currentIndex + 1].id);
+      if (currentIndex < COLUMNS.length - 1) goToTab(COLUMNS[currentIndex + 1].id);
     },
     onSwipeRight: () => {
       const currentIndex = COLUMNS.findIndex((c) => c.id === activeTab);
-      if (currentIndex > 0) setActiveTab(COLUMNS[currentIndex - 1].id);
+      if (currentIndex > 0) goToTab(COLUMNS[currentIndex - 1].id);
     },
   });
 
@@ -88,7 +111,7 @@ export function KanbanBoard({
           return (
             <button
               key={`tab-${col.id}`}
-              onClick={() => setActiveTab(col.id)}
+              onClick={() => goToTab(col.id)}
               className={`flex-1 py-3 text-sm font-bold text-center border-b-2 transition-colors flex items-center justify-center gap-1 ${
                 activeTab === col.id
                   ? 'border-amber-700 text-amber-700'
@@ -138,16 +161,25 @@ export function KanbanBoard({
 
       <div className="flex-1 min-h-0 overflow-hidden relative">
         <div
-          className="flex flex-row h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] translate-x-[var(--mobile-translate)] md:translate-x-0 md:gap-6"
-          style={{ '--mobile-translate': `calc(-100% * ${activeIndex})` } as React.CSSProperties}
+          className="flex flex-row h-full w-full transition-transform ease-[cubic-bezier(0.23,1,0.32,1)] translate-x-[var(--mobile-translate)] md:translate-x-0 md:gap-6"
+          style={
+            {
+              '--mobile-translate': `calc(-100% * ${activeIndex})`,
+              transitionDuration: `${SLIDE_DURATION_MS}ms`,
+            } as React.CSSProperties
+          }
         >
           {COLUMNS.map((col) => {
             const colItems = groupedItems[col.id] || [];
+            // Off-screen columns still take up layout height; collapse them on mobile so the
+            // page is only as tall as the visible tab
+            const collapseClass =
+              !isSliding && col.id !== activeTab ? 'max-md:h-0 max-md:overflow-hidden' : '';
 
             return (
               <div
                 key={col.id}
-                className="w-full shrink-0 md:min-w-[320px] md:w-80 flex flex-col h-full"
+                className={`w-full shrink-0 md:min-w-[320px] md:w-80 flex flex-col h-full ${collapseClass}`}
               >
                 <div className="flex-1 bg-[#F9F8F6] p-2 sm:p-4 flex flex-col gap-3 h-full border border-stone-200/60 rounded-3xl mx-1 md:mx-0 shadow-sm">
                   <div className="hidden md:flex justify-between items-center mb-3 px-2">
