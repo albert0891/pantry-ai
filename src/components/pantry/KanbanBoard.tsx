@@ -159,7 +159,9 @@ export function KanbanBoard({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden relative">
+      {/* Clip only the off-screen columns sideways; the wrapper is exactly as tall as the active
+          column, so vertical clipping would cut off the column's bottom shadow */}
+      <div className="flex-1 min-h-0 overflow-x-clip relative">
         <div
           className="flex flex-row h-full w-full transition-transform ease-[cubic-bezier(0.23,1,0.32,1)] translate-x-[var(--mobile-translate)] md:translate-x-0 md:gap-6"
           style={

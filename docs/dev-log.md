@@ -250,3 +250,11 @@
 - **Fix in `KanbanBoard.tsx`**: tab taps and swipes now go through one `goToTab()` that, on the mobile layout only (`MOBILE_LAYOUT_QUERY`, mirrors Tailwind `max-md:`), scrolls back to the top and marks the track as sliding. After the slide (`SLIDE_DURATION_MS`, shared with the track's inline `transitionDuration`), inactive columns collapse with `max-md:h-0 overflow-hidden`, so the page is only as tall as the visible tab. Columns stay full height during the slide so the animation never shows a blank panel.
 - A timer settles the slide instead of `transitionend`, which does not fire when a transition is interrupted or the tab is in the background.
 - Verified in the browser at 320px, 375px, and 1280px: after switching from a 3000px In Pantry list at the bottom, the short tab opens at the top with no blank scroll area (page height = viewport); desktop columns are unaffected; no horizontal overflow.
+
+## 2026-10-30
+
+### Completed (Clipped Column Shadow After Tab Switch):
+
+- **Bug**: about half a second after switching to a short tab on mobile, the bottom of the column looked slightly cut off. Once the inactive columns collapse, the board's clipping wrapper is exactly as tall as the active column, and its `overflow-hidden` also clipped the column's `shadow-sm` below the bottom edge. During the slide the wrapper was still as tall as the long column, which is why it looked fine at first.
+- **Fix in `KanbanBoard.tsx`**: the wrapper now uses `overflow-x-clip` instead of `overflow-hidden`. It only needs to hide the columns slid off to the side; `clip` (unlike `hidden`) lets the other axis stay `visible`.
+- Verified at 320px, 375px, and 1280px: wrapper computes to `clip / visible`, no horizontal overflow, collapse and scroll reset still work, desktop columns unchanged.
