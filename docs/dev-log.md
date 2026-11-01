@@ -269,6 +269,7 @@
   - Rejections are `GraphQLError`s with `extensions.code = RATE_LIMITED` and a `retryAt` timestamp; the existing recipe dialog shows the message unchanged (verified at 320px / 375px / 1280px).
   - GraphQL context now carries the client IP (`x-forwarded-for` first hop, then `x-real-ip`).
 - New env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (documented in `.env.example`).
+- Added a Husky `commit-msg` hook that strips `Co-Authored-By: ...anthropic.com/claude` trailers, so AI tools never show up as GitHub contributors (a trailer slipped into `e5b6dba` on 2026-10-28 and was amended away, but GitHub's contributor cache kept it).
 
 ### Next Steps:
 

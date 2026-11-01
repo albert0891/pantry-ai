@@ -1,0 +1,3 @@
+# Strip AI co-author trailers so only human authors are credited as contributors.
+grep -viE '^Co-Authored-By:.*(anthropic\.com|claude)' "$1" > "$1.tmp" || true
+mv "$1.tmp" "$1"
