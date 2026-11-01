@@ -258,3 +258,21 @@
 - **Bug**: about half a second after switching to a short tab on mobile, the bottom of the column looked slightly cut off. Once the inactive columns collapse, the board's clipping wrapper is exactly as tall as the active column, and its `overflow-hidden` also clipped the column's `shadow-sm` below the bottom edge. During the slide the wrapper was still as tall as the long column, which is why it looked fine at first.
 - **Fix in `KanbanBoard.tsx`**: the wrapper now uses `overflow-x-clip` instead of `overflow-hidden`. It only needs to hide the columns slid off to the side; `clip` (unlike `hidden`) lets the other axis stay `visible`.
 - Verified at 320px, 375px, and 1280px: wrapper computes to `clip / visible`, no horizontal overflow, collapse and scroll reset still work, desktop columns unchanged.
+
+## 2026-10-31
+
+### Completed:
+
+- Added AI rate limiting to the `generateRecipe` mutation to stop the public `demo_token` from becoming an unlimited Gemini bill.
+  - Policy (`src/lib/rateLimit/aiRateLimitPolicy.ts`, pure + unit-tested): signed-in users get 30 recipes/day; the shared demo account gets 5/hour per IP plus a 100/day global cap that bounds the worst-case bill even if an attacker rotates IPs.
+  - Storage (`src/lib/rateLimit/aiRateLimiter.ts`): Upstash Redis sliding window, so counters are shared across Vercel serverless instances. Local dev without Redis uses in-memory counters; production without Redis (or with Redis unreachable) refuses AI calls (fail closed).
+  - Rejections are `GraphQLError`s with `extensions.code = RATE_LIMITED` and a `retryAt` timestamp; the existing recipe dialog shows the message unchanged (verified at 320px / 375px / 1280px).
+  - GraphQL context now carries the client IP (`x-forwarded-for` first hop, then `x-real-ip`).
+- New env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (documented in `.env.example`).
+
+### Next Steps:
+
+- B: Move `categorizeItem` / `parseVoiceInput` Server Actions (currently unauthenticated) into GraphQL mutations behind auth + rate limits.
+- C: Cap AI input size (ingredient count, string length) and `max_tokens`.
+- D: Set a monthly spend cap in the AI provider's billing console.
+- E (optional): Replace the static `demo_token` with a short-lived signed token.

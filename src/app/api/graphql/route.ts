@@ -4,6 +4,7 @@ import { typeDefs } from '@/graphql/schema';
 import { resolvers } from '@/graphql/resolvers';
 import { NextRequest } from 'next/server';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { DEMO_USER_ID, getClientIp } from '@/lib/rateLimit/aiRateLimitPolicy';
 
 // ---------------------------------------------------------------------------
 // Design Pattern Note: Middleware / Interceptor (Backend)
@@ -50,7 +51,7 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
       const token = authHeader.split(' ')[1];
 
       if (token === 'demo_token') {
-        userId = 'public-demo-user';
+        userId = DEMO_USER_ID;
       } else {
         try {
           const payload = await verifier.verify(token);
@@ -61,7 +62,8 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
       }
     }
 
-    return { req, userId };
+    // The client IP feeds per-IP rate limits for the shared demo account.
+    return { req, userId, ip: getClientIp(req.headers) };
   },
 });
 

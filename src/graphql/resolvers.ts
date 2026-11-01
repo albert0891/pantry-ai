@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { Category, BoardState, User, PantryItem } from '@prisma/client';
 import { generateRecipeWithAI } from '../lib/ai/recipeGenerator';
+import { enforceAiRateLimit } from '../lib/rateLimit/aiRateLimiter';
 
 // ---------------------------------------------------------------------------
 // Educational Note: Resolvers in GraphQL
@@ -191,9 +192,11 @@ export const resolvers = {
     generateRecipe: async (
       _: unknown,
       args: { mustUseItemIds: string[]; previouslyUsedIngredients?: string[] },
-      context: { userId?: string },
+      context: { userId?: string; ip?: string | null },
     ) => {
       const user = await ensureAuthenticatedUser(context);
+      // Charge the quota before any paid AI work. Keyed by Cognito id, which is stable per account.
+      await enforceAiRateLimit('recipe', user.cognitoId, context.ip ?? null);
 
       // Fetch ALL items to allow cross-board recipe planning
       const allItems = await prisma.pantryItem.findMany({
