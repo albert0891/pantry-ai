@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { X, Sparkles, Loader2, Mic } from 'lucide-react';
-import { categorizeItem, parseVoiceInput } from '@/app/actions/ai';
+import { useItemAssistant } from '@/hooks/useItemAssistant';
 import { CATEGORY_LIST, getCategoryDefinition } from '@/lib/constants/categories';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
@@ -63,6 +63,13 @@ export function ItemFormDialog({
   const [isListening, setIsListening] = useState(false);
   const [isParsingVoice, setIsParsingVoice] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { categorizeItem, parseVoiceInput } = useItemAssistant();
+
+  // Server errors (e.g. rate limits) carry a user-facing message; show it for a few seconds.
+  const showError = (err: unknown, fallback: string) => {
+    setErrorMsg((err instanceof Error && err.message) || fallback);
+    setTimeout(() => setErrorMsg(null), 5000);
+  };
 
   // Format expiry date correctly for input type="date"
   let initialExpiry = '';
@@ -97,11 +104,13 @@ export function ItemFormDialog({
   const handleAutoCategorize = async () => {
     if (!name.trim()) return;
     setIsAutoCategorizing(true);
+    setErrorMsg(null);
     try {
       const suggestedCategory = await categorizeItem(name);
       setCategory(suggestedCategory);
     } catch (err) {
-      console.error('Failed to auto categorize', err);
+      console.warn('Failed to auto categorize', err);
+      showError(err, 'Auto-categorize failed. Please pick a category.');
     } finally {
       setIsAutoCategorizing(false);
     }
@@ -132,24 +141,14 @@ export function ItemFormDialog({
       setIsParsingVoice(true);
       setErrorMsg(null);
       try {
-        const result = await parseVoiceInput(transcript);
-        if (result && result.success) {
-          const parsed = result.data;
-          if (parsed.name) setName(parsed.name);
-          if (parsed.quantity) setQuantity(parsed.quantity);
-          if (parsed.category) setCategory(parsed.category);
-          if (parsed.expiryDate) setExpiryDate(parsed.expiryDate);
-        } else {
-          // If Zod or Gemini threw an error, display it directly
-          const errMsg = result && 'error' in result ? result.error : 'AI 聽不懂，請再試一次';
-          console.error('Voice parse failed:', errMsg);
-          setErrorMsg(errMsg);
-          setTimeout(() => setErrorMsg(null), 5000);
-        }
+        const parsed = await parseVoiceInput(transcript);
+        if (parsed.name) setName(parsed.name);
+        if (parsed.quantity) setQuantity(parsed.quantity);
+        if (parsed.category) setCategory(parsed.category);
+        if (parsed.expiryDate) setExpiryDate(parsed.expiryDate);
       } catch (err) {
-        console.error('Parse voice failed completely:', err);
-        setErrorMsg('系統發生錯誤，請稍後再試');
-        setTimeout(() => setErrorMsg(null), 5000);
+        console.warn('Voice parse failed:', err);
+        showError(err, "Couldn't understand that. Please try again.");
       } finally {
         setIsParsingVoice(false);
       }

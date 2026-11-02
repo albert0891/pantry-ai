@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { Category, BoardState, User, PantryItem } from '@prisma/client';
 import { generateRecipeWithAI } from '../lib/ai/recipeGenerator';
+import { categorizeItemWithAI, parseVoiceInputWithAI } from '../lib/ai/itemAssistant';
 import { enforceAiRateLimit } from '../lib/rateLimit/aiRateLimiter';
 
 // ---------------------------------------------------------------------------
@@ -218,6 +219,31 @@ export const resolvers = {
         supportingItems,
         args.previouslyUsedIngredients,
       );
+    },
+
+    categorizeItem: async (
+      _: unknown,
+      { name }: { name: string },
+      context: { userId?: string; ip?: string | null },
+    ) => {
+      const user = await ensureAuthenticatedUser(context);
+      // An empty name needs no AI, so it should not cost the user any quota.
+      if (!name.trim()) return 'OTHER';
+      await enforceAiRateLimit('categorize', user.cognitoId, context.ip ?? null);
+
+      return await categorizeItemWithAI(name);
+    },
+
+    parseVoiceInput: async (
+      _: unknown,
+      { transcript }: { transcript: string },
+      context: { userId?: string; ip?: string | null },
+    ) => {
+      const user = await ensureAuthenticatedUser(context);
+      if (!transcript.trim()) throw new Error("Didn't catch that. Please try again.");
+      await enforceAiRateLimit('voice', user.cognitoId, context.ip ?? null);
+
+      return await parseVoiceInputWithAI(transcript);
     },
 
     saveRecipe: async (

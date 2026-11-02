@@ -64,6 +64,14 @@ export const typeDefs = gql`
     healthy_swaps: [String!]
   }
 
+  # Item fields the AI extracted from a voice transcript. Only name is guaranteed.
+  type ParsedPantryItem {
+    name: String!
+    quantity: Int
+    category: Category
+    expiryDate: String
+  }
+
   type GeneratedRecipe {
     title: String!
     ingredients: [String!]!
@@ -109,6 +117,12 @@ export const typeDefs = gql`
       mustUseItemIds: [String!]!
       previouslyUsedIngredients: [String!]
     ): GeneratedRecipe!
+
+    # AI helpers for the item form. Mutations rather than queries because every
+    # call consumes rate-limit quota, so it must never be served from a cache.
+    categorizeItem(name: String!): Category!
+
+    parseVoiceInput(transcript: String!): ParsedPantryItem!
 
     saveRecipe(title: String!, ingredients: [String!]!, instructions: [String!]!): Recipe!
 

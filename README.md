@@ -49,18 +49,17 @@ All AI output is **structured**: Gemini is called with a `responseSchema`, and t
 ```mermaid
 flowchart LR
   UI["React UI<br/>(KanbanBoard, ItemFormDialog,<br/>AIRecipeManager)"] -- "GraphQL (Apollo Client)<br/>Bearer token" --> GQL["/api/graphql<br/>Apollo Server"]
-  UI -- "Server Actions" --> SA["actions/ai.ts<br/>voice parse, categorize"]
   GQL -- "verify Cognito JWT<br/>or demo token" --> RES["Resolvers"]
   RES --> DB[("PostgreSQL<br/>via Prisma")]
-  RES --> GEN["lib/ai/recipeGenerator.ts"]
+  RES -- "rate limit check" --> RL[("Upstash Redis")]
+  RES --> GEN["lib/ai/<br/>recipe, categorize, voice parse"]
   GEN --> GEM["Google Gemini"]
-  SA --> GEM
   CRON["Daily cron"] -- "Bearer CRON_SECRET" --> RESET["/api/cron/reset-demo"] --> DB
 ```
 
 - **Auth:** each request carries a token. The GraphQL context verifies the Cognito ID token locally (no call to AWS), or maps the demo token to the shared `public-demo-user`. Resolvers only ever read or write the current user's rows.
 - **Deep modules:** each feature keeps its own state, GraphQL operations, and UI together (for example `AIRecipeManager`). `page.tsx` only composes them.
-- **Thin Server Actions:** `'use server'` files export only async functions. Zod schemas and constants live in `src/lib/`.
+- **AI behind one gate:** every AI feature (recipes, auto-categorize, voice fill) is a GraphQL mutation, so it is authenticated and rate limited per user, per demo IP, and demo-wide (counters in Upstash Redis). There are no Server Actions: they would bypass the Bearer-token auth.
 
 ## Project structure
 
@@ -69,7 +68,6 @@ src/
 ├── app/
 │   ├── page.tsx                  # Main board (composition only)
 │   ├── login/page.tsx            # Cognito sign-in / sign-up / Try Demo
-│   ├── actions/ai.ts             # Server Actions: voice parsing, auto-categorize
 │   └── api/
 │       ├── graphql/route.ts      # Apollo Server + JWT verification
 │       └── cron/reset-demo/      # Resets the demo account's data
@@ -79,9 +77,10 @@ src/
 │   ├── providers/                # ApolloProvider, AuthProvider (route guard)
 │   └── ui/                       # shadcn/ui primitives
 ├── graphql/                      # typeDefs + resolvers
-├── hooks/                        # usePantry (GraphQL data), useSwipe
+├── hooks/                        # usePantry (GraphQL data), useItemAssistant, useSwipe
 └── lib/
-    ├── ai/recipeGenerator.ts     # Prompt, response schema, retry loop
+    ├── ai/                       # recipeGenerator (retry loop), itemAssistant
+    ├── rateLimit/                # AI rate-limit policy + Upstash limiter
     ├── schemas/                  # Shared Zod schemas
     └── constants/categories.ts   # Category taxonomy (icons, colors, examples)
 prisma/schema.prisma              # User, PantryItem, Recipe models

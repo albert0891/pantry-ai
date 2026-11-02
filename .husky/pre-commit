@@ -1,3 +1,17 @@
 npx lint-staged
-npm run test
-npm run build
+
+# Test and build exactly what is being committed (the index), not the working tree.
+# Otherwise unstaged or untracked files can make the hook pass while the commit
+# itself is broken (this shipped a failing Vercel deploy on 2026-11-01).
+if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+  npm run test
+  npm run build
+else
+  echo "pre-commit: working tree has unstaged/untracked changes; checking the staged snapshot only."
+  snapshot="$(mktemp -d)"
+  trap 'rm -rf "$snapshot"' EXIT
+  git checkout-index --all --prefix="$snapshot/"
+  ln -s "$PWD/node_modules" "$snapshot/node_modules"
+  if [ -f .env ]; then cp .env "$snapshot/.env"; fi
+  (cd "$snapshot" && npm run test && npm run build)
+fi

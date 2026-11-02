@@ -92,6 +92,12 @@ A successful build does not mean the code is correct. After any significant chan
 2. Never define or export Zod schemas, constants, or types in a `'use server'` file (it crashes Next.js with a 500).
 3. Put schemas and constants in `src/lib/` (e.g. `src/lib/schemas/pantry.ts`) and import them.
 
+## AI Endpoints Must Be Gated (AI 呼叫一律經過驗證與限流)
+
+1. Every call that reaches a paid AI API goes through a GraphQL resolver that runs `ensureAuthenticatedUser` and then `enforceAiRateLimit` (`src/lib/rateLimit/`) before the AI call.
+2. Do not expose AI through Server Actions or new API routes: they never receive the Bearer token, so they cannot be authenticated or rate limited.
+3. A new AI feature adds its own entry to `AI_RATE_LIMITS` so its quota is separate from the others.
+
 ## Strict English-Only Codebase
 
 1. No Chinese comments, docstrings, or identifiers in code.

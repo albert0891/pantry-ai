@@ -16,7 +16,7 @@ export const DEMO_USER_ID = 'public-demo-user';
 const HOUR_SECONDS = 60 * 60;
 const DAY_SECONDS = 24 * HOUR_SECONDS;
 
-export type AiFeature = 'recipe';
+export type AiFeature = 'recipe' | 'categorize' | 'voice';
 
 interface WindowLimit {
   limit: number;
@@ -35,10 +35,23 @@ export const AI_RATE_LIMITS: Record<AiFeature, FeatureLimits> = {
     demoGlobal: { limit: 100, windowSeconds: DAY_SECONDS },
     perUser: { limit: 30, windowSeconds: DAY_SECONDS },
   },
+  // One short prompt per tap of the sparkle button, so the budget is generous.
+  categorize: {
+    demoPerIp: { limit: 30, windowSeconds: HOUR_SECONDS },
+    demoGlobal: { limit: 500, windowSeconds: DAY_SECONDS },
+    perUser: { limit: 200, windowSeconds: DAY_SECONDS },
+  },
+  voice: {
+    demoPerIp: { limit: 10, windowSeconds: HOUR_SECONDS },
+    demoGlobal: { limit: 200, windowSeconds: DAY_SECONDS },
+    perUser: { limit: 50, windowSeconds: DAY_SECONDS },
+  },
 };
 
 const FEATURE_LABELS: Record<AiFeature, string> = {
   recipe: 'AI recipe',
+  categorize: 'Auto-categorize',
+  voice: 'Voice input',
 };
 
 /** Shared bucket for demo requests whose IP cannot be determined. */

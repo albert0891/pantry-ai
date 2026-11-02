@@ -26,6 +26,14 @@ describe('getAiRateLimitRules', () => {
     expect(rules[1].identifier).toBe('all');
   });
 
+  it('keeps a separate counter family per AI feature', () => {
+    const features = Object.keys(AI_RATE_LIMITS) as (keyof typeof AI_RATE_LIMITS)[];
+    for (const feature of features) {
+      const names = getAiRateLimitRules(feature, DEMO_USER_ID, '1.2.3.4').map((r) => r.name);
+      expect(names).toEqual([`${feature}:demo-ip`, `${feature}:demo-global`]);
+    }
+  });
+
   it('puts demo requests without an IP into one shared bucket', () => {
     const [ipRule] = getAiRateLimitRules('recipe', DEMO_USER_ID, null);
     expect(ipRule.identifier).toBe(UNKNOWN_IP);
@@ -54,6 +62,13 @@ describe('formatRateLimitMessage', () => {
       'AI recipe limit reached. Please try again in 1 minute.',
     );
     expect(formatRateLimitMessage('recipe', now + 23 * 60_000 - 5, now)).toContain('23 minutes');
+  });
+
+  it('names the feature that hit its limit', () => {
+    expect(formatRateLimitMessage('voice', now + 60_000, now)).toMatch(
+      /^Voice input limit reached/,
+    );
+    expect(formatRateLimitMessage('categorize', now + 60_000, now)).toMatch(/^Auto-categorize/);
   });
 
   it('switches to hours for long waits', () => {

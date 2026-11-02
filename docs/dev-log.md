@@ -271,9 +271,20 @@
 - New env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (documented in `.env.example`).
 - Added a Husky `commit-msg` hook that strips `Co-Authored-By: ...anthropic.com/claude` trailers, so AI tools never show up as GitHub contributors (a trailer slipped into `e5b6dba` on 2026-10-28 and was amended away, but GitHub's contributor cache kept it).
 
+## 2026-11-01
+
+### Completed:
+
+- B: Moved auto-categorize and voice fill from Server Actions into GraphQL mutations (`categorizeItem`, `parseVoiceInput`).
+  - Why: Server Actions are public POST endpoints that never receive the Bearer token (it lives in localStorage and only Apollo sends it), so they were unauthenticated and unlimited AI entry points.
+  - Server: `src/lib/ai/itemAssistant.ts` holds the Gemini calls; resolvers run auth, then `enforceAiRateLimit` with new `categorize` (200/day per user, 30/hour per demo IP, 500/day demo-wide) and `voice` (50/day, 10/hour, 200/day) quotas. `src/app/actions/` is gone.
+  - Client: `useItemAssistant` hook (`fetchPolicy: 'no-cache'`); `ItemFormDialog` now shows server messages (e.g. rate limits) for both helpers and lost its hard-coded Chinese error strings.
+  - `normalizeParsedItem` (tested) rounds AI quantities to Int, maps unknown categories to OTHER, and drops non-ISO dates, so AI output always fits the GraphQL types.
+  - New CLAUDE.md rule: every paid AI call goes through an authenticated, rate-limited GraphQL resolver.
+- Incident: commit `9b4a2e9` shipped only the staged half of B (the `ai.ts` deletion and the test move, staged by `git rm` / `git mv`), so Vercel failed with `Module not found: '@/app/actions/ai'`. The pre-commit hook passed because it built the working tree, not the commit. Fixed by committing the rest of B and making `.husky/pre-commit` test/build a snapshot of the index whenever the working tree has unstaged or untracked changes.
+
 ### Next Steps:
 
-- B: Move `categorizeItem` / `parseVoiceInput` Server Actions (currently unauthenticated) into GraphQL mutations behind auth + rate limits.
 - C: Cap AI input size (ingredient count, string length) and `max_tokens`.
 - D: Set a monthly spend cap in the AI provider's billing console.
 - E (optional): Replace the static `demo_token` with a short-lived signed token.
