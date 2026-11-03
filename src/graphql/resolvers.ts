@@ -1,8 +1,18 @@
+import { GraphQLError } from 'graphql';
+import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { Category, BoardState, User, PantryItem } from '@prisma/client';
 import { generateRecipeWithAI } from '../lib/ai/recipeGenerator';
 import { categorizeItemWithAI, parseVoiceInputWithAI } from '../lib/ai/itemAssistant';
 import { enforceAiRateLimit } from '../lib/rateLimit/aiRateLimiter';
+import { AI_INPUT_LIMITS } from '../lib/constants/limits';
+import { ItemNameSchema } from '../lib/schemas/pantry';
+import {
+  CategorizeItemArgsSchema,
+  GenerateRecipeArgsSchema,
+  ParseVoiceInputArgsSchema,
+  toPromptNames,
+} from '../lib/schemas/aiInput';
 
 // ---------------------------------------------------------------------------
 // Educational Note: Resolvers in GraphQL
@@ -26,6 +36,20 @@ const ensureAuthenticatedUser = async (context: { userId?: string }): Promise<Us
     throw new Error('Unauthorized: User not found in database');
   }
   return user;
+};
+
+/**
+ * Validates resolver args with Zod. A failure becomes a BAD_USER_INPUT error
+ * whose message is safe to show in the UI.
+ */
+const parseArgs = <S extends z.ZodType>(schema: S, args: unknown): z.output<S> => {
+  const result = schema.safeParse(args);
+  if (!result.success) {
+    throw new GraphQLError(result.error.issues[0]?.message ?? 'Invalid input.', {
+      extensions: { code: 'BAD_USER_INPUT' },
+    });
+  }
+  return result.data;
 };
 
 export const resolvers = {
@@ -74,6 +98,7 @@ export const resolvers = {
       context: { userId?: string },
     ) => {
       if (!context.userId) throw new Error('Unauthorized');
+      const name = parseArgs(ItemNameSchema, args.name);
       // Enterprise Pattern: Upsert guarantees the user exists before associating data to them.
       const user = await prisma.user.upsert({
         where: { cognitoId: context.userId },
@@ -83,7 +108,7 @@ export const resolvers = {
 
       return await prisma.pantryItem.create({
         data: {
-          name: args.name,
+          name,
           quantity: args.quantity,
           unit: args.unit,
           category: args.category || 'OTHER',
@@ -107,6 +132,7 @@ export const resolvers = {
       context: { userId?: string },
     ) => {
       const user = await ensureAuthenticatedUser(context);
+      const name = parseArgs(ItemNameSchema, args.name);
 
       const item = await prisma.pantryItem.findUnique({ where: { id: args.id } });
       if (!item || item.userId !== user.id) throw new Error('Forbidden');
@@ -114,7 +140,7 @@ export const resolvers = {
       return await prisma.pantryItem.update({
         where: { id: args.id },
         data: {
-          name: args.name,
+          name,
           quantity: args.quantity,
           unit: args.unit,
           category: args.category,
@@ -196,39 +222,51 @@ export const resolvers = {
       context: { userId?: string; ip?: string | null },
     ) => {
       const user = await ensureAuthenticatedUser(context);
-      // Charge the quota before any paid AI work. Keyed by Cognito id, which is stable per account.
-      await enforceAiRateLimit('recipe', user.cognitoId, context.ip ?? null);
+      const { mustUseItemIds, previouslyUsedIngredients } = parseArgs(
+        GenerateRecipeArgsSchema,
+        args,
+      );
 
-      // Fetch ALL items to allow cross-board recipe planning
-      const allItems = await prisma.pantryItem.findMany({
-        where: { userId: user.id },
+      // 1. Must-use items: anything the user explicitly checked (TO_BUY, IN_PANTRY, or CONSUMED)
+      const mustUseItems = await prisma.pantryItem.findMany({
+        where: { userId: user.id, id: { in: mustUseItemIds } },
+        select: { name: true },
+      });
+      if (mustUseItems.length === 0) {
+        throw new GraphQLError('The selected items no longer exist. Please pick them again.', {
+          extensions: { code: 'BAD_USER_INPUT' },
+        });
+      }
+
+      // 2. Supporting items: other IN_PANTRY items, soonest expiry first. Capped so a
+      // large pantry cannot inflate the prompt (and the bill).
+      const supportingItems = await prisma.pantryItem.findMany({
+        where: { userId: user.id, boardState: 'IN_PANTRY', id: { notIn: mustUseItemIds } },
+        orderBy: { expiryDate: { sort: 'asc', nulls: 'last' } },
+        take: AI_INPUT_LIMITS.supportingItems,
+        select: { name: true },
       });
 
-      // 1. Must-use items: Anything the user explicitly checked (can be TO_BUY, IN_PANTRY, or CONSUMED)
-      const mustUseItems = allItems
-        .filter((item) => args.mustUseItemIds.includes(item.id))
-        .map((i) => i.name);
-
-      // 2. Supporting items: Only items currently IN_PANTRY that weren't explicitly checked
-      const supportingItems = allItems
-        .filter((item) => item.boardState === 'IN_PANTRY' && !args.mustUseItemIds.includes(item.id))
-        .map((i) => i.name);
+      // Charge the quota only once the request is valid and will reach the AI.
+      // Keyed by Cognito id, which is stable per account.
+      await enforceAiRateLimit('recipe', user.cognitoId, context.ip ?? null);
 
       return await generateRecipeWithAI(
-        mustUseItems,
-        supportingItems,
-        args.previouslyUsedIngredients,
+        toPromptNames(mustUseItems.map((item) => item.name)),
+        toPromptNames(supportingItems.map((item) => item.name)),
+        previouslyUsedIngredients ?? undefined,
       );
     },
 
     categorizeItem: async (
       _: unknown,
-      { name }: { name: string },
+      args: { name: string },
       context: { userId?: string; ip?: string | null },
     ) => {
       const user = await ensureAuthenticatedUser(context);
+      const { name } = parseArgs(CategorizeItemArgsSchema, args);
       // An empty name needs no AI, so it should not cost the user any quota.
-      if (!name.trim()) return 'OTHER';
+      if (!name) return 'OTHER';
       await enforceAiRateLimit('categorize', user.cognitoId, context.ip ?? null);
 
       return await categorizeItemWithAI(name);
@@ -236,11 +274,11 @@ export const resolvers = {
 
     parseVoiceInput: async (
       _: unknown,
-      { transcript }: { transcript: string },
+      args: { transcript: string },
       context: { userId?: string; ip?: string | null },
     ) => {
       const user = await ensureAuthenticatedUser(context);
-      if (!transcript.trim()) throw new Error("Didn't catch that. Please try again.");
+      const { transcript } = parseArgs(ParseVoiceInputArgsSchema, args);
       await enforceAiRateLimit('voice', user.cognitoId, context.ip ?? null);
 
       return await parseVoiceInputWithAI(transcript);

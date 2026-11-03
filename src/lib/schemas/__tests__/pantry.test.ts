@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ParsedItemSchema, VALID_CATEGORIES, normalizeParsedItem } from '../pantry';
+import { ItemNameSchema, ParsedItemSchema, VALID_CATEGORIES, normalizeParsedItem } from '../pantry';
+import { ITEM_NAME_MAX_LENGTH } from '../../constants/limits';
 
 describe('ParsedItemSchema', () => {
   it('should parse a valid complete object (Happy Path)', () => {
@@ -100,5 +101,22 @@ describe('normalizeParsedItem', () => {
 
   it('trims the item name', () => {
     expect(normalizeParsedItem({ name: '  Minced Pork 250g ' }).name).toBe('Minced Pork 250g');
+  });
+
+  it('cuts an over-long AI name to the item name limit instead of failing', () => {
+    const name = normalizeParsedItem({ name: 'a'.repeat(ITEM_NAME_MAX_LENGTH + 50) }).name;
+    expect(name).toHaveLength(ITEM_NAME_MAX_LENGTH);
+  });
+});
+
+describe('ItemNameSchema', () => {
+  it('accepts a name at the limit and trims it', () => {
+    expect(ItemNameSchema.parse('  Milk  ')).toBe('Milk');
+    expect(ItemNameSchema.safeParse('a'.repeat(ITEM_NAME_MAX_LENGTH)).success).toBe(true);
+  });
+
+  it('rejects blank and over-long names', () => {
+    expect(ItemNameSchema.safeParse('   ').success).toBe(false);
+    expect(ItemNameSchema.safeParse('a'.repeat(ITEM_NAME_MAX_LENGTH + 1)).success).toBe(false);
   });
 });

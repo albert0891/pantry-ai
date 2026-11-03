@@ -59,7 +59,7 @@ flowchart LR
 
 - **Auth:** each request carries a token. The GraphQL context verifies the Cognito ID token locally (no call to AWS), or maps the demo token to the shared `public-demo-user`. Resolvers only ever read or write the current user's rows.
 - **Deep modules:** each feature keeps its own state, GraphQL operations, and UI together (for example `AIRecipeManager`). `page.tsx` only composes them.
-- **AI behind one gate:** every AI feature (recipes, auto-categorize, voice fill) is a GraphQL mutation, so it is authenticated and rate limited per user, per demo IP, and demo-wide (counters in Upstash Redis). There are no Server Actions: they would bypass the Bearer-token auth.
+- **AI behind one gate:** every AI feature (recipes, auto-categorize, voice fill) is a GraphQL mutation, so it is authenticated and rate limited per user, per demo IP, and demo-wide (counters in Upstash Redis). There are no Server Actions: they would bypass the Bearer-token auth. Inputs are size-checked before any quota is spent, and every call has an output token cap, so one request has a bounded worst-case cost.
 
 ## Project structure
 
@@ -79,10 +79,11 @@ src/
 ├── graphql/                      # typeDefs + resolvers
 ├── hooks/                        # usePantry (GraphQL data), useItemAssistant, useSwipe
 └── lib/
-    ├── ai/                       # recipeGenerator (retry loop), itemAssistant
+    ├── ai/                       # recipeGenerator (retry loop), itemAssistant,
+    │                             # config (model id, output token caps)
     ├── rateLimit/                # AI rate-limit policy + Upstash limiter
-    ├── schemas/                  # Shared Zod schemas
-    └── constants/categories.ts   # Category taxonomy (icons, colors, examples)
+    ├── schemas/                  # Shared Zod schemas (incl. AI argument limits)
+    └── constants/                # categories (taxonomy), limits (input sizes)
 prisma/schema.prisma              # User, PantryItem, Recipe models
 ```
 

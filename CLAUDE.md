@@ -94,9 +94,9 @@ A successful build does not mean the code is correct. After any significant chan
 
 ## AI Endpoints Must Be Gated (AI 呼叫一律經過驗證與限流)
 
-1. Every call that reaches a paid AI API goes through a GraphQL resolver that runs `ensureAuthenticatedUser` and then `enforceAiRateLimit` (`src/lib/rateLimit/`) before the AI call.
+1. Every call that reaches a paid AI API goes through a GraphQL resolver that runs, in order: `ensureAuthenticatedUser`, `parseArgs` with a Zod schema from `src/lib/schemas/aiInput.ts`, then `enforceAiRateLimit` (`src/lib/rateLimit/`), then the AI call. Invalid input is rejected before it costs quota.
 2. Do not expose AI through Server Actions or new API routes: they never receive the Bearer token, so they cannot be authenticated or rate limited.
-3. A new AI feature adds its own entry to `AI_RATE_LIMITS` so its quota is separate from the others.
+3. A new AI feature adds its own entry to `AI_RATE_LIMITS` (quota) and `MAX_OUTPUT_TOKENS` (`src/lib/ai/config.ts`, output cap), and bounds every input that reaches the prompt (`AI_INPUT_LIMITS` in `src/lib/constants/limits.ts`). Base caps on measured usage, not guesses.
 
 ## Strict English-Only Codebase
 

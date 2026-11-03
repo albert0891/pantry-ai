@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { X, Sparkles, Loader2, Mic } from 'lucide-react';
 import { useItemAssistant } from '@/hooks/useItemAssistant';
 import { CATEGORY_LIST, getCategoryDefinition } from '@/lib/constants/categories';
+import { ITEM_NAME_MAX_LENGTH } from '@/lib/constants/limits';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
   TO_BUY: '🛒 To Buy',
@@ -235,6 +236,7 @@ export function ItemFormDialog({
                   onChange={(e) => setName(e.target.value)}
                   className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
                   placeholder="e.g. Apples"
+                  maxLength={ITEM_NAME_MAX_LENGTH}
                   required
                 />
               </div>

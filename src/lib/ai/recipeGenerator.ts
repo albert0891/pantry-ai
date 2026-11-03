@@ -1,5 +1,6 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { FinishReason, GoogleGenAI, Type } from '@google/genai';
 import { z } from 'zod';
+import { GEMINI_MODEL, MAX_OUTPUT_TOKENS } from './config';
 
 export const NutritionSchema = z.object({
   calories: z
@@ -49,6 +50,9 @@ export type GeneratedRecipe = z.infer<typeof RecipeSchema>;
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
+
+/** The model stopped at MAX_OUTPUT_TOKENS, so the JSON is cut off. Not worth retrying. */
+class OutputCapError extends Error {}
 
 export const buildRecipePrompt = (
   mustUseIngredients: string[],
@@ -118,9 +122,10 @@ export async function generateRecipeWithAI(
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
+        model: GEMINI_MODEL,
         contents: prompt,
         config: {
+          maxOutputTokens: MAX_OUTPUT_TOKENS.recipe,
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
@@ -158,6 +163,12 @@ export async function generateRecipeWithAI(
         },
       });
 
+      if (response.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) {
+        throw new OutputCapError(
+          `Output hit the ${MAX_OUTPUT_TOKENS.recipe}-token cap (${JSON.stringify(response.usageMetadata)})`,
+        );
+      }
+
       const jsonText = response.text || '{}';
       const result = JSON.parse(jsonText);
 
@@ -168,6 +179,10 @@ export async function generateRecipeWithAI(
         err instanceof Error ? err.message : String(err),
       );
       lastError = err instanceof Error ? err : new Error(String(err));
+
+      // A cut-off answer means the model rambled past the cap (e.g. a prompt
+      // injection in an item name). Retrying would only pay for that again.
+      if (err instanceof OutputCapError) break;
 
       // Exponential backoff to handle 429 Rate Limits
       if (attempt < MAX_RETRIES) {

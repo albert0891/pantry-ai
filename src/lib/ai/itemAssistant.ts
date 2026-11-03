@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
+import { GEMINI_MODEL, MAX_OUTPUT_TOKENS } from './config';
 import {
   ParsedItem,
   ParsedItemSchema,
@@ -15,8 +16,6 @@ import {
 // They are now plain server functions, called only from GraphQL resolvers
 // after the auth and rate-limit checks.
 // ---------------------------------------------------------------------------
-
-const MODEL = 'gemini-3.1-flash-lite';
 
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
@@ -43,7 +42,11 @@ Rules:
 - If unsure, respond with OTHER.`;
 
   try {
-    const response = await ai.models.generateContent({ model: MODEL, contents: prompt });
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: prompt,
+      config: { maxOutputTokens: MAX_OUTPUT_TOKENS.categorize },
+    });
     const text = response.text?.trim().toUpperCase() || 'OTHER';
     return VALID_CATEGORIES.includes(text) ? text : 'OTHER';
   } catch (error) {
@@ -83,9 +86,11 @@ Example 2: "Milk" -> {"name": "Milk", "quantity": 1, "category": "DAIRY"}`;
   let text: string | undefined;
   try {
     const response = await ai.models.generateContent({
-      model: MODEL,
+      model: GEMINI_MODEL,
       contents: prompt,
       config: {
+        // A cut-off answer is invalid JSON and falls through to VOICE_PARSE_FAILED below.
+        maxOutputTokens: MAX_OUTPUT_TOKENS.voice,
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.OBJECT,

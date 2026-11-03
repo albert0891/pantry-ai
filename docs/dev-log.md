@@ -288,3 +288,22 @@
 - C: Cap AI input size (ingredient count, string length) and `max_tokens`.
 - D: Set a monthly spend cap in the AI provider's billing console.
 - E (optional): Replace the static `demo_token` with a short-lived signed token.
+
+## 2026-11-02
+
+### Completed:
+
+- C: Capped what goes into and comes out of every AI call, so one request has a bounded worst-case cost.
+  - Input: new `src/lib/constants/limits.ts` (client-safe, no Zod) holds `ITEM_NAME_MAX_LENGTH` (100) and `AI_INPUT_LIMITS` (10 must-use items, 30 supporting pantry items, 40 previous ingredients of up to 200 chars, 300-char voice transcript). Zod schemas in `src/lib/schemas/aiInput.ts`; resolvers run them through a `parseArgs` helper that throws `BAD_USER_INPUT` with a user-readable message.
+  - Order in every AI resolver is now auth, validate, rate limit, AI, so an oversized or invalid request is rejected without using quota.
+  - `generateRecipe` no longer loads the whole pantry: it fetches only the ticked items, plus at most 30 other IN_PANTRY items, soonest expiry first. Ticked items that no longer exist give a clear error instead of an empty AI call.
+  - Item names are capped at 100 chars on add/edit too (server Zod + `maxLength` on the form field), since they end up in recipe prompts. Production's longest name is 16 chars.
+  - Output: `src/lib/ai/config.ts` sets `MAX_OUTPUT_TOKENS` per feature (recipe 4096, categorize 512, voice 1024) from measured usage (recipe ~590, voice ~21, categorize ~2), down from the model default of 65,536. A recipe cut off by the cap is not retried, since a retry would pay for the same runaway output again.
+  - The Gemini model id now lives in one place (`GEMINI_MODEL`).
+  - CLAUDE.md AI rule updated: new AI features need input limits and an output cap, not just a rate limit.
+- Note: `gemini-3.1-flash-lite` returned 503 "high demand" for over 10 minutes during this work, so token usage was measured on `gemini-2.5-flash-lite` as a stand-in. The caps leave room for 3.1's thinking tokens.
+
+### Next Steps:
+
+- D: Set a monthly spend cap in the AI provider's billing console.
+- E (optional): Replace the static `demo_token` with a short-lived signed token.
