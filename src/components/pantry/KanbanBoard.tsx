@@ -1,6 +1,6 @@
 'use client';
 
-import { PantryItem } from '@prisma/client';
+import { PantryItem } from '@/hooks/usePantry';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import {

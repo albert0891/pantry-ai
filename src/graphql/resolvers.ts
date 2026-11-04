@@ -7,6 +7,8 @@ import { categorizeItemWithAI, parseVoiceInputWithAI } from '../lib/ai/itemAssis
 import { enforceAiRateLimit } from '../lib/rateLimit/aiRateLimiter';
 import { AI_INPUT_LIMITS } from '../lib/constants/limits';
 import { ItemNameSchema } from '../lib/schemas/pantry';
+import { resolveUserToday, utcToCalendarDate } from '../lib/dates/calendarDate';
+import { CalendarDateScalar } from './scalars';
 import {
   CategorizeItemArgsSchema,
   GenerateRecipeArgsSchema,
@@ -53,6 +55,8 @@ const parseArgs = <S extends z.ZodType>(schema: S, args: unknown): z.output<S> =
 };
 
 export const resolvers = {
+  CalendarDate: CalendarDateScalar,
+
   Query: {
     hello: () => 'Hello from GraphQL in Next.js!',
 
@@ -92,7 +96,7 @@ export const resolvers = {
         quantity: number;
         unit?: string;
         category?: Category;
-        expiryDate?: string;
+        expiryDate?: Date | null;
         boardState?: BoardState;
       },
       context: { userId?: string },
@@ -113,7 +117,7 @@ export const resolvers = {
           unit: args.unit,
           category: args.category || 'OTHER',
           boardState: args.boardState || 'TO_BUY',
-          ...(args.expiryDate && { expiryDate: new Date(args.expiryDate) }),
+          expiryDate: args.expiryDate,
           userId: user.id,
         },
       });
@@ -127,7 +131,7 @@ export const resolvers = {
         quantity: number;
         unit?: string;
         category: Category;
-        expiryDate?: string;
+        expiryDate?: Date | null;
       },
       context: { userId?: string },
     ) => {
@@ -144,7 +148,7 @@ export const resolvers = {
           quantity: args.quantity,
           unit: args.unit,
           category: args.category,
-          expiryDate: args.expiryDate ? new Date(args.expiryDate) : null,
+          expiryDate: args.expiryDate ?? null,
         },
       });
     },
@@ -274,14 +278,17 @@ export const resolvers = {
 
     parseVoiceInput: async (
       _: unknown,
-      args: { transcript: string },
+      args: { transcript: string; today?: Date | null },
       context: { userId?: string; ip?: string | null },
     ) => {
       const user = await ensureAuthenticatedUser(context);
-      const { transcript } = parseArgs(ParseVoiceInputArgsSchema, args);
+      const { transcript, today } = parseArgs(ParseVoiceInputArgsSchema, args);
       await enforceAiRateLimit('voice', user.cognitoId, context.ip ?? null);
 
-      return await parseVoiceInputWithAI(transcript);
+      return await parseVoiceInputWithAI(
+        transcript,
+        resolveUserToday(today && utcToCalendarDate(today)),
+      );
     },
 
     saveRecipe: async (

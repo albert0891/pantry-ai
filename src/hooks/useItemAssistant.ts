@@ -2,6 +2,7 @@
 
 import { gql } from '@apollo/client/core';
 import { useMutation } from '@apollo/client/react';
+import { localCalendarDate } from '../lib/dates/calendarDate';
 
 export const CATEGORIZE_ITEM = gql`
   mutation CategorizeItem($name: String!) {
@@ -10,8 +11,8 @@ export const CATEGORIZE_ITEM = gql`
 `;
 
 export const PARSE_VOICE_INPUT = gql`
-  mutation ParseVoiceInput($transcript: String!) {
-    parseVoiceInput(transcript: $transcript) {
+  mutation ParseVoiceInput($transcript: String!, $today: CalendarDate) {
+    parseVoiceInput(transcript: $transcript, today: $today) {
       name
       quantity
       category
@@ -38,10 +39,10 @@ export function useItemAssistant() {
   const [categorize] = useMutation<{ categorizeItem: string }, { name: string }>(CATEGORIZE_ITEM, {
     fetchPolicy: 'no-cache',
   });
-  const [parseVoice] = useMutation<{ parseVoiceInput: ParsedPantryItem }, { transcript: string }>(
-    PARSE_VOICE_INPUT,
-    { fetchPolicy: 'no-cache' },
-  );
+  const [parseVoice] = useMutation<
+    { parseVoiceInput: ParsedPantryItem },
+    { transcript: string; today: string }
+  >(PARSE_VOICE_INPUT, { fetchPolicy: 'no-cache' });
 
   const categorizeItem = async (name: string): Promise<string> => {
     const { data } = await categorize({ variables: { name } });
@@ -50,7 +51,7 @@ export function useItemAssistant() {
   };
 
   const parseVoiceInput = async (transcript: string): Promise<ParsedPantryItem> => {
-    const { data } = await parseVoice({ variables: { transcript } });
+    const { data } = await parseVoice({ variables: { transcript, today: localCalendarDate() } });
     if (!data) throw new Error("Couldn't understand that. Please try again.");
     return data.parseVoiceInput;
   };

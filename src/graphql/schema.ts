@@ -10,6 +10,9 @@ import gql from 'graphql-tag';
 // ---------------------------------------------------------------------------
 
 export const typeDefs = gql`
+  # A day on the calendar as YYYY-MM-DD, with no time and no time zone.
+  scalar CalendarDate
+
   # Enum mapping directly to our Prisma Category enum
   enum Category {
     PRODUCE
@@ -39,7 +42,7 @@ export const typeDefs = gql`
     quantity: Int!
     unit: String
     category: Category!
-    expiryDate: String
+    expiryDate: CalendarDate
     imageUrl: String
     boardState: BoardState!
   }
@@ -69,7 +72,7 @@ export const typeDefs = gql`
     name: String!
     quantity: Int
     category: Category
-    expiryDate: String
+    expiryDate: CalendarDate
   }
 
   type GeneratedRecipe {
@@ -94,7 +97,7 @@ export const typeDefs = gql`
       quantity: Int!
       unit: String
       category: Category
-      expiryDate: String
+      expiryDate: CalendarDate
       boardState: BoardState
     ): PantryItem!
 
@@ -104,7 +107,7 @@ export const typeDefs = gql`
       quantity: Int!
       unit: String
       category: Category!
-      expiryDate: String
+      expiryDate: CalendarDate
     ): PantryItem!
 
     deletePantryItem(id: ID!): Boolean!
@@ -122,7 +125,8 @@ export const typeDefs = gql`
     # call consumes rate-limit quota, so it must never be served from a cache.
     categorizeItem(name: String!): Category!
 
-    parseVoiceInput(transcript: String!): ParsedPantryItem!
+    # today is the user's local date, so that "expires tomorrow" means tomorrow for them.
+    parseVoiceInput(transcript: String!, today: CalendarDate): ParsedPantryItem!
 
     saveRecipe(title: String!, ingredients: [String!]!, instructions: [String!]!): Recipe!
 

@@ -1,8 +1,18 @@
 'use client';
 
-import { PantryItem, Recipe } from '@prisma/client';
+import { BoardState, Category, Recipe } from '@prisma/client';
 import { gql } from '@apollo/client/core';
 import { useQuery, useMutation } from '@apollo/client/react';
+
+/** A pantry item as GET_PANTRY_ITEMS returns it. expiryDate is a YYYY-MM-DD string. */
+export interface PantryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  category: Category;
+  boardState: BoardState;
+  expiryDate: string | null;
+}
 
 export const GET_PANTRY_ITEMS = gql`
   query GetMyPantry {
@@ -38,7 +48,7 @@ export const ADD_ITEM = gql`
     $name: String!
     $quantity: Int!
     $category: Category
-    $expiryDate: String
+    $expiryDate: CalendarDate
     $boardState: BoardState
   ) {
     addPantryItem(
@@ -64,7 +74,7 @@ export const EDIT_ITEM = gql`
     $name: String!
     $quantity: Int!
     $category: Category!
-    $expiryDate: String
+    $expiryDate: CalendarDate
   ) {
     editPantryItem(
       id: $id

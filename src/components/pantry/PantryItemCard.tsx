@@ -1,6 +1,6 @@
 'use client';
 
-import { PantryItem } from '@prisma/client';
+import { PantryItem } from '@/hooks/usePantry';
 import React from 'react';
 import {
   ChevronsLeft,
@@ -23,38 +23,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { getCategoryDefinition } from '@/lib/constants/categories';
-
-const formatDate = (dateString: string | Date) => {
-  if (!dateString) return '';
-  if (dateString instanceof Date) return dateString.toLocaleDateString();
-  if (/^\d+$/.test(dateString)) {
-    return new Date(parseInt(dateString, 10)).toLocaleDateString();
-  }
-  return new Date(dateString).toLocaleDateString();
-};
-
-const getExpiryStatus = (dateString: string | Date) => {
-  if (!dateString) return 'OK';
-  const expiry =
-    dateString instanceof Date
-      ? dateString
-      : /^\d+$/.test(dateString)
-        ? new Date(parseInt(dateString, 10))
-        : new Date(dateString);
-  const now = new Date();
-
-  // Set both to midnight to compare just dates
-  expiry.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-
-  const diffTime = expiry.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return 'EXPIRED'; // Passed
-  if (diffDays === 0) return 'TODAY'; // Expires today
-  if (diffDays <= 3) return 'SOON'; // Expires in 1-3 days
-  return 'OK';
-};
+import { formatCalendarDate, getExpiryStatus } from '@/lib/dates/calendarDate';
 
 interface PantryItemCardProps {
   item: PantryItem;
@@ -117,7 +86,7 @@ export function PantryItemCard({
             <p className="text-sm font-medium text-stone-500 mt-1">Qty: {item.quantity}</p>
             {item.expiryDate && (
               <p className="text-[11px] font-bold text-rose-600 mt-1 uppercase tracking-wider">
-                Exp: {formatDate(item.expiryDate)}
+                Exp: {formatCalendarDate(item.expiryDate)}
               </p>
             )}
           </div>

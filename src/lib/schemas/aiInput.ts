@@ -36,6 +36,8 @@ export const ParseVoiceInputArgsSchema = z.object({
       AI_INPUT_LIMITS.voiceTranscriptLength,
       'That was too long. Please describe one item at a time.',
     ),
+  // The user's local date. The CalendarDate scalar has already validated and parsed it.
+  today: z.date().nullish(),
 });
 
 /**

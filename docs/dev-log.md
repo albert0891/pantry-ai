@@ -307,3 +307,20 @@
 
 - D: Set a monthly spend cap in the AI provider's billing console.
 - E (optional): Replace the static `demo_token` with a short-lived signed token.
+
+## 2026-11-03
+
+### Completed:
+
+- Fixed expiry dates end to end. An expiry date is now a plain `YYYY-MM-DD` calendar date from the API to the screen, with no time zone conversion anywhere.
+  - Crash: `expiryDate` was declared `String`, so graphql-js turned Prisma's `Date` into a millisecond string (`"1794096000000"`). `page.tsx` passed that to `new Date()` with no guard, so Edit on any item with an expiry date threw `RangeError: Invalid time value` and took down the whole page. It went unnoticed because none of the 38 items in the database has an expiry date. Reproduced in the browser before fixing.
+  - One day early: the card read the value as a moment in time and converted it to local time, so west of UTC a date showed a day early (in New York, 11/8 displayed as 11/7) and the expiry colours were a day off too.
+  - Voice fill: the server took "today" from its own UTC clock, so "expires tomorrow" came out a day late in the evening in New York and a day early before 8am in Taiwan. The client now sends its local date as `today`; the server trusts it within one day of UTC and otherwise uses its own date.
+  - Fix: new `CalendarDate` GraphQL scalar (`src/graphql/scalars.ts`) that always sends `YYYY-MM-DD` and rejects anything else with `BAD_USER_INPUT`. Date logic moved out of components into `src/lib/dates/calendarDate.ts` (validation, formatting, `getExpiryStatus`, `resolveUserToday`). All `/^\d+$/` patches are gone. The form sends `null` for no date instead of an empty string.
+  - Types: client code now uses a hand-written `PantryItem` from `usePantry.ts` whose `expiryDate` is `string | null`. The Prisma type claimed `Date`, which is why TypeScript never caught the crash. `Recipe` still uses the Prisma type.
+  - Tests: date logic runs in four time zones; `src/graphql/__tests__/expiryDate.test.ts` runs the real schema and resolvers against a mocked database and checks every frontend operation against the schema.
+  - Verified: 320, 375 and 1280px in the browser with real reads. Saves were intercepted in the browser and checked by their variables, because the only reachable database was Neon. Real Gemini calls confirmed "tomorrow" follows the client's date.
+
+### Next Steps:
+
+- Switch `expiryDate` to `@db.Date` and do a real save on a local database. Both are waiting on Docker Desktop, which needs an admin password to start. Neon has no expiry dates yet, so the column change affects no values.

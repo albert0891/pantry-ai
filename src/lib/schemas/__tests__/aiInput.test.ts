@@ -105,6 +105,18 @@ describe('ParseVoiceInputArgsSchema', () => {
       false,
     );
   });
+
+  it("keeps the user's today, which the CalendarDate scalar has already parsed", () => {
+    const today = new Date('2026-11-04T00:00:00.000Z');
+    expect(ParseVoiceInputArgsSchema.parse({ transcript: 'Milk', today }).today).toEqual(today);
+  });
+
+  it('treats today as optional (missing or null)', () => {
+    expect(ParseVoiceInputArgsSchema.safeParse({ transcript: 'Milk' }).success).toBe(true);
+    expect(ParseVoiceInputArgsSchema.safeParse({ transcript: 'Milk', today: null }).success).toBe(
+      true,
+    );
+  });
 });
 
 describe('toPromptNames', () => {

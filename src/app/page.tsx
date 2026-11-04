@@ -3,11 +3,10 @@
 import React, { useState, useCallback } from 'react';
 
 // Custom Hooks & Components
-import { usePantry } from '@/hooks/usePantry';
+import { usePantry, PantryItem } from '@/hooks/usePantry';
 import { Navbar } from '@/components/pantry/Navbar';
 import { MobileBottomNav } from '@/components/pantry/MobileBottomNav';
 import { KanbanBoard } from '@/components/pantry/KanbanBoard';
-import { PantryItem } from '@prisma/client';
 import { ItemFormDialog, ItemFormData } from '@/components/pantry/ItemFormDialog';
 import { AIRecipeManager } from '@/components/pantry/AIRecipeManager';
 
@@ -163,9 +162,7 @@ export default function DashboardPage() {
                 quantity: editingItem.quantity,
                 category: editingItem.category,
                 boardState: editingItem.boardState,
-                expiryDate: editingItem.expiryDate
-                  ? new Date(editingItem.expiryDate).toISOString().split('T')[0]
-                  : '',
+                expiryDate: editingItem.expiryDate,
               }
             : undefined
         }

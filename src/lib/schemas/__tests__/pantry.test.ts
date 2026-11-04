@@ -99,6 +99,12 @@ describe('normalizeParsedItem', () => {
     );
   });
 
+  it('drops an expiry date that is not on the calendar', () => {
+    expect(normalizeParsedItem({ name: 'Ham', expiryDate: '2026-02-30' })).not.toHaveProperty(
+      'expiryDate',
+    );
+  });
+
   it('trims the item name', () => {
     expect(normalizeParsedItem({ name: '  Minced Pork 250g ' }).name).toBe('Minced Pork 250g');
   });

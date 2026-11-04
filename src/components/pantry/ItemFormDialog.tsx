@@ -33,6 +33,8 @@ const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold wh
 // Fixed label column (fits 'Expiry Date') so labels never overflow on 320px phones.
 const FORM_ROW_CLASS =
   'grid grid-cols-[5rem_minmax(0,1fr)] gap-2 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-3';
+// Without a max, browsers accept years longer than four digits, which is not a valid CalendarDate.
+const MAX_EXPIRY_DATE = '9999-12-31';
 
 export interface ItemFormData {
   id?: string;
@@ -40,7 +42,7 @@ export interface ItemFormData {
   quantity: number;
   category: string;
   boardState: string;
-  expiryDate: string;
+  expiryDate: string | null;
 }
 
 interface ItemFormDialogProps {
@@ -72,15 +74,8 @@ export function ItemFormDialog({
     setTimeout(() => setErrorMsg(null), 5000);
   };
 
-  // Format expiry date correctly for input type="date"
-  let initialExpiry = '';
-  if (initialData?.expiryDate) {
-    const d = /^\d+$/.test(initialData.expiryDate)
-      ? new Date(parseInt(initialData.expiryDate))
-      : new Date(initialData.expiryDate);
-    initialExpiry = d.toISOString().split('T')[0];
-  }
-  const [expiryDate, setExpiryDate] = useState(initialExpiry);
+  // A YYYY-MM-DD string, which is what input type="date" reads and writes. Empty means no date.
+  const [expiryDate, setExpiryDate] = useState(initialData?.expiryDate || '');
   const selectedCategory = getCategoryDefinition(category);
 
   // Update local state when initialData changes (e.g. switching from Add to Edit)
@@ -90,15 +85,7 @@ export function ItemFormDialog({
       setQuantity(initialData?.quantity || 1);
       setCategory(initialData?.category || 'OTHER');
       setBoardState(initialData?.boardState || 'TO_BUY');
-
-      let exp = '';
-      if (initialData?.expiryDate) {
-        const d = /^\d+$/.test(initialData.expiryDate)
-          ? new Date(parseInt(initialData.expiryDate))
-          : new Date(initialData.expiryDate);
-        exp = d.toISOString().split('T')[0];
-      }
-      setExpiryDate(exp);
+      setExpiryDate(initialData?.expiryDate || '');
     }
   }, [isOpen, initialData]);
 
@@ -180,7 +167,7 @@ export function ItemFormDialog({
       quantity: parsedQuantity,
       category,
       boardState,
-      expiryDate,
+      expiryDate: expiryDate || null,
     });
     onOpenChange(false);
   };
@@ -343,6 +330,7 @@ export function ItemFormDialog({
                 <Input
                   id="expiry"
                   type="date"
+                  max={MAX_EXPIRY_DATE}
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
                   className={`h-10 block w-full bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800 appearance-none ${expiryDate ? 'pr-10' : ''}`}
