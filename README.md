@@ -4,6 +4,10 @@
 
 🔗 **Live demo:** [pantry-ai-eta.vercel.app](https://pantry-ai-eta.vercel.app/). Click **Try Demo** on the login page; no account needed. The demo pantry resets to sample data every day.
 
+<p align="center">
+  <img src="docs/images/mobile-board.png" alt="Pantry AI on a phone: the In Pantry list with item cards, category badges, and the bottom navigation bar" width="300" />
+</p>
+
 ---
 
 ## What it does
@@ -34,15 +38,15 @@ All AI output is **structured**: Gemini is called with a `responseSchema`, and t
 
 ## Tech stack
 
-| Layer      | Technology                                                                                          |
-| ---------- | --------------------------------------------------------------------------------------------------- |
-| Frontend   | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui on Base UI, lucide-react              |
-| Data layer | Apollo Client 4 ↔ Apollo Server 5 (GraphQL, schema-first) served from a Next.js route handler       |
-| Database   | PostgreSQL (Neon serverless in production, Docker locally) via Prisma ORM                           |
-| AI         | Google GenAI SDK (`@google/genai`) with structured output, called from Server Actions and resolvers |
-| Auth       | AWS Cognito (Amplify v6 on the client, `aws-jwt-verify` on the server) plus a public demo mode      |
-| Quality    | TypeScript, Zod, Vitest, ESLint, Prettier, Husky + lint-staged pre-commit hooks                     |
-| Hosting    | Vercel                                                                                              |
+| Layer      | Technology                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| Frontend   | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui on Base UI, lucide-react         |
+| Data layer | Apollo Client 4 ↔ Apollo Server 5 (GraphQL, schema-first) served from a Next.js route handler  |
+| Database   | PostgreSQL (Neon serverless in production, Docker locally) via Prisma ORM                      |
+| AI         | Google GenAI SDK (`@google/genai`) with structured output, called only from GraphQL resolvers  |
+| Auth       | AWS Cognito (Amplify v6 on the client, `aws-jwt-verify` on the server) plus a public demo mode |
+| Quality    | TypeScript, Zod, Vitest, ESLint, Prettier, Husky + lint-staged pre-commit hooks                |
+| Hosting    | Vercel                                                                                         |
 
 ## Architecture
 
