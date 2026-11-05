@@ -324,3 +324,13 @@
 ### Next Steps:
 
 - Switch `expiryDate` to `@db.Date` and do a real save on a local database. Both are waiting on Docker Desktop, which needs an admin password to start. Neon has no expiry dates yet, so the column change affects no values.
+
+## 2026-11-04
+
+### Completed:
+
+- Added a clear (X) button to the search field. It appears only when the field has text, clears the query, and returns focus to the input so the user can type again straight away.
+  - The desktop and mobile search fields were two copies of the same markup in `Navbar.tsx`, so both are now one `SearchField` component. The two copies had already drifted: only desktop had the amber focus ring. Mobile now has it too.
+  - The X has a 44x44px tap area per `DESIGN.md`, wider than the 32px input. The input always reserves right padding, so long text stops before the icon and nothing shifts when the X appears.
+  - The search icon was 2px below centre (`top-2.5` on a 32px input). It is now centred, so it lines up with the X.
+  - Verified: 320, 375 and 1280px in the browser with real clicks, including a long query at 320px and a click on the part of the tap area outside the input. No horizontal scroll, no console errors.

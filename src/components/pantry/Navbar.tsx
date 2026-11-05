@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Search, Plus, BookOpen, LogOut, HelpCircle, User } from 'lucide-react';
+import { Search, Plus, BookOpen, LogOut, HelpCircle, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,6 +30,45 @@ interface NavbarProps {
   setSearchQuery: (query: string) => void;
   onOpenMyRecipes: () => void;
   onOpenAddDialog: () => void;
+}
+
+interface SearchFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  className: string;
+}
+
+function SearchField({ value, onChange, className }: SearchFieldProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleClear = () => {
+    onChange('');
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className={`relative ${className}`}>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" />
+      <Input
+        ref={inputRef}
+        type="text"
+        placeholder="Search items..."
+        className="w-full pl-9 pr-10 bg-white text-stone-900 border-none placeholder:text-stone-400 focus-visible:ring-2 focus-visible:ring-amber-300 rounded-full"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {value && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear search"
+          className="absolute right-0 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function Navbar({
@@ -66,16 +105,7 @@ export function Navbar({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-            <Input
-              type="text"
-              placeholder="Search items..."
-              className="w-full pl-9 bg-white text-stone-900 border-none placeholder:text-stone-400 focus-visible:ring-2 focus-visible:ring-amber-300 rounded-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <SearchField value={searchQuery} onChange={setSearchQuery} className="w-72" />
 
           <Button
             variant="ghost"
@@ -174,16 +204,7 @@ export function Navbar({
       </div>
       {/* Mobile Search Bar */}
       <div className="flex sm:hidden w-full mt-1">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-          <Input
-            type="text"
-            placeholder="Search items..."
-            className="w-full pl-9 bg-white text-stone-900 border-none placeholder:text-stone-400 rounded-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <SearchField value={searchQuery} onChange={setSearchQuery} className="flex-1" />
       </div>
 
       <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
