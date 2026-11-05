@@ -334,3 +334,32 @@
   - The X has a 44x44px tap area per `DESIGN.md`, wider than the 32px input. The input always reserves right padding, so long text stops before the icon and nothing shifts when the X appears.
   - The search icon was 2px below centre (`top-2.5` on a 32px input). It is now centred, so it lines up with the X.
   - Verified: 320, 375 and 1280px in the browser with real clicks, including a long query at 320px and a click on the part of the tap area outside the input. No horizontal scroll, no console errors.
+
+### Completed (Auto-Categorize Reliability):
+
+- **Problem**: the sparkle button looked broken. Production logs showed Gemini answering `503 UNAVAILABLE` (high demand), sometimes only after 10-40 s. `categorizeItemWithAI` caught every error and returned `OTHER`, so the user waited with no feedback and then saw nothing change, because `Other` is also the default. When editing an item, a failure replaced its correct category with `Other`. The silent fallback dates from the original feature (2026-07-01).
+- **Model list** (`lib/ai/itemAssistant.ts`, `lib/ai/config.ts`): if a model fails or takes over 6 s, the same prompt goes to the next one in `GEMINI_MODELS`. Overloads are per model. Same API key, no new dependency.
+- **Honest failure**: when both models fail, the function throws a message that is safe to show, and the current category is kept. A model that answers but gives an unusable reply still means `OTHER`.
+- **Time limit uses `abortSignal`, not `httpOptions.timeout`**: the SDK also sends that timeout to Gemini, which rejects any deadline under 10 s with a 400. Mocked tests could not catch this; a real browser test did. A unit test now guards it.
+- **Item form** (`ItemFormDialog.tsx`): the hint under the Category field shows "Asking AI for a category..." while waiting, and any failure in red. The old banner at the top of the dialog pushed the whole form down 60px and sat far from the button. A late answer is dropped if the user has since picked a category, edited the name, or closed the dialog.
+- **Verified**: 320, 375 and 1280px in the browser with the real AI (Add and Edit, nothing saved), including a real 503 where the fallback answered. Failure and slow-answer cases were simulated at 320px: category kept, no layout shift, no horizontal scroll. Real-network checks covered a missing primary model and both attempts timing out.
+
+### Completed (Model List for Voice and Recipes):
+
+- **Why a list and not one fallback**: the first choice, `gemini-2.5-flash-lite`, started answering 429 during testing. Its error details show a free-tier limit of 20 requests a day (`limit=20`), far too small to carry a public demo. `GEMINI_MODELS` is now `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite`, `gemini-2.5-flash-lite`. Quotas are per project and per model, and running out fails in about 0.25 s, so a used-up model costs almost no waiting. The free-tier limit of `gemini-3.5-flash-lite` is still unknown (AI Studio shows it).
+- **Voice**: now shares `generateWithFallback` with auto-categorize, so it gets the model list and a 6 s limit per model. A 503 used to show "Couldn't understand that", which blamed the user's speech. It now says the AI is busy; a model that answers with bad data still says it did not understand.
+- **Recipes**: three attempts on the same model with waits, no time limit (one real recipe took 100 s). Now one attempt per model, 15 s each, no waiting between them. A malformed recipe moves to the next model. An answer cut off at the output cap still stops immediately, because it would only cost more.
+- **Limits**: `AI_ATTEMPT_TIMEOUT_MS` in `lib/ai/config.ts`, per feature, next to `MAX_OUTPUT_TOKENS`. `CLAUDE.md` now requires a time limit and the model list for every Gemini call, and one real-API test after changing how Gemini is called.
+- **Verified with the real API**: voice in the browser at 375px (name, quantity, and "this Friday" resolved to the right date) in 0.8 s; a recipe in 6 s, with its dialog checked at 320, 375 and 1280px; voice and auto-categorize moving past a missing first model. Recipe moved past that model only until 3.5 Flash Lite answered 503 and 2.5 Flash Lite 429, which surfaced the safe message as intended. Busy messages were also checked at 320px with simulated failures.
+
+### Completed (Category Descriptions in AI Prompts):
+
+- The categorize and voice prompts listed only category names, so the AI used its own idea of them: Coffee Beans became PANTRY although the dropdown says coffee belongs to BEVERAGE. The answers were reasonable, but they contradicted the form.
+- Both prompts now include the same one-line description users see in the dropdown (`tagline` in `categories.ts`), generated into one `CATEGORY_GUIDE`, so changing a description updates the form and the AI together. The UI did not change.
+- The longer `examples` lists stay out, and a test guards that. With examples the categorize prompt was 311 tokens (measured), against 76 before. This version is about 157 (estimated from text length).
+- **Not measured yet**: taglines plus examples scored 20/20 on `gemini-3.1-flash-lite` against 9/19 with names only, on 24 deliberately tricky items, some not answered because Gemini was busy. This shorter version has not been run against the real AI, to save daily quota. All 10 earlier misses are covered by the taglines' wording. Only the prompt text changed, not the shape of the request.
+
+### Next Steps:
+
+- Run about 10 of the earlier misses against the real AI to confirm the shorter prompt, on whichever provider is chosen (Gemini or Groq).
+- Check the free-tier quota of `gemini-3.1-flash-lite` and `gemini-3.5-flash-lite` in AI Studio, since the demo-wide rate limits (500 categorize calls a day) may exceed them.

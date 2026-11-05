@@ -96,7 +96,9 @@ A successful build does not mean the code is correct. After any significant chan
 
 1. Every call that reaches a paid AI API goes through a GraphQL resolver that runs, in order: `ensureAuthenticatedUser`, `parseArgs` with a Zod schema from `src/lib/schemas/aiInput.ts`, then `enforceAiRateLimit` (`src/lib/rateLimit/`), then the AI call. Invalid input is rejected before it costs quota.
 2. Do not expose AI through Server Actions or new API routes: they never receive the Bearer token, so they cannot be authenticated or rate limited.
-3. A new AI feature adds its own entry to `AI_RATE_LIMITS` (quota) and `MAX_OUTPUT_TOKENS` (`src/lib/ai/config.ts`, output cap), and bounds every input that reaches the prompt (`AI_INPUT_LIMITS` in `src/lib/constants/limits.ts`). Base caps on measured usage, not guesses.
+3. A new AI feature adds its own entry to `AI_RATE_LIMITS` (quota), `MAX_OUTPUT_TOKENS` and `AI_ATTEMPT_TIMEOUT_MS` (`src/lib/ai/config.ts`, output cap and time limit), and bounds every input that reaches the prompt (`AI_INPUT_LIMITS` in `src/lib/constants/limits.ts`). Base caps on measured usage, not guesses.
+4. Every Gemini call has a time limit and walks the `GEMINI_MODELS` list, because Gemini overloads (503) are common and can take 10-40 s to arrive. Before adding a model to the list, check its free-tier daily quota in AI Studio: quotas differ widely per model, and one has only 20 requests a day. Set the limit with `abortSignal`, not `httpOptions.timeout`: Gemini answers 400 to any server-side deadline under 10 s. A failure must reach the user as a failure, never as a made-up answer such as `OTHER`.
+5. After changing how Gemini is called, test once against the real API. Mocked tests cannot catch Gemini rejecting a request.
 
 ## Strict English-Only Codebase
 

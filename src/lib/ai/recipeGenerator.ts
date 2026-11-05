@@ -1,6 +1,6 @@
 import { FinishReason, GoogleGenAI, Type } from '@google/genai';
 import { z } from 'zod';
-import { GEMINI_MODEL, MAX_OUTPUT_TOKENS } from './config';
+import { AI_ATTEMPT_TIMEOUT_MS, GEMINI_MODELS, MAX_OUTPUT_TOKENS } from './config';
 
 export const NutritionSchema = z.object({
   calories: z
@@ -116,16 +116,20 @@ export async function generateRecipeWithAI(
     supportingIngredients,
     previouslyUsedIngredients,
   );
-  const MAX_RETRIES = 3;
   let lastError: Error | null = null;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  // One attempt per model. A malformed recipe also moves on, unlike the shorter AI
+  // calls, because a whole recipe is worth a second try.
+  for (const [attempt, model] of GEMINI_MODELS.entries()) {
     try {
       const response = await ai.models.generateContent({
-        model: GEMINI_MODEL,
+        model,
         contents: prompt,
         config: {
           maxOutputTokens: MAX_OUTPUT_TOKENS.recipe,
+          // Not httpOptions.timeout: that also sends the deadline to Gemini, which
+          // rejects anything under 10 s. This one is enforced on our side only.
+          abortSignal: AbortSignal.timeout(AI_ATTEMPT_TIMEOUT_MS.recipe),
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
@@ -175,7 +179,7 @@ export async function generateRecipeWithAI(
       return RecipeSchema.parse(result);
     } catch (err: unknown) {
       console.warn(
-        `[Gemini API] Attempt ${attempt} failed:`,
+        `[Gemini API] Attempt ${attempt + 1} on ${model} failed:`,
         err instanceof Error ? err.message : String(err),
       );
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -183,11 +187,6 @@ export async function generateRecipeWithAI(
       // A cut-off answer means the model rambled past the cap (e.g. a prompt
       // injection in an item name). Retrying would only pay for that again.
       if (err instanceof OutputCapError) break;
-
-      // Exponential backoff to handle 429 Rate Limits
-      if (attempt < MAX_RETRIES) {
-        await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
-      }
     }
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -66,7 +66,11 @@ export function ItemFormDialog({
   const [isListening, setIsListening] = useState(false);
   const [isParsingVoice, setIsParsingVoice] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [categorizeError, setCategorizeError] = useState<string | null>(null);
   const { categorizeItem, parseVoiceInput } = useItemAssistant();
+  // Identifies the latest AI suggestion request. The AI can take several seconds, so
+  // an answer is dropped if the form has moved on (see cancelAutoCategorize).
+  const categorizeRequestId = useRef(0);
 
   // Server errors (e.g. rate limits) carry a user-facing message; show it for a few seconds.
   const showError = (err: unknown, fallback: string) => {
@@ -78,8 +82,16 @@ export function ItemFormDialog({
   const [expiryDate, setExpiryDate] = useState(initialData?.expiryDate || '');
   const selectedCategory = getCategoryDefinition(category);
 
+  const cancelAutoCategorize = useCallback(() => {
+    categorizeRequestId.current += 1;
+    setIsAutoCategorizing(false);
+    setCategorizeError(null);
+  }, []);
+
   // Update local state when initialData changes (e.g. switching from Add to Edit)
   React.useEffect(() => {
+    // A pending suggestion belongs to the form as it was, not to the item now shown.
+    cancelAutoCategorize();
     if (isOpen) {
       setName(initialData?.name || '');
       setQuantity(initialData?.quantity || 1);
@@ -87,20 +99,26 @@ export function ItemFormDialog({
       setBoardState(initialData?.boardState || 'TO_BUY');
       setExpiryDate(initialData?.expiryDate || '');
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, cancelAutoCategorize]);
 
   const handleAutoCategorize = async () => {
     if (!name.trim()) return;
+    const requestId = ++categorizeRequestId.current;
     setIsAutoCategorizing(true);
-    setErrorMsg(null);
+    setCategorizeError(null);
     try {
       const suggestedCategory = await categorizeItem(name);
-      setCategory(suggestedCategory);
+      if (requestId === categorizeRequestId.current) setCategory(suggestedCategory);
     } catch (err) {
       console.warn('Failed to auto categorize', err);
-      showError(err, 'Auto-categorize failed. Please pick a category.');
+      if (requestId === categorizeRequestId.current) {
+        setCategorizeError(
+          (err instanceof Error && err.message) ||
+            'Auto-categorize failed. Please pick a category.',
+        );
+      }
     } finally {
-      setIsAutoCategorizing(false);
+      if (requestId === categorizeRequestId.current) setIsAutoCategorizing(false);
     }
   };
 
@@ -220,7 +238,10 @@ export function ItemFormDialog({
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    cancelAutoCategorize();
+                    setName(e.target.value);
+                  }}
                   className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl"
                   placeholder="e.g. Apples"
                   maxLength={ITEM_NAME_MAX_LENGTH}
@@ -277,7 +298,13 @@ export function ItemFormDialog({
               </Label>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Select value={category} onValueChange={(val) => setCategory(val || 'OTHER')}>
+                  <Select
+                    value={category}
+                    onValueChange={(val) => {
+                      cancelAutoCategorize();
+                      setCategory(val || 'OTHER');
+                    }}
+                  >
                     <SelectTrigger
                       id="category"
                       className="h-10 flex-1 min-w-0 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800"
@@ -316,8 +343,13 @@ export function ItemFormDialog({
                     )}
                   </button>
                 </div>
-                <p className="mt-1.5 px-1 text-xs leading-snug text-stone-500">
-                  {selectedCategory.tagline}
+                <p
+                  aria-live="polite"
+                  className={`mt-1.5 px-1 text-xs leading-snug ${categorizeError ? 'text-rose-600' : 'text-stone-500'}`}
+                >
+                  {isAutoCategorizing
+                    ? 'Asking AI for a category...'
+                    : categorizeError || selectedCategory.tagline}
                 </p>
               </div>
             </div>

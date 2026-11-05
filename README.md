@@ -23,16 +23,16 @@ Pantry AI is for people who cook at home and want to keep careful track of their
 - **Category filter:** 7 food categories (Produce, Dairy, Meat, Pantry, Frozen, Beverage, Other), each with its own icon and color.
 - **Phone-friendly:** swipe left or right to switch lists, with item counts in the sticky tabs and a thumb-reachable bottom navigation bar. Layouts are checked at 320px, 375px, and desktop widths.
 
-### AI features (Google Gemini `gemini-3.1-flash-lite`)
+### AI features (Google Gemini Flash-Lite models)
 
 | Feature                  | How it works                                                                                                                                                                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Voice input**          | Say something like _"three hundred grams of pork, expires next Wednesday"_ (English or Chinese). The browser's Web Speech API turns it into text, and Gemini extracts the name, quantity, category, and an exact expiry date.                     |
-| **Auto-categorize**      | One tap and Gemini picks a category from the item name. If anything goes wrong, it falls back to `OTHER`.                                                                                                                                         |
+| **Auto-categorize**      | One tap and Gemini picks a category from the item name. If a model is overloaded or slow, the next one on the list answers instead. If they all fail, you see a message and your current category is kept.                                        |
 | **Inspire Me (AI Chef)** | Tick some **must-use ingredients**, from any list, and Gemini writes a recipe around them, using other pantry items as supporting ingredients when they help. **Regenerate** for a different dish; **Save Recipe** to keep it under _My Recipes_. |
 | **Nutrition card**       | Every generated recipe comes with calories, macros (protein / carbs / fat / fiber), dietary tags, and healthier-swap tips.                                                                                                                        |
 
-All AI output is **structured**: Gemini is called with a `responseSchema`, and the result is checked again with Zod before it reaches the UI. Recipe generation retries up to 3 times with backoff, so a malformed or failed response never crashes the page.
+All AI output is **structured**: Gemini is called with a `responseSchema`, and the result is checked again with Zod before it reaches the UI. Every AI call has a time limit and works down a list of three models, so one overloaded or out-of-quota model doesn't take the feature down. Recipe generation also moves on when an answer is malformed, so a bad response never crashes the page.
 
 ---
 
@@ -131,7 +131,7 @@ Then open `.env` and fill in:
 | Variable                                                                                                  | Required?         | Notes                                                                                                                                                                   |
 | --------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`                                                                                            | Yes               | Already set for the Docker database; replace it if you use your own Postgres.                                                                                           |
-| `GEMINI_API_KEY`                                                                                          | For AI features   | Without it: auto-categorize returns `OTHER`, while voice input and Inspire Me show an error. Everything else still works.                                               |
+| `GEMINI_API_KEY`                                                                                          | For AI features   | Without it: auto-categorize, voice input, and Inspire Me show an error. Everything else still works.                                                                    |
 | `NEXT_PUBLIC_AWS_REGION`<br/>`NEXT_PUBLIC_AWS_USER_POOL_ID`<br/>`NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID` | For real accounts | **Keep the placeholder values if you only want demo mode.** The server checks the pool ID format at startup, so deleting these lines breaks the API, even in demo mode. |
 | `CRON_SECRET`                                                                                             | Production only   | The demo-reset endpoint checks it only when `NODE_ENV=production`.                                                                                                      |
 
