@@ -24,9 +24,9 @@ import { CATEGORY_LIST, getCategoryDefinition } from '@/lib/constants/categories
 import { ITEM_NAME_MAX_LENGTH } from '@/lib/constants/limits';
 
 const BOARD_STATE_LABELS: Record<string, string> = {
-  TO_BUY: '🛒 To Buy',
-  IN_PANTRY: '🧊 In Pantry',
-  CONSUMED: '🗑️ Consumed',
+  TO_BUY: 'To Buy',
+  IN_PANTRY: 'In Pantry',
+  CONSUMED: 'Consumed',
 };
 
 const FORM_LABEL_CLASS = 'text-right justify-end text-stone-700 font-semibold whitespace-nowrap';
