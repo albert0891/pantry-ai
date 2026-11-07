@@ -15,9 +15,9 @@ import { useSwipe } from '@/hooks/useSwipe';
 import { CATEGORY_LIST } from '@/lib/constants/categories';
 
 const COLUMNS = [
-  { id: 'TO_BUY', title: '🛒 To Buy' },
-  { id: 'IN_PANTRY', title: '🧊 In Pantry' },
-  { id: 'CONSUMED', title: '🗑️ Consumed' },
+  { id: 'TO_BUY', title: 'To Buy' },
+  { id: 'IN_PANTRY', title: 'In Pantry' },
+  { id: 'CONSUMED', title: 'Consumed' },
 ];
 
 const CATEGORY_FILTERS = [
