@@ -363,3 +363,12 @@
 
 - Run about 10 of the earlier misses against the real AI to confirm the shorter prompt, on whichever provider is chosen (Gemini or Groq).
 - Check the free-tier quota of `gemini-3.1-flash-lite` and `gemini-3.5-flash-lite` in AI Studio, since the demo-wide rate limits (500 categorize calls a day) may exceed them.
+
+## 2026-11-06 to 2026-11-07
+
+### Completed:
+
+- Removed the emojis from the three board state labels (To Buy, In Pantry, Consumed), so they read as plain text everywhere.
+  - 2026-11-06 (`f68bcb8`): the board state select in `ItemFormDialog.tsx`.
+  - 2026-11-07 (`e858481`): the column titles in `KanbanBoard.tsx`.
+  - Category emojis are unchanged. The cart emoji in the Guide dialog stays because it describes the cart button icon, not a board state.
