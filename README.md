@@ -1,6 +1,6 @@
 # Pantry AI
 
-**A mobile-first pantry manager with an AI chef built in.** Track what you need to buy, what you have, and what you've used up. When you can't decide what to cook, pick a few ingredients and let Gemini come up with a recipe.
+**A mobile-first pantry manager with an AI chef built in.** Track what you need to buy, what you have, and what you've used up. When you can't decide what to cook, pick a few ingredients and let the AI come up with a recipe.
 
 🔗 **Live demo:** [pantry-ai-eta.vercel.app](https://pantry-ai-eta.vercel.app/). Click **Try Demo** on the login page; no account needed. The demo pantry resets to sample data every day.
 
@@ -23,30 +23,30 @@ Pantry AI is for people who cook at home and want to keep careful track of their
 - **Category filter:** 7 food categories (Produce, Dairy, Meat, Pantry, Frozen, Beverage, Other), each with its own icon and color.
 - **Phone-friendly:** swipe left or right to switch lists, with item counts in the sticky tabs and a thumb-reachable bottom navigation bar. Layouts are checked at 320px, 375px, and desktop widths.
 
-### AI features (Google Gemini Flash-Lite models)
+### AI features (open-weight gpt-oss models on Groq)
 
 | Feature                  | How it works                                                                                                                                                                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Voice input**          | Say something like _"three hundred grams of pork, expires next Wednesday"_ (English or Chinese). The browser's Web Speech API turns it into text, and Gemini extracts the name, quantity, category, and an exact expiry date.                     |
-| **Auto-categorize**      | One tap and Gemini picks a category from the item name. If a model is overloaded or slow, the next one on the list answers instead. If they all fail, you see a message and your current category is kept.                                        |
-| **Inspire Me (AI Chef)** | Tick some **must-use ingredients**, from any list, and Gemini writes a recipe around them, using other pantry items as supporting ingredients when they help. **Regenerate** for a different dish; **Save Recipe** to keep it under _My Recipes_. |
+| **Voice input**          | Say something like _"three hundred grams of pork, expires next Wednesday"_ (English or Chinese). The browser's Web Speech API turns it into text, and the AI extracts the name, quantity, category, and an exact expiry date.                     |
+| **Auto-categorize**      | One tap and the AI picks a category from the item name. If a model is overloaded or slow, the next one on the list answers instead. If they all fail, you see a message and your current category is kept.                                        |
+| **Inspire Me (AI Chef)** | Tick some **must-use ingredients**, from any list, and the AI writes a recipe around them, using other pantry items as supporting ingredients when they help. **Regenerate** for a different dish; **Save Recipe** to keep it under _My Recipes_. |
 | **Nutrition card**       | Every generated recipe comes with calories, macros (protein / carbs / fat / fiber), dietary tags, and healthier-swap tips.                                                                                                                        |
 
-All AI output is **structured**: Gemini is called with a `responseSchema`, and the result is checked again with Zod before it reaches the UI. Every AI call has a time limit and works down a list of three models, so one overloaded or out-of-quota model doesn't take the feature down. Recipe generation also moves on when an answer is malformed, so a bad response never crashes the page.
+All AI output is **structured**: the model must answer in the shape of a strict JSON Schema, and the result is checked again with Zod before it reaches the UI. Every AI call has a time limit and works down a list of two models, so one overloaded or out-of-quota model doesn't take the feature down. Recipe generation also moves on when an answer is malformed, so a bad response never crashes the page.
 
 ---
 
 ## Tech stack
 
-| Layer      | Technology                                                                                     |
-| ---------- | ---------------------------------------------------------------------------------------------- |
-| Frontend   | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui on Base UI, lucide-react         |
-| Data layer | Apollo Client 4 ↔ Apollo Server 5 (GraphQL, schema-first) served from a Next.js route handler  |
-| Database   | PostgreSQL (Neon serverless in production, Docker locally) via Prisma ORM                      |
-| AI         | Google GenAI SDK (`@google/genai`) with structured output, called only from GraphQL resolvers  |
-| Auth       | AWS Cognito (Amplify v6 on the client, `aws-jwt-verify` on the server) plus a public demo mode |
-| Quality    | TypeScript, Zod, Vitest, ESLint, Prettier, Husky + lint-staged pre-commit hooks                |
-| Hosting    | Vercel                                                                                         |
+| Layer      | Technology                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------- |
+| Frontend   | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui on Base UI, lucide-react                      |
+| Data layer | Apollo Client 4 ↔ Apollo Server 5 (GraphQL, schema-first) served from a Next.js route handler               |
+| Database   | PostgreSQL (Neon serverless in production, Docker locally) via Prisma ORM                                   |
+| AI         | Groq API (gpt-oss models) over plain `fetch`, strict JSON Schema output, called only from GraphQL resolvers |
+| Auth       | AWS Cognito (Amplify v6 on the client, `aws-jwt-verify` on the server) plus a public demo mode              |
+| Quality    | TypeScript, Zod, Vitest, ESLint, Prettier, Husky + lint-staged pre-commit hooks                             |
+| Hosting    | Vercel                                                                                                      |
 
 ## Architecture
 
@@ -57,7 +57,7 @@ flowchart LR
   RES --> DB[("PostgreSQL<br/>via Prisma")]
   RES -- "rate limit check" --> RL[("Upstash Redis")]
   RES --> GEN["lib/ai/<br/>recipe, categorize, voice parse"]
-  GEN --> GEM["Google Gemini"]
+  GEN --> GEM["Groq API<br/>(gpt-oss models)"]
   CRON["Daily cron"] -- "Bearer CRON_SECRET" --> RESET["/api/cron/reset-demo"] --> DB
 ```
 
@@ -99,7 +99,7 @@ prisma/schema.prisma              # User, PantryItem, Recipe models
 
 - **Node.js 20.9+** (required by Next.js 16) and npm
 - **PostgreSQL**: the included `docker-compose.yml` starts one for you (requires Docker), or use any Postgres such as a free [Neon](https://neon.tech) database
-- **Gemini API key** (free): get one at [Google AI Studio](https://aistudio.google.com/apikey). Optional, but without it the AI features are disabled.
+- **Groq API key** (free): get one at [Groq Console](https://console.groq.com/keys). Optional, but without it the AI features are disabled.
 - **AWS Cognito user pool**: _optional_. You only need it for real email sign-up and sign-in. **Try Demo** works without it.
 
 ### 1. Clone and install
@@ -131,7 +131,7 @@ Then open `.env` and fill in:
 | Variable                                                                                                  | Required?         | Notes                                                                                                                                                                   |
 | --------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`                                                                                            | Yes               | Already set for the Docker database; replace it if you use your own Postgres.                                                                                           |
-| `GEMINI_API_KEY`                                                                                          | For AI features   | Without it: auto-categorize, voice input, and Inspire Me show an error. Everything else still works.                                                                    |
+| `GROQ_API_KEY`                                                                                            | For AI features   | Without it: auto-categorize, voice input, and Inspire Me show an error. Everything else still works.                                                                    |
 | `NEXT_PUBLIC_AWS_REGION`<br/>`NEXT_PUBLIC_AWS_USER_POOL_ID`<br/>`NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID` | For real accounts | **Keep the placeholder values if you only want demo mode.** The server checks the pool ID format at startup, so deleting these lines breaks the API, even in demo mode. |
 | `CRON_SECRET`                                                                                             | Production only   | The demo-reset endpoint checks it only when `NODE_ENV=production`.                                                                                                      |
 

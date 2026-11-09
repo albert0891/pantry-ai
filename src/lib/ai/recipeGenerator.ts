@@ -1,6 +1,5 @@
-import { FinishReason, GoogleGenAI, Type } from '@google/genai';
 import { z } from 'zod';
-import { AI_ATTEMPT_TIMEOUT_MS, GEMINI_MODELS, MAX_OUTPUT_TOKENS } from './config';
+import { JsonSchema, generateWithFallback, isAiConfigured, parseJsonAnswer } from './client';
 
 export const NutritionSchema = z.object({
   calories: z
@@ -47,12 +46,46 @@ export const RecipeSchema = z.object({
 
 export type GeneratedRecipe = z.infer<typeof RecipeSchema>;
 
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-  : null;
+const stringList = { type: 'array', items: { type: 'string' } };
 
-/** The model stopped at MAX_OUTPUT_TOKENS, so the JSON is cut off. Not worth retrying. */
-class OutputCapError extends Error {}
+// Strict mode needs every field listed as required, so optional ones are nullable.
+const RECIPE_ANSWER_SCHEMA: JsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['title', 'ingredients', 'instructions', 'unused_ingredients', 'nutrition'],
+  properties: {
+    title: { type: 'string' },
+    ingredients: stringList,
+    instructions: stringList,
+    unused_ingredients: stringList,
+    nutrition: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'calories',
+        'servings',
+        'protein',
+        'carbs',
+        'fat',
+        'fiber',
+        'dietary_tags',
+        'dietitian_tip',
+        'healthy_swaps',
+      ],
+      properties: {
+        calories: { type: 'integer' },
+        servings: { type: 'integer' },
+        protein: { type: 'number' },
+        carbs: { type: 'number' },
+        fat: { type: 'number' },
+        fiber: { type: ['number', 'null'] },
+        dietary_tags: stringList,
+        dietitian_tip: { type: 'string' },
+        healthy_swaps: stringList,
+      },
+    },
+  },
+};
 
 export const buildRecipePrompt = (
   mustUseIngredients: string[],
@@ -104,11 +137,10 @@ export async function generateRecipeWithAI(
   mustUseIngredients: string[],
   supportingIngredients: string[],
   previouslyUsedIngredients?: string[],
-) {
-  if (!ai) {
-    throw new Error(
-      'GoogleGenAI is not initialized. Check your GEMINI_API_KEY environment variable.',
-    );
+): Promise<GeneratedRecipe> {
+  if (!isAiConfigured()) {
+    console.warn('No GROQ_API_KEY found, AI recipes are unavailable.');
+    throw new Error('AI recipes are not available right now.');
   }
 
   const prompt = buildRecipePrompt(
@@ -116,88 +148,21 @@ export async function generateRecipeWithAI(
     supportingIngredients,
     previouslyUsedIngredients,
   );
-  let lastError: Error | null = null;
 
-  // One attempt per model. A malformed recipe also moves on, unlike the shorter AI
-  // calls, because a whole recipe is worth a second try.
-  for (const [attempt, model] of GEMINI_MODELS.entries()) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          maxOutputTokens: MAX_OUTPUT_TOKENS.recipe,
-          // Not httpOptions.timeout: that also sends the deadline to Gemini, which
-          // rejects anything under 10 s. This one is enforced on our side only.
-          abortSignal: AbortSignal.timeout(AI_ATTEMPT_TIMEOUT_MS.recipe),
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-              instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
-              unused_ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-              nutrition: {
-                type: Type.OBJECT,
-                properties: {
-                  calories: { type: Type.INTEGER },
-                  servings: { type: Type.INTEGER },
-                  protein: { type: Type.NUMBER },
-                  carbs: { type: Type.NUMBER },
-                  fat: { type: Type.NUMBER },
-                  fiber: { type: Type.NUMBER },
-                  dietary_tags: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  dietitian_tip: { type: Type.STRING },
-                  healthy_swaps: { type: Type.ARRAY, items: { type: Type.STRING } },
-                },
-                required: [
-                  'calories',
-                  'servings',
-                  'protein',
-                  'carbs',
-                  'fat',
-                  'dietary_tags',
-                  'dietitian_tip',
-                ],
-              },
-            },
-            required: ['title', 'ingredients', 'instructions', 'nutrition'],
-          },
-        },
-      });
-
-      if (response.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) {
-        throw new OutputCapError(
-          `Output hit the ${MAX_OUTPUT_TOKENS.recipe}-token cap (${JSON.stringify(response.usageMetadata)})`,
-        );
-      }
-
-      const jsonText = response.text || '{}';
-      const result = JSON.parse(jsonText);
-
-      return RecipeSchema.parse(result);
-    } catch (err: unknown) {
-      console.warn(
-        `[Gemini API] Attempt ${attempt + 1} on ${model} failed:`,
-        err instanceof Error ? err.message : String(err),
+  try {
+    return await generateWithFallback('recipe', prompt, {
+      schema: RECIPE_ANSWER_SCHEMA,
+      // A malformed recipe also moves on to the next model, unlike the shorter AI
+      // calls, because a whole recipe is worth a second try.
+      parse: (text) => RecipeSchema.parse(parseJsonAnswer(text)),
+    });
+  } catch (error) {
+    // Errors from the API start with the HTTP status; 429 means the quota is used up.
+    if (error instanceof Error && error.message.startsWith('429')) {
+      throw new Error(
+        'API Rate Limit Exceeded: The free tier is busy. Please wait a minute and try again.',
       );
-      lastError = err instanceof Error ? err : new Error(String(err));
-
-      // A cut-off answer means the model rambled past the cap (e.g. a prompt
-      // injection in an item name). Retrying would only pay for that again.
-      if (err instanceof OutputCapError) break;
     }
+    throw new Error('AI is currently feeling uninspired or busy. Please try again.');
   }
-
-  console.error('Gemini API Error (All retries exhausted):', lastError);
-
-  // Provide a more descriptive error if it's likely a rate limit
-  if (lastError?.message?.includes('429') || lastError?.message?.toLowerCase().includes('quota')) {
-    throw new Error(
-      'API Rate Limit Exceeded: The free tier is busy. Please wait a minute and try again.',
-    );
-  }
-
-  throw new Error('AI is currently feeling uninspired or busy. Please try again.');
 }

@@ -1,6 +1,6 @@
 # Pantry AI — Project Rules for Claude Code
 
-Pantry AI is a mobile-first pantry manager (Next.js 16 App Router, React 19, Tailwind v4, shadcn/ui on Base UI, Apollo GraphQL, Prisma, Gemini).
+Pantry AI is a mobile-first pantry manager (Next.js 16 App Router, React 19, Tailwind v4, shadcn/ui on Base UI, Apollo GraphQL, Prisma, Groq).
 Talk to the user in Traditional Chinese (繁體中文). Code, comments, and UI copy stay in English (see "Strict English-Only Codebase").
 
 ## 文件地圖 (Docs Map) — 哪個檔案負責什麼
@@ -97,8 +97,9 @@ A successful build does not mean the code is correct. After any significant chan
 1. Every call that reaches a paid AI API goes through a GraphQL resolver that runs, in order: `ensureAuthenticatedUser`, `parseArgs` with a Zod schema from `src/lib/schemas/aiInput.ts`, then `enforceAiRateLimit` (`src/lib/rateLimit/`), then the AI call. Invalid input is rejected before it costs quota.
 2. Do not expose AI through Server Actions or new API routes: they never receive the Bearer token, so they cannot be authenticated or rate limited.
 3. A new AI feature adds its own entry to `AI_RATE_LIMITS` (quota), `MAX_OUTPUT_TOKENS` and `AI_ATTEMPT_TIMEOUT_MS` (`src/lib/ai/config.ts`, output cap and time limit), and bounds every input that reaches the prompt (`AI_INPUT_LIMITS` in `src/lib/constants/limits.ts`). Base caps on measured usage, not guesses.
-4. Every Gemini call has a time limit and walks the `GEMINI_MODELS` list, because Gemini overloads (503) are common and can take 10-40 s to arrive. Before adding a model to the list, check its free-tier daily quota in AI Studio: quotas differ widely per model, and one has only 20 requests a day. Set the limit with `abortSignal`, not `httpOptions.timeout`: Gemini answers 400 to any server-side deadline under 10 s. A failure must reach the user as a failure, never as a made-up answer such as `OTHER`.
-5. After changing how Gemini is called, test once against the real API. Mocked tests cannot catch Gemini rejecting a request.
+4. Every AI call goes through `generateWithFallback` in `src/lib/ai/client.ts`, which gives it a time limit and walks the `AI_MODELS` list (Groq). Quotas are per model; read a model's real limits from Groq's `x-ratelimit-*` response headers before adding it. A failure must reach the user as a failure, never as a made-up answer such as `OTHER`.
+5. Before adding or switching a model, run the same real prompts (voice in Chinese and English, categorize, a Chinese recipe) against it and check every answer, not only that it parses: `qwen/qwen3.8-27b` once returned an item name as control characters, which passed every validator. Mocked tests cannot catch a provider rejecting a request or a model answering badly.
+6. JSON answers use strict JSON Schema (`strict: true`): every property is listed in `required`, optional ones are nullable, and `parseJsonAnswer` drops the nulls before Zod runs.
 
 ## Strict English-Only Codebase
 

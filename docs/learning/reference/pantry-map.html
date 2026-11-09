@@ -112,10 +112,10 @@
 庫存操作：卡片／表單 → 頁面 → usePantry → HTTP
   → Next.js Route Handler / Apollo → resolver → Prisma → PostgreSQL
 
-語音輸入：瀏覽器 SpeechRecognition → 文字 → Server Action
-  → Gemini → 驗證回傳資料 → 填入表單 → 使用者送出後走庫存新增路徑</pre>
+語音輸入：瀏覽器 SpeechRecognition → 文字 → GraphQL mutation
+  → Groq → 驗證回傳資料 → 填入表單 → 使用者送出後走庫存新增路徑</pre>
   <p>
-    AI 食譜生成另走 GraphQL mutation → resolver → recipeGenerator → Gemini。生成與儲存是不同操作。
+    AI 食譜生成另走 GraphQL mutation → resolver → recipeGenerator → Groq。生成與儲存是不同操作。
   </p>
   <h2>面試時保持精確</h2>
   <ul>

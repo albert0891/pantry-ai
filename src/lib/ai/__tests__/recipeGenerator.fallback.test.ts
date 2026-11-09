@@ -1,49 +1,39 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinishReason } from '@google/genai';
 import { generateRecipeWithAI } from '../recipeGenerator';
-import { GEMINI_MODELS } from '../config';
+import { AI_MODELS } from '../config';
+import { answer, httpError, modelsAsked, requestBodies } from './groqResponses';
 
-const [FIRST_MODEL, SECOND_MODEL] = GEMINI_MODELS;
+const [FIRST_MODEL, SECOND_MODEL] = AI_MODELS;
 
 // Only the network call is replaced; the attempt logic under test is real.
-const generateContent = vi.hoisted(() => {
-  process.env.GEMINI_API_KEY = 'test-key';
-  return vi.fn();
-});
-
-vi.mock('@google/genai', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@google/genai')>()),
-  GoogleGenAI: class {
-    models = { generateContent };
-  },
-}));
+const fetchMock = vi.fn();
+vi.stubGlobal('fetch', fetchMock);
 
 const RECIPE = {
   title: 'Tomato Egg Stir-Fry',
   ingredients: ['2 tomatoes', '3 eggs'],
   instructions: ['Scramble the eggs', 'Add the tomatoes'],
+  unused_ingredients: [],
   nutrition: {
     calories: 300,
     servings: 1,
     protein: 18,
     carbs: 10,
     fat: 20,
+    fiber: null,
     dietary_tags: ['High Protein'],
     dietitian_tip: 'Quick and balanced.',
+    healthy_swaps: [],
   },
 };
-const answer = (recipe: unknown = RECIPE) => ({
-  text: JSON.stringify(recipe),
-  candidates: [{ finishReason: FinishReason.STOP }],
-});
+const recipeAnswer = (recipe: unknown = RECIPE) => answer(JSON.stringify(recipe));
 
 describe('generateRecipeWithAI attempts', () => {
-  const overloaded = new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}');
-  const modelsCalled = () => generateContent.mock.calls.map(([request]) => request.model);
   const generate = () => generateRecipeWithAI(['Tomato', 'Egg'], []);
 
   beforeEach(() => {
-    generateContent.mockReset();
+    fetchMock.mockReset();
+    vi.stubEnv('GROQ_API_KEY', 'test-key');
     vi.useFakeTimers();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -52,72 +42,94 @@ describe('generateRecipeWithAI attempts', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it('uses only the first model when it answers', async () => {
-    generateContent.mockResolvedValueOnce(answer());
+    fetchMock.mockResolvedValueOnce(recipeAnswer());
 
     await expect(generate()).resolves.toMatchObject({ title: RECIPE.title });
-    expect(modelsCalled()).toEqual([FIRST_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
+  });
+
+  // The strict schema makes the model answer null for a missing fiber estimate.
+  it('accepts a null fiber estimate', async () => {
+    fetchMock.mockResolvedValueOnce(recipeAnswer());
+
+    await expect(generate()).resolves.toMatchObject({ nutrition: { fiber: null } });
+  });
+
+  it('asks for an answer in the shape of a strict schema', async () => {
+    fetchMock.mockResolvedValueOnce(recipeAnswer());
+
+    await generate();
+
+    const { json_schema } = requestBodies(fetchMock)[0].response_format;
+    expect(json_schema.strict).toBe(true);
+    // Strict mode rejects a schema that leaves any property out of `required`.
+    for (const schema of [json_schema.schema, json_schema.schema.properties.nutrition]) {
+      expect(schema.required).toEqual(Object.keys(schema.properties));
+    }
   });
 
   // Fake timers never advance here, so any wait before the next model would hang this test.
   it('moves to the next model right away when the first is overloaded', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce(answer());
+    fetchMock.mockResolvedValueOnce(httpError(503)).mockResolvedValueOnce(recipeAnswer());
 
     await expect(generate()).resolves.toMatchObject({ title: RECIPE.title });
-    expect(modelsCalled()).toEqual([FIRST_MODEL, SECOND_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL, SECOND_MODEL]);
   });
 
   it('tries the next model when the first returns a malformed recipe', async () => {
-    generateContent
-      .mockResolvedValueOnce(answer({ title: 'No steps' }))
-      .mockResolvedValueOnce(answer());
+    fetchMock
+      .mockResolvedValueOnce(recipeAnswer({ title: 'No steps' }))
+      .mockResolvedValueOnce(recipeAnswer());
 
     await expect(generate()).resolves.toMatchObject({ title: RECIPE.title });
-    expect(modelsCalled()).toEqual([FIRST_MODEL, SECOND_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL, SECOND_MODEL]);
   });
 
-  it('gives every attempt a time limit that is enforced on our side only', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce(answer());
+  it('gives every attempt a time limit', async () => {
+    fetchMock.mockResolvedValueOnce(httpError(503)).mockResolvedValueOnce(recipeAnswer());
 
     await generate();
 
-    expect(generateContent).toHaveBeenCalledTimes(2);
-    for (const [request] of generateContent.mock.calls) {
-      expect(request.config.abortSignal).toBeInstanceOf(AbortSignal);
-      // Gemini answers 400 to any server-side deadline under 10 s (seen 2026-11-04).
-      expect(request.config.httpOptions?.timeout).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(init.signal).toBeInstanceOf(AbortSignal);
     }
   });
 
   it('stops after trying every model and reports a safe message', async () => {
-    generateContent.mockRejectedValue(overloaded);
+    fetchMock.mockImplementation(async () => httpError(503));
 
-    const result = generate();
-    const assertion = expect(result).rejects.toThrow('AI is currently feeling uninspired or busy');
-    await vi.runAllTimersAsync();
-    await assertion;
+    await expect(generate()).rejects.toThrow('AI is currently feeling uninspired or busy');
+    expect(modelsAsked(fetchMock)).toEqual(AI_MODELS);
+  });
 
-    expect(modelsCalled()).toEqual(GEMINI_MODELS);
+  it('says to wait when every model is out of quota', async () => {
+    fetchMock.mockImplementation(async () => httpError(429));
+
+    await expect(generate()).rejects.toThrow(/wait a minute/);
   });
 
   it('never exposes the raw AI error to the user', async () => {
-    generateContent.mockRejectedValue(overloaded);
+    fetchMock.mockImplementation(async () => httpError(503));
 
-    const result = generate();
-    const assertion = expect(result).rejects.not.toThrow(/503|UNAVAILABLE/);
-    await vi.runAllTimersAsync();
-    await assertion;
+    await expect(generate()).rejects.not.toThrow(/503|unavailable/i);
   });
 
   it('does not pay for another attempt when an answer hits the output cap', async () => {
-    generateContent.mockResolvedValueOnce({
-      text: '{"title": "Cut o',
-      candidates: [{ finishReason: FinishReason.MAX_TOKENS }],
-    });
+    fetchMock.mockResolvedValueOnce(answer('{"title": "Cut o', 'length'));
 
     await expect(generate()).rejects.toThrow('AI is currently feeling uninspired or busy');
-    expect(modelsCalled()).toEqual([FIRST_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
+  });
+
+  it('reports a failure without calling the API when no key is configured', async () => {
+    vi.stubEnv('GROQ_API_KEY', '');
+
+    await expect(generate()).rejects.toThrow(/not available/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

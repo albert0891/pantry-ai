@@ -372,3 +372,24 @@
   - 2026-11-06 (`f68bcb8`): the board state select in `ItemFormDialog.tsx`.
   - 2026-11-07 (`e858481`): the column titles in `KanbanBoard.tsx`.
   - Category emojis are unchanged. The cart emoji in the Guide dialog stays because it describes the cart button icon, not a board state.
+
+## 2026-11-09
+
+### Completed (Switch AI Provider from Gemini to Groq):
+
+- **Why**: the Gemini free tier was the bottleneck, not the model. Quotas are small and per model (`gemini-2.5-flash-lite` allows 20 requests a day), and models often answered 503. Groq's free plan gives each model 1,000 requests a day and 8,000 tokens a minute, read from its `x-ratelimit-*` response headers on this account.
+- **How the models were picked**: ten real prompts per model with the project's own prompts and validators (four voice transcripts in Chinese and English, four item names to categorize, a Chinese and an English recipe), Gemini run at the same time as a baseline.
+  - `gemini-3.1-flash-lite`: every answer right; 1.9-5.2 s that day.
+  - `openai/gpt-oss-120b` and `openai/gpt-oss-20b`: every expiry date, quantity and category right, recipes in Traditional Chinese, the clashing cocoa powder left out; 0.3-2.8 s. The 20b model once wrote 醃製 as 腌制, acceptable for a fallback.
+  - `qwen/qwen3.8-27b`: returned 豬肉 300克 as control characters (`\u007f`). That passes JSON parsing and Zod, so it would have been saved as the item name. Left out.
+  - `reasoning_effort: "low"` cut thinking tokens by about two thirds, but gpt-oss-120b then put "next Wednesday" a day late. Kept the default.
+- **Code**: new `src/lib/ai/client.ts` is the only module that calls the AI. It sends requests with plain `fetch` to Groq's OpenAI-compatible API, so no SDK is needed, and `@google/genai` was removed (16 packages fewer in the lockfile). `itemAssistant.ts` and `recipeGenerator.ts` each had their own client and model loop; both now call `generateWithFallback`. The behaviour is unchanged: a malformed recipe still moves to the next model, a bad categorize or voice answer still does not, and a cut-off answer still stops at once.
+- **Strict JSON Schema**: Groq's strict mode needs every property in `required`, so optional fields are nullable and the model answers null for them. `parseJsonAnswer` drops those nulls before Zod runs; kept, `z.coerce.string()` would turn null into the text "null". A test covers it.
+- **Limits** (`config.ts`): `GEMINI_MODELS` became `AI_MODELS`. gpt-oss thinks before answering and the thinking counts toward the output cap, so the voice cap went from 1,024 to 2,048 tokens (largest measured answer ~580). Recipe (~1,750 measured) and categorize (~100) keep 4,096 and 512. Time limits are unchanged.
+- **Docs**: `GROQ_API_KEY` replaces `GEMINI_API_KEY` in `.env.example` and the README. `CLAUDE.md` rule 4 now points at `client.ts`, and new rules 5-6 require real prompts against any new model (the Qwen case) and strict schemas with nullable optional fields.
+- **Verified**: lint (0 errors; the 141 warnings were there before), `tsc --noEmit`, 172 tests. Each feature called once against the real API through the project's functions: categorize 0.7 s, voice 1.0 s (後天 resolved to the right date), Chinese recipe 3.8 s. In the browser at 375px with Try Demo: auto-categorize filled Beverage for Coffee Beans and Inspire Me showed a recipe, both from the first model, nothing saved.
+
+### Next Steps:
+
+- Add `GROQ_API_KEY` to the Vercel project's environment variables before deploying; the live site has no AI without it. `GEMINI_API_KEY` can be removed there afterwards.
+- Watch token use: a recipe costs about 2,000-2,500 tokens with thinking, so each model handles about 3 recipes a minute (8,000 tokens a minute). If every demo-wide daily limit were reached, the calls would need about 635,000 tokens, more than the two models get a day (200,000 each per Groq's rate-limit docs; the headers do not show a daily token limit), so the demo limits may need lowering if real traffic gets close.

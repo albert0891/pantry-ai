@@ -1,6 +1,10 @@
-import { GenerateContentConfig, GoogleGenAI, Type } from '@google/genai';
-import { AI_ATTEMPT_TIMEOUT_MS, GEMINI_MODELS, MAX_OUTPUT_TOKENS } from './config';
-import type { AiFeature } from '../rateLimit/aiRateLimitPolicy';
+import {
+  JsonSchema,
+  OutputCapError,
+  generateWithFallback,
+  isAiConfigured,
+  parseJsonAnswer,
+} from './client';
 import {
   ParsedItem,
   ParsedItemSchema,
@@ -19,10 +23,6 @@ import { CATEGORY_LIST } from '../constants/categories';
 // They are now plain server functions, called only from GraphQL resolvers
 // after the auth and rate-limit checks.
 // ---------------------------------------------------------------------------
-
-const ai = process.env.GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-  : null;
 
 const VOICE_PARSE_FAILED = "Couldn't understand that. Please try again.";
 const VOICE_BUSY = 'AI is busy right now. Please try again, or fill in the form yourself.';
@@ -44,37 +44,22 @@ Rules:
 - If unsure, respond with OTHER.`;
 }
 
-/**
- * Asks each model in GEMINI_MODELS in turn, moving on when one is overloaded, out
- * of quota, or over the time limit. Rejects with the last error if none answers.
- */
-async function generateWithFallback(
-  client: GoogleGenAI,
-  feature: AiFeature,
-  contents: string,
-  config: GenerateContentConfig = {},
-) {
-  let lastError: unknown;
-  for (const model of GEMINI_MODELS) {
-    try {
-      return await client.models.generateContent({
-        model,
-        contents,
-        config: {
-          ...config,
-          maxOutputTokens: MAX_OUTPUT_TOKENS[feature],
-          // Not httpOptions.timeout: that also sends the deadline to Gemini, which
-          // rejects anything under 10 s. This one is enforced on our side only.
-          abortSignal: AbortSignal.timeout(AI_ATTEMPT_TIMEOUT_MS[feature]),
-        },
-      });
-    } catch (error) {
-      console.error(`Gemini ${feature} call failed on ${model}:`, error);
-      lastError = error;
-    }
-  }
-  throw lastError;
-}
+// Answers are passed through as they are: a bad one is handled by the caller,
+// without paying for a second model.
+const asText = (text: string) => text;
+
+// Strict mode needs every field listed as required, so optional ones are nullable.
+const VOICE_ANSWER_SCHEMA: JsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['name', 'quantity', 'category', 'expiryDate'],
+  properties: {
+    name: { type: 'string' },
+    quantity: { type: ['number', 'null'] },
+    category: { type: ['string', 'null'] },
+    expiryDate: { type: ['string', 'null'] },
+  },
+};
 
 /**
  * Suggests a category for an item name, moving to the next model if one is
@@ -83,15 +68,16 @@ async function generateWithFallback(
  * replace the correct category of an item being edited.
  */
 export async function categorizeItemWithAI(name: string): Promise<string> {
-  if (!ai) {
-    console.warn('No GEMINI_API_KEY found, auto-categorize is unavailable.');
+  if (!isAiConfigured()) {
+    console.warn('No GROQ_API_KEY found, auto-categorize is unavailable.');
     throw new Error('Auto-categorize is not available right now. Please pick a category yourself.');
   }
 
   let answer: string | undefined;
   try {
-    const response = await generateWithFallback(ai, 'categorize', buildCategorizePrompt(name));
-    answer = response.text;
+    answer = await generateWithFallback('categorize', buildCategorizePrompt(name), {
+      parse: asText,
+    });
   } catch {
     throw new Error(CATEGORIZE_FAILED);
   }
@@ -129,44 +115,28 @@ export async function parseVoiceInputWithAI(
   transcript: string,
   today: string,
 ): Promise<ParsedItem> {
-  if (!ai) {
-    console.warn('No GEMINI_API_KEY found, voice input is unavailable.');
+  if (!isAiConfigured()) {
+    console.warn('No GROQ_API_KEY found, voice input is unavailable.');
     throw new Error('Voice input is not available right now.');
   }
 
-  let text: string | undefined;
+  let text: string;
   try {
-    // A cut-off answer is invalid JSON and falls through to VOICE_PARSE_FAILED below.
-    const response = await generateWithFallback(ai, 'voice', buildVoicePrompt(transcript, today), {
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          name: { type: Type.STRING },
-          quantity: { type: Type.NUMBER },
-          category: { type: Type.STRING },
-          expiryDate: { type: Type.STRING },
-        },
-        required: ['name'],
-      },
+    text = await generateWithFallback('voice', buildVoicePrompt(transcript, today), {
+      schema: VOICE_ANSWER_SCHEMA,
+      parse: asText,
     });
-    text = response.text?.trim();
-  } catch {
-    // Reaching this point says nothing about the user's speech: no model answered.
+  } catch (error) {
+    // A cut-off answer came from a model that did answer, just not usefully.
+    if (error instanceof OutputCapError) throw new Error(VOICE_PARSE_FAILED);
+    // Otherwise no model answered, which says nothing about the user's speech.
     throw new Error(VOICE_BUSY);
   }
 
-  if (!text) throw new Error(VOICE_PARSE_FAILED);
+  if (!text.trim()) throw new Error(VOICE_PARSE_FAILED);
 
   try {
-    // In case the model wraps the JSON in markdown despite instructions
-    const json = JSON.parse(
-      text
-        .replace(/^```json\s*/i, '')
-        .replace(/```$/, '')
-        .trim(),
-    );
-    const item = normalizeParsedItem(ParsedItemSchema.parse(json));
+    const item = normalizeParsedItem(ParsedItemSchema.parse(parseJsonAnswer(text)));
     if (!item.name) throw new Error('Parsed item has an empty name');
     return item;
   } catch (error) {

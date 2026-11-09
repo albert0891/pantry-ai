@@ -6,22 +6,26 @@ import {
   parseVoiceInputWithAI,
 } from '../itemAssistant';
 import { CATEGORY_LIST } from '../../constants/categories';
-import { GEMINI_MODELS } from '../config';
+import { AI_MODELS } from '../config';
+import { answer, httpError, modelsAsked, requestBodies } from './groqResponses';
 
-const [FIRST_MODEL, SECOND_MODEL] = GEMINI_MODELS;
+const [FIRST_MODEL, SECOND_MODEL] = AI_MODELS;
 
 // Only the network call is replaced; the fallback logic under test is real.
-const generateContent = vi.hoisted(() => {
-  process.env.GEMINI_API_KEY = 'test-key';
-  return vi.fn();
+const fetchMock = vi.fn();
+vi.stubGlobal('fetch', fetchMock);
+
+beforeEach(() => {
+  fetchMock.mockReset();
+  vi.stubEnv('GROQ_API_KEY', 'test-key');
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-vi.mock('@google/genai', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@google/genai')>()),
-  GoogleGenAI: class {
-    models = { generateContent };
-  },
-}));
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 describe('buildVoicePrompt', () => {
   it("anchors relative dates to the user's today, with its weekday", () => {
@@ -32,147 +36,128 @@ describe('buildVoicePrompt', () => {
 });
 
 describe('categorizeItemWithAI', () => {
-  const overloaded = new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}');
-  const modelsCalled = () => generateContent.mock.calls.map(([request]) => request.model);
-
-  beforeEach(() => {
-    generateContent.mockReset();
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.unstubAllEnvs();
-    vi.resetModules();
-  });
-
   it('uses only the first model when it answers', async () => {
-    generateContent.mockResolvedValueOnce({ text: 'PRODUCE' });
+    fetchMock.mockResolvedValueOnce(answer('PRODUCE'));
 
     await expect(categorizeItemWithAI('Bananas')).resolves.toBe('PRODUCE');
-    expect(modelsCalled()).toEqual([FIRST_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
   });
 
   it('moves past a model whose daily quota is used up', async () => {
-    const quotaUsedUp = new Error('{"error":{"code":429,"status":"RESOURCE_EXHAUSTED"}}');
-    generateContent
-      .mockRejectedValueOnce(overloaded)
-      .mockRejectedValueOnce(quotaUsedUp)
-      .mockResolvedValueOnce({ text: 'PRODUCE' });
+    fetchMock.mockResolvedValueOnce(httpError(429)).mockResolvedValueOnce(answer('PRODUCE'));
 
     await expect(categorizeItemWithAI('Bananas')).resolves.toBe('PRODUCE');
-    expect(modelsCalled()).toEqual(GEMINI_MODELS);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL, SECOND_MODEL]);
   });
 
   it('asks the next model when the first is overloaded', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce({ text: 'DAIRY' });
+    fetchMock.mockResolvedValueOnce(httpError(503)).mockResolvedValueOnce(answer('DAIRY'));
 
     await expect(categorizeItemWithAI('Whole Milk')).resolves.toBe('DAIRY');
-    expect(modelsCalled()).toEqual([FIRST_MODEL, SECOND_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL, SECOND_MODEL]);
   });
 
-  it('gives every attempt a time limit, so an overloaded model cannot hang the button', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce({ text: 'MEAT' });
+  it('gives every attempt a time limit, so a stuck request cannot hang the button', async () => {
+    fetchMock.mockResolvedValueOnce(httpError(503)).mockResolvedValueOnce(answer('MEAT'));
 
     await categorizeItemWithAI('Salmon');
 
-    for (const [request] of generateContent.mock.calls) {
-      expect(request.config.abortSignal).toBeInstanceOf(AbortSignal);
-      // Gemini answers 400 to any server-side deadline under 10 s (seen 2026-11-04).
-      expect(request.config.httpOptions?.timeout).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(init.signal).toBeInstanceOf(AbortSignal);
     }
   });
 
   // Returning OTHER here would replace the correct category of an item being edited.
   it('reports a failure instead of answering OTHER when every model fails', async () => {
-    generateContent.mockRejectedValue(overloaded);
+    fetchMock.mockImplementation(async () => httpError(503));
 
     await expect(categorizeItemWithAI('Bananas')).rejects.toThrow(/pick a category/i);
-    expect(modelsCalled()).toEqual(GEMINI_MODELS);
+    expect(modelsAsked(fetchMock)).toEqual(AI_MODELS);
   });
 
   it('never exposes the raw AI error to the user', async () => {
-    generateContent.mockRejectedValue(overloaded);
+    fetchMock.mockImplementation(async () => httpError(503));
 
-    await expect(categorizeItemWithAI('Bananas')).rejects.not.toThrow(/503|UNAVAILABLE/);
+    await expect(categorizeItemWithAI('Bananas')).rejects.not.toThrow(/503|unavailable/i);
   });
 
   it.each(['GARBAGE', 'Sure! That is produce.', ''])(
     'treats the unusable answer %j as OTHER, without paying for a second model',
     async (text) => {
-      generateContent.mockResolvedValueOnce({ text });
+      fetchMock.mockResolvedValueOnce(answer(text));
 
       await expect(categorizeItemWithAI('Bananas')).resolves.toBe('OTHER');
-      expect(modelsCalled()).toEqual([FIRST_MODEL]);
+      expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
     },
   );
 
   it('reports a failure when no API key is configured', async () => {
-    vi.stubEnv('GEMINI_API_KEY', '');
-    vi.resetModules();
-    const { categorizeItemWithAI: withoutKey } = await import('../itemAssistant');
+    vi.stubEnv('GROQ_API_KEY', '');
 
-    await expect(withoutKey('Bananas')).rejects.toThrow(/pick a category/i);
-    expect(generateContent).not.toHaveBeenCalled();
+    await expect(categorizeItemWithAI('Bananas')).rejects.toThrow(/pick a category/i);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
 describe('parseVoiceInputWithAI', () => {
-  const overloaded = new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}');
-  const modelsCalled = () => generateContent.mock.calls.map(([request]) => request.model);
   const parse = () => parseVoiceInputWithAI('two cartons of oat milk', '2026-11-04');
-  const OAT_MILK = { text: '{"name":"Oat Milk","quantity":2,"category":"BEVERAGE"}' };
-
-  beforeEach(() => {
-    generateContent.mockReset();
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  const OAT_MILK = '{"name":"Oat Milk","quantity":2,"category":"BEVERAGE","expiryDate":null}';
 
   it('uses only the first model when it answers', async () => {
-    generateContent.mockResolvedValueOnce(OAT_MILK);
+    fetchMock.mockResolvedValueOnce(answer(OAT_MILK));
 
     await expect(parse()).resolves.toMatchObject({ name: 'Oat Milk', quantity: 2 });
-    expect(modelsCalled()).toEqual([FIRST_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
   });
 
-  it('asks the next model when the first is overloaded', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce(OAT_MILK);
-
-    await expect(parse()).resolves.toMatchObject({ name: 'Oat Milk', category: 'BEVERAGE' });
-    expect(modelsCalled()).toEqual([FIRST_MODEL, SECOND_MODEL]);
-  });
-
-  it('gives every attempt a time limit that is enforced on our side only', async () => {
-    generateContent.mockRejectedValueOnce(overloaded).mockResolvedValueOnce(OAT_MILK);
+  it('asks for an answer in the shape of a strict schema', async () => {
+    fetchMock.mockResolvedValueOnce(answer(OAT_MILK));
 
     await parse();
 
-    expect(generateContent).toHaveBeenCalledTimes(2);
-    for (const [request] of generateContent.mock.calls) {
-      expect(request.config.abortSignal).toBeInstanceOf(AbortSignal);
-      expect(request.config.httpOptions?.timeout).toBeUndefined();
-    }
+    const { json_schema } = requestBodies(fetchMock)[0].response_format;
+    expect(json_schema.strict).toBe(true);
+    // Strict mode rejects a schema that leaves any property out of `required`.
+    expect(json_schema.schema.required).toEqual(Object.keys(json_schema.schema.properties));
   });
 
-  // "Couldn't understand that" would blame the user's speech for Gemini being down.
+  // The strict schema makes the model answer null for what it did not hear.
+  it('treats null fields as not mentioned, not as the text "null"', async () => {
+    fetchMock.mockResolvedValueOnce(
+      answer('{"name":"Milk","quantity":null,"category":null,"expiryDate":null}'),
+    );
+
+    await expect(parse()).resolves.toEqual({ name: 'Milk' });
+  });
+
+  it('asks the next model when the first is overloaded', async () => {
+    fetchMock.mockResolvedValueOnce(httpError(503)).mockResolvedValueOnce(answer(OAT_MILK));
+
+    await expect(parse()).resolves.toMatchObject({ name: 'Oat Milk', category: 'BEVERAGE' });
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL, SECOND_MODEL]);
+  });
+
+  // "Couldn't understand that" would blame the user's speech for the AI being down.
   it('says the AI is busy, not that it misheard, when every model fails', async () => {
-    generateContent.mockRejectedValue(overloaded);
+    fetchMock.mockImplementation(async () => httpError(503));
 
     await expect(parse()).rejects.toThrow(/busy/i);
-    await expect(parse()).rejects.not.toThrow(/understand|503|UNAVAILABLE/);
+    await expect(parse()).rejects.not.toThrow(/understand|503|unavailable/i);
   });
 
   it('reports a bad answer as not understood, without paying for a second model', async () => {
-    generateContent.mockResolvedValueOnce({ text: 'not json' });
+    fetchMock.mockResolvedValueOnce(answer('not json'));
 
     await expect(parse()).rejects.toThrow(/understand/i);
-    expect(modelsCalled()).toEqual([FIRST_MODEL]);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
+  });
+
+  it('reports a cut-off answer as not understood, without paying for a second model', async () => {
+    fetchMock.mockResolvedValueOnce(answer('{"name":"Oat', 'length'));
+
+    await expect(parse()).rejects.toThrow(/understand/i);
+    expect(modelsAsked(fetchMock)).toEqual([FIRST_MODEL]);
   });
 });
 
@@ -205,10 +190,11 @@ describe('category descriptions in AI prompts', () => {
   });
 
   it('is what auto-categorize actually sends', async () => {
-    generateContent.mockReset();
-    generateContent.mockResolvedValueOnce({ text: 'BEVERAGE' });
+    fetchMock.mockResolvedValueOnce(answer('BEVERAGE'));
 
     await expect(categorizeItemWithAI('Coffee Beans')).resolves.toBe('BEVERAGE');
-    expect(generateContent.mock.calls[0][0].contents).toBe(buildCategorizePrompt('Coffee Beans'));
+    expect(requestBodies(fetchMock)[0].messages[0].content).toBe(
+      buildCategorizePrompt('Coffee Beans'),
+    );
   });
 });

@@ -16,7 +16,6 @@
     "@apollo/server": "^5.4.0",
     "@as-integrations/next": "^4.1.0",
     "@base-ui/react": "^1.6.0",
-    "@google/genai": "^2.9.0",
     "@prisma/client": "^5.22.0",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.40.0",
