@@ -44,7 +44,6 @@ export function PantryItemCard({
   isSelected,
   onToggleSelection,
   onMove,
-  onUpdateState,
   onEdit,
   onDelete,
 }: PantryItemCardProps) {
