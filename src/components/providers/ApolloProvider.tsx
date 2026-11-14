@@ -26,7 +26,7 @@ const httpLink = new HttpLink({
 
 // 2. The Interceptor logic using SetContextLink (Modern Approach)
 // Note: SetContextLink takes (prevContext, operation) as opposed to the deprecated setContext function
-const authLink = new SetContextLink(async (prevContext, _operation) => {
+const authLink = new SetContextLink(async (prevContext) => {
   try {
     const isMockLoggedIn = localStorage.getItem('mock_logged_in');
     if (isMockLoggedIn) {
@@ -50,7 +50,7 @@ const authLink = new SetContextLink(async (prevContext, _operation) => {
         authorization: token ? `Bearer ${token}` : '',
       },
     };
-  } catch (_e) {
+  } catch {
     // If not logged in, just send standard headers
     return { headers: prevContext.headers };
   }

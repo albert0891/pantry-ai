@@ -403,3 +403,11 @@
   - 2026-11-13: removed the rest of the chain, which was still declared and passed down. That is the prop in `PantryItemCard` and `KanbanBoard`, and the `handleUpdateState` handler in `page.tsx`.
   - Kept the `updateItemState` mutation in `usePantry.ts` and the GraphQL API. They are part of the data layer and covered by the schema test, not part of the dead UI path.
   - Verified: lint (0 errors), `tsc --noEmit`, 172 tests. Not checked in the browser: only unused props were removed, so nothing on screen changes.
+
+## 2026-11-14
+
+### Completed:
+
+- `ParsedItemSchema` now trims the name before checking it is non-empty, like `ItemNameSchema` already did. A voice answer with a name of only spaces used to pass the schema and was caught only by an extra check in `parseVoiceInput`. Finished the half-written whitespace test that had been left as an unused variable, and added a trim test (red first, then green).
+- Lint now covers only project code. `.agents/**` (installed skills, managed by `npx skills`) is in the ESLint ignores; it produced 135 of the 140 warnings, which hid the project's own. Cleared the remaining 5: the unfinished test above, three unused `catch` bindings (now `catch {}`), and an unused `operation` parameter in the Apollo auth link. `npm run lint` now reports 0 warnings, so a new one stands out.
+- Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. Try Demo at 375px from a signed-out state: redirect to the board, both GraphQL requests 200, no console errors.

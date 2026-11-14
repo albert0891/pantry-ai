@@ -39,7 +39,7 @@ export default function LoginPage() {
       localStorage.setItem('mock_logged_in', 'true');
       localStorage.setItem('auth_token', 'demo_token');
       await refreshAuth();
-    } catch (err: unknown) {
+    } catch {
       setError('Failed to launch guest mode');
     } finally {
       setLoading(false);

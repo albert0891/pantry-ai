@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Failed to fetch user attributes', e);
         }
       }
-    } catch (_error) {
+    } catch {
       setUser(null);
       setUserEmail(null);
     } finally {
