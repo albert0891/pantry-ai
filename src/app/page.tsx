@@ -11,16 +11,7 @@ import { ItemFormDialog, ItemFormData } from '@/components/pantry/ItemFormDialog
 import { AIRecipeManager } from '@/components/pantry/AIRecipeManager';
 
 export default function DashboardPage() {
-  const {
-    items: rawItems,
-    loading,
-    error,
-    addItem,
-    editItem,
-    moveItem,
-    deleteItem,
-    updateItemState,
-  } = usePantry();
+  const { items: rawItems, loading, error, addItem, editItem, moveItem, deleteItem } = usePantry();
 
   // UI States
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,17 +80,6 @@ export default function DashboardPage() {
     [deleteItem],
   );
 
-  const handleUpdateState = useCallback(
-    async (id: string, targetState: string) => {
-      try {
-        await updateItemState({ variables: { id, newState: targetState } });
-      } catch (err) {
-        console.error('Failed to update item state', err);
-      }
-    },
-    [updateItemState],
-  );
-
   const toggleSelection = useCallback((id: string) => {
     setSelectedItemIds((prev) => {
       const newSet = new Set(prev);
@@ -137,7 +117,6 @@ export default function DashboardPage() {
           selectedItemIds={selectedItemIds}
           onToggleSelection={toggleSelection}
           onMove={handleMove}
-          onUpdateState={handleUpdateState}
           onEdit={handleOpenEditDialog}
           onDelete={handleDelete}
         />

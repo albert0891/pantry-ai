@@ -393,3 +393,13 @@
 
 - Add `GROQ_API_KEY` to the Vercel project's environment variables before deploying; the live site has no AI without it. `GEMINI_API_KEY` can be removed there afterwards.
 - Watch token use: a recipe costs about 2,000-2,500 tokens with thinking, so each model handles about 3 recipes a minute (8,000 tokens a minute). If every demo-wide daily limit were reached, the calls would need about 635,000 tokens, more than the two models get a day (200,000 each per Groq's rate-limit docs; the headers do not show a daily token limit), so the demo limits may need lowering if real traffic gets close.
+
+## 2026-11-10 to 2026-11-13
+
+### Completed:
+
+- Removed the unused `onUpdateState` prop chain. Nothing ever called it: moving items uses `onMove`.
+  - 2026-11-10 (`54a98d9`): `PantryItemCard` stopped destructuring the prop, which cleared its lint warning.
+  - 2026-11-13: removed the rest of the chain, which was still declared and passed down. That is the prop in `PantryItemCard` and `KanbanBoard`, and the `handleUpdateState` handler in `page.tsx`.
+  - Kept the `updateItemState` mutation in `usePantry.ts` and the GraphQL API. They are part of the data layer and covered by the schema test, not part of the dead UI path.
+  - Verified: lint (0 errors), `tsc --noEmit`, 172 tests. Not checked in the browser: only unused props were removed, so nothing on screen changes.

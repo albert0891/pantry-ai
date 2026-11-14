@@ -34,7 +34,6 @@ interface KanbanBoardProps {
   selectedItemIds: Set<string>;
   onToggleSelection: (id: string) => void;
   onMove: (id: string, amount: number, targetState: string) => void;
-  onUpdateState: (id: string, targetState: string) => void;
   onEdit: (item: PantryItem) => void;
   onDelete: (id: string) => void;
 }
@@ -44,7 +43,6 @@ export function KanbanBoard({
   selectedItemIds,
   onToggleSelection,
   onMove,
-  onUpdateState,
   onEdit,
   onDelete,
 }: KanbanBoardProps) {
@@ -203,7 +201,6 @@ export function KanbanBoard({
                         isSelected={selectedItemIds.has(item.id)}
                         onToggleSelection={onToggleSelection}
                         onMove={onMove}
-                        onUpdateState={onUpdateState}
                         onEdit={onEdit}
                         onDelete={onDelete}
                       />

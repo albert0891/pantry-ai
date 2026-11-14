@@ -31,7 +31,6 @@ interface PantryItemCardProps {
   isSelected: boolean;
   onToggleSelection: (id: string) => void;
   onMove: (id: string, amount: number, targetState: string) => void;
-  onUpdateState: (id: string, targetState: string) => void;
   onEdit: (item: PantryItem) => void;
   onDelete: (id: string) => void;
 }
