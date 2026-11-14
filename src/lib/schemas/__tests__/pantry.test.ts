@@ -39,16 +39,21 @@ describe('ParsedItemSchema', () => {
     const result = ParsedItemSchema.safeParse(missingName);
     expect(result.success).toBe(false);
 
-    const emptyName = {
-      name: '   ', // Will fail min(1) if stripped, but coerce string doesn't automatically trim. We might need to trim it in practice, but let's test strict empty string.
-    };
-    // Zod coerce string turns undefined to "undefined".
-    // Wait, let's test passing a literal empty string.
-    const emptyStringName = {
-      name: '',
-    };
-    const result2 = ParsedItemSchema.safeParse(emptyStringName);
+    const result2 = ParsedItemSchema.safeParse({ name: '' });
     expect(result2.success).toBe(false);
+  });
+
+  it('should fail if name is only whitespace', () => {
+    expect(ParsedItemSchema.safeParse({ name: '   ' }).success).toBe(false);
+    expect(ParsedItemSchema.safeParse({ name: '\n\t ' }).success).toBe(false);
+  });
+
+  it('should trim the name', () => {
+    const result = ParsedItemSchema.safeParse({ name: '  Fuji Apples  ' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.name).toBe('Fuji Apples');
+    }
   });
 
   it('should accept missing optional fields', () => {

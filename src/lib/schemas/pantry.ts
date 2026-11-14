@@ -22,7 +22,7 @@ export const ItemNameSchema = z
   .max(ITEM_NAME_MAX_LENGTH, ITEM_NAME_TOO_LONG);
 
 export const ParsedItemSchema = z.object({
-  name: z.coerce.string().min(1, 'Name is required'),
+  name: z.coerce.string().trim().min(1, 'Name is required'),
   quantity: z.coerce.number().positive().optional(),
   category: z.coerce.string().optional(),
   expiryDate: z.coerce.string().optional(),
