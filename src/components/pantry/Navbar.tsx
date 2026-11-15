@@ -169,14 +169,14 @@ export function Navbar({
           <Button
             variant="ghost"
             onClick={() => setIsGuideOpen(true)}
-            className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 p-0"
+            className="text-white/80 hover:bg-white/20 hover:text-white rounded-full h-11 w-11 -my-1 p-0"
             title="Guide"
           >
             <HelpCircle size={18} />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger
-              className="flex items-center justify-center text-white/80 hover:bg-white/20 hover:text-white rounded-full h-9 w-9 cursor-pointer outline-none"
+              className="flex items-center justify-center text-white/80 hover:bg-white/20 hover:text-white rounded-full h-11 w-11 -my-1 cursor-pointer outline-none"
               title="Profile"
             >
               <User size={18} />

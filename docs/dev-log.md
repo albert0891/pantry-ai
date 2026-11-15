@@ -411,3 +411,11 @@
 - `ParsedItemSchema` now trims the name before checking it is non-empty, like `ItemNameSchema` already did. A voice answer with a name of only spaces used to pass the schema and was caught only by an extra check in `parseVoiceInput`. Finished the half-written whitespace test that had been left as an unused variable, and added a trim test (red first, then green).
 - Lint now covers only project code. `.agents/**` (installed skills, managed by `npx skills`) is in the ESLint ignores; it produced 135 of the 140 warnings, which hid the project's own. Cleared the remaining 5: the unfinished test above, three unused `catch` bindings (now `catch {}`), and an unused `operation` parameter in the Apollo auth link. `npm run lint` now reports 0 warnings, so a new one stands out.
 - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. Try Demo at 375px from a signed-out state: redirect to the board, both GraphQL requests 200, no console errors.
+
+## 2026-11-15
+
+### Completed:
+
+- The mobile header's Guide and Profile buttons were 36x36px, below the 44x44px minimum in `DESIGN.md`. They sit in the top-right corner, the hardest spot to reach one-handed. Both are now 44px (`h-11 w-11`) with `-my-1`, so the tap area grows into the header padding and the header keeps its height (search field still at y=64).
+  - The buttons are round, and browsers clip clicks to the rounded shape, so the tap area is a 44px circle: every edge midpoint hits, the square corners do not.
+  - Verified at 320, 375 and 1280px with real clicks on the new edge area. The Guide dialog and Profile menu stay fully on screen, the title keeps 80px of space at 320px, no horizontal scroll, no console errors. The desktop header is unchanged.
