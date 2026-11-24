@@ -10,16 +10,16 @@ import React from 'react';
 // ---------------------------------------------------------------------------
 // Design Pattern Note: Interceptor Pattern & Provider Pattern
 //
-// 1. Interceptor (`authLink`): Just like an HTTP Interceptor in Angular,
-//    we intercept every outgoing GraphQL request. We ask AWS Amplify for the
-//    current user's JWT token and attach it to the `Authorization` header.
+// - Interceptor (`authLink`): Just like an HTTP Interceptor in Angular,
+//   we intercept every outgoing GraphQL request. We ask AWS Amplify for the
+//   current user's JWT token and attach it to the `Authorization` header.
 //
-// 2. Provider (`ApolloProvider`): Just like `AuthProvider`, this is the
-//    Provider Pattern. We wrap the app in this so any component can run a
-//    GraphQL query without needing to know *how* to connect to the API.
+// - Provider (`ApolloProvider`): Just like `AuthProvider`, this is the
+//   Provider Pattern. We wrap the app in this so any component can run a
+//   GraphQL query without needing to know *how* to connect to the API.
 // ---------------------------------------------------------------------------
 
-// 1. Point Apollo to our Next.js API route we built in Phase 3
+// 1. Point Apollo to our Next.js API route
 const httpLink = new HttpLink({
   uri: '/api/graphql',
 });
