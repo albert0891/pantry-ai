@@ -419,3 +419,11 @@
 - The mobile header's Guide and Profile buttons were 36x36px, below the 44x44px minimum in `DESIGN.md`. They sit in the top-right corner, the hardest spot to reach one-handed. Both are now 44px (`h-11 w-11`) with `-my-1`, so the tap area grows into the header padding and the header keeps its height (search field still at y=64).
   - The buttons are round, and browsers clip clicks to the rounded shape, so the tap area is a 44px circle: every edge midpoint hits, the square corners do not.
   - Verified at 320, 375 and 1280px with real clicks on the new edge area. The Guide dialog and Profile menu stay fully on screen, the title keeps 80px of space at 320px, no horizontal scroll, no console errors. The desktop header is unchanged.
+
+## 2026-11-24
+
+### Completed:
+
+- Gave four icon-only controls an accessible name, so a screen reader no longer announces them as just "button" or "checkbox": the card checkbox (`Select <item>`), the card menu (`More actions for <item>`), the expiry date X (`Clear expiry date`), and the round add button in the mobile bottom nav (`Add item`). The card labels include the item name because every card has the same two controls.
+  - The add button was missed when reading the code and found by listing unnamed buttons in the browser.
+  - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. Labels checked in the browser at 375 and 1280px. The add form and expiry X were tried at 375px (nothing saved) and the card menu at 320px. No horizontal scroll at 320, 375 or 1280px, no console errors.

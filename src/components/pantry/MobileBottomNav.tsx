@@ -28,6 +28,7 @@ export function MobileBottomNav({
 
       <button
         onClick={onOpenAddDialog}
+        aria-label="Add item"
         className="flex flex-col items-center justify-center p-3 -mt-6 bg-amber-700 rounded-full text-white shadow-md border-4 border-white active:scale-95 transition-transform"
       >
         <PlusCircle size={28} />

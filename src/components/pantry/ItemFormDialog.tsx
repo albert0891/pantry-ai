@@ -371,6 +371,7 @@ export function ItemFormDialog({
                   <button
                     type="button"
                     onClick={() => setExpiryDate('')}
+                    aria-label="Clear expiry date"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors"
                   >
                     <X className="h-4 w-4" />

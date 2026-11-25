@@ -77,6 +77,7 @@ export function PantryItemCard({
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggleSelection(item.id)}
+            aria-label={`Select ${item.name}`}
             className="mt-1 w-5 h-5 border-2 border-stone-300 data-[state=checked]:bg-amber-700 data-[state=checked]:border-amber-700 rounded-md transition-colors cursor-pointer bg-white"
           />
           <div>
@@ -153,7 +154,10 @@ export function PantryItemCard({
 
         <div className="flex gap-1">
           <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium h-8 w-8 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-full transition-colors outline-none">
+            <DropdownMenuTrigger
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium h-8 w-8 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-full transition-colors outline-none"
+              aria-label={`More actions for ${item.name}`}
+            >
               <MoreHorizontal size={16} />
             </DropdownMenuTrigger>
             <DropdownMenuContent
