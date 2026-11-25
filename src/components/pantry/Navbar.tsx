@@ -52,6 +52,7 @@ function SearchField({ value, onChange, className }: SearchFieldProps) {
       <Input
         ref={inputRef}
         type="text"
+        aria-label="Search items"
         placeholder="Search items..."
         className="w-full pl-9 pr-10 bg-white text-stone-900 border-none placeholder:text-stone-400 focus-visible:ring-2 focus-visible:ring-amber-300 rounded-full"
         value={value}

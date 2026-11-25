@@ -427,3 +427,10 @@
 - Gave four icon-only controls an accessible name, so a screen reader no longer announces them as just "button" or "checkbox": the card checkbox (`Select <item>`), the card menu (`More actions for <item>`), the expiry date X (`Clear expiry date`), and the round add button in the mobile bottom nav (`Add item`). The card labels include the item name because every card has the same two controls.
   - The add button was missed when reading the code and found by listing unnamed buttons in the browser.
   - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. Labels checked in the browser at 375 and 1280px. The add form and expiry X were tried at 375px (nothing saved) and the card menu at 320px. No horizontal scroll at 320, 375 or 1280px, no console errors.
+
+## 2026-11-25
+
+### Completed:
+
+- The search field now has an accessible name (`aria-label="Search items"`). It only had a placeholder, which is a hint rather than a label and disappears once the user types. No visual change.
+  - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the visible field carries the name at 320, 375 and 1280px with no horizontal scroll. Typing and Clear were tried at 375px. Not tested with a real screen reader. The console showed only the dev server's hot-reload socket failing to connect.
