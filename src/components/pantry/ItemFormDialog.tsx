@@ -276,7 +276,10 @@ export function ItemFormDialog({
               </Label>
               <div className="min-w-0">
                 <Select value={boardState} onValueChange={(val) => setBoardState(val || 'TO_BUY')}>
-                  <SelectTrigger className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800">
+                  <SelectTrigger
+                    id="boardState"
+                    className="w-full h-10 bg-white border-stone-200 shadow-sm focus-visible:ring-amber-400 rounded-xl text-stone-800"
+                  >
                     <SelectValue placeholder="Select target board">
                       {BOARD_STATE_LABELS[boardState as keyof typeof BOARD_STATE_LABELS]}
                     </SelectValue>

@@ -434,3 +434,10 @@
 
 - The search field now has an accessible name (`aria-label="Search items"`). It only had a placeholder, which is a hint rather than a label and disappears once the user types. No visual change.
   - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the visible field carries the name at 320, 375 and 1280px with no horizontal scroll. Typing and Clear were tried at 375px. Not tested with a real screen reader. The console showed only the dev server's hot-reload socket failing to connect.
+
+## 2026-11-26
+
+### Completed:
+
+- Connected the item form's "Target" label to its select. The label had `htmlFor="boardState"`, but no element had that id, so the select had no accessible name and clicking the label did nothing. The select trigger now has `id="boardState"`, the same way "Category" was already wired.
+  - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the select is named "Target" at 320, 375 and 1280px with no horizontal scroll. At 320px clicking the label opens the list, which stays inside the viewport. Nothing was saved. Not tested with a real screen reader.
