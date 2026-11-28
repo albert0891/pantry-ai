@@ -441,3 +441,10 @@
 
 - Connected the item form's "Target" label to its select. The label had `htmlFor="boardState"`, but no element had that id, so the select had no accessible name and clicking the label did nothing. The select trigger now has `id="boardState"`, the same way "Category" was already wired.
   - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the select is named "Target" at 320, 375 and 1280px with no horizontal scroll. At 320px clicking the label opens the list, which stays inside the viewport. Nothing was saved. Not tested with a real screen reader.
+
+## 2026-11-27
+
+### Completed:
+
+- Added `autoComplete` hints to the sign-in, sign-up and verification forms, so password managers and phone keyboards know what each field is: `email` for the email fields, `current-password` when signing in, `new-password` for both sign-up password fields, and `one-time-code` with `inputMode="numeric"` for the verification code (number keypad on phones). No visual change.
+  - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the sign-in and sign-up fields carry the new values, with no horizontal scroll at 320, 375 and 1280px. Nothing was submitted. The verification form was not opened, because reaching it needs a real sign-up.

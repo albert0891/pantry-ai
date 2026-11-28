@@ -199,6 +199,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="email"
+                    autoComplete="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
@@ -213,6 +214,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="password"
+                    autoComplete="current-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -249,6 +251,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="signup-email"
+                    autoComplete="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
@@ -263,6 +266,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="signup-password"
+                    autoComplete="new-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -276,6 +280,7 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="confirm-password"
+                    autoComplete="new-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -301,6 +306,8 @@ export default function LoginPage() {
                   </Label>
                   <Input
                     id="code"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     type="text"
                     placeholder="123456"
                     value={code}
