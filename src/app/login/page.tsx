@@ -19,6 +19,12 @@ import { Label } from '@/components/ui/label';
 
 type AuthMode = 'SIGN_IN' | 'SIGN_UP' | 'CONFIRM_SIGN_UP';
 
+const AUTH_MODE_COPY: Record<AuthMode, { title: string; description: string }> = {
+  SIGN_IN: { title: 'Pantry AI', description: 'Sign in to access your smart pantry' },
+  SIGN_UP: { title: 'Create Account', description: 'Join us and start tracking your food' },
+  CONFIRM_SIGN_UP: { title: 'Verify Email', description: 'Enter the code sent to your email' },
+};
+
 export default function LoginPage() {
   const { refreshAuth } = useAuth();
 
@@ -164,18 +170,10 @@ export default function LoginPage() {
               />
             </div>
             <CardTitle className="text-2xl font-bold tracking-tight text-stone-800">
-              {mode === 'SIGN_IN'
-                ? 'Pantry AI'
-                : mode === 'SIGN_UP'
-                  ? 'Create Account'
-                  : 'Verify Email'}
+              {AUTH_MODE_COPY[mode].title}
             </CardTitle>
             <CardDescription className="text-stone-500 font-medium">
-              {mode === 'SIGN_IN'
-                ? 'Sign in to access your smart pantry'
-                : mode === 'SIGN_UP'
-                  ? 'Join us and start tracking your food'
-                  : 'Enter the code sent to your email'}
+              {AUTH_MODE_COPY[mode].description}
             </CardDescription>
           </CardHeader>
 

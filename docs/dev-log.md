@@ -448,3 +448,10 @@
 
 - Added `autoComplete` hints to the sign-in, sign-up and verification forms, so password managers and phone keyboards know what each field is: `email` for the email fields, `current-password` when signing in, `new-password` for both sign-up password fields, and `one-time-code` with `inputMode="numeric"` for the verification code (number keypad on phones). No visual change.
   - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the sign-in and sign-up fields carry the new values, with no horizontal scroll at 320, 375 and 1280px. Nothing was submitted. The verification form was not opened, because reaching it needs a real sign-up.
+
+## 2026-11-28
+
+### Completed:
+
+- The login page heading and subheading no longer pick their text with nested ternaries inside JSX (against the "No JSX hardcoding" rule in `CLAUDE.md`). The text for each mode now lives in `AUTH_MODE_COPY`, a `Record<AuthMode, { title, description }>` above the component, and the JSX reads `AUTH_MODE_COPY[mode].title`. Because the record is keyed by `AuthMode`, TypeScript fails the build if a new mode is added without its text. Same text on screen.
+  - Verified: lint (0 warnings), `tsc --noEmit`, 174 tests. In the browser the sign-in and sign-up headings match the old text, with no horizontal scroll at 320, 375 and 1280px. The verification heading was not opened, because reaching it needs a real sign-up. The footer link still uses a ternary; it renders different elements per mode, so it was left alone.
